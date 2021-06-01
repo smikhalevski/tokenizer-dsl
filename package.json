@@ -1,0 +1,42 @@
+{
+  "name": "tokenizer-dsl",
+  "version": "1.0.0",
+  "description": "DSL for taker-based string tokenizers",
+  "main": "./lib/index-cjs.js",
+  "module": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "files": [
+    "lib",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "set -e; tsc; npm run rollup; npm run terser",
+    "rollup": "rollup --input ./lib/index.js --file ./lib/index-cjs.js --format cjs",
+    "terser": "terser --compress --mangle toplevel --output ./lib/index-cjs.js -- ./lib/index-cjs.js",
+    "clean": "rm -rf ./lib",
+    "test": "jest --detectOpenHandles"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smikhalevski/tokenizer-dsl.git"
+  },
+  "keywords": [
+    "tokenizer",
+    "parser",
+    "string"
+  ],
+  "author": "Savva Mikhalevski <smikhalevski@gmail.com>",
+  "license": "MIT",
+  "jest": {
+    "preset": "ts-jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.23",
+    "jest": "^27.0.2",
+    "rollup": "^2.50.5",
+    "terser": "^5.7.0",
+    "ts-jest": "^27.0.2",
+    "typescript": "^4.3.2"
+  },
+  "dependencies": {}
+}
