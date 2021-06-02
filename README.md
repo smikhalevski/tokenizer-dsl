@@ -1,15 +1,17 @@
-# tokenizer-dsl
+# tokenizer-dsl [![Build Status](https://travis-ci.com/smikhalevski/tokenizer-dsl.svg?branch=main)](https://travis-ci.com/smikhalevski/tokenizer-dsl)
 
-DSL for taker-based string tokenizers.
+DSL for building streaming tokenizers.
 
 Example below shows how to assemble takers to create tokenizer for numbers:
 
 ```ts
+import {allCharBy, char, charBy, maybe, or, seq} from 'tokenizer-dsl';
+
 const takeZero = char(48 /*0*/);
 
 const takeLeadingDigit = charBy((charCode) => charCode >= 49 /*1*/ || charCode <= 57 /*9*/);
 
-const takeDigit = charBy((charCode) => charCode >= 48 /*0*/ || charCode <= 57 /*9*/);
+const takeDigits = allCharBy((charCode) => charCode >= 48 /*0*/ || charCode <= 57 /*9*/);
 
 const takeDot = char(46 /*.*/);
 
@@ -25,7 +27,7 @@ const takeNumber = seq(
         takeZero,
         seq(
             takeLeadingDigit,
-            all(takeDigit),
+            takeDigits,
         ),
     ),
 
@@ -33,13 +35,14 @@ const takeNumber = seq(
     maybe(
         seq(
             takeDot,
-            maybe(all(takeDigit)),
+            maybe(takeDigits),
         ),
     ),
 );
 ```
 
-To read the number from string:
+To get the offset at which the number ends in the string call `takeNumber` and provide an `input` string, and
+an `offset` from which the reading should be started:
 
 ```ts
 takeNumber(/*input*/ '0', /*offset*/ 0); // → 1
@@ -56,7 +59,7 @@ takeNumber(/*input*/ 'aaa123bbb', /*offset*/ 3);
   // → 6, because valid number starts at offset 3 and ends at 6
 ```
 
-If string doesn't contain the number at offset then `ResultCode.NO_MATCH === -1` is returned:
+If `input` string doesn't contain a valid number at an `offset` then `ResultCode.NO_MATCH === -1` is returned:
 
 ```ts
 takeNumber(/*input*/ 'aaa', /*offset*/ 0); // → -1

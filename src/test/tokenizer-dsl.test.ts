@@ -229,7 +229,7 @@ describe('docs', () => {
 
     const takeLeadingDigit = charBy((charCode) => charCode >= 49 /*1*/ || charCode <= 57 /*9*/);
 
-    const takeDigit = charBy((charCode) => charCode >= 48 /*0*/ || charCode <= 57 /*9*/);
+    const takeDigits = allCharBy((charCode) => charCode >= 48 /*0*/ || charCode <= 57 /*9*/);
 
     const takeDot = char(46 /*.*/);
 
@@ -244,7 +244,7 @@ describe('docs', () => {
             takeZero,
             seq(
                 takeLeadingDigit,
-                all(takeDigit),
+                takeDigits,
             ),
         ),
 
@@ -252,7 +252,7 @@ describe('docs', () => {
         maybe(
             seq(
                 takeDot,
-                maybe(all(takeDigit)),
+                maybe(takeDigits),
             ),
         ),
     );
