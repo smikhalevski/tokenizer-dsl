@@ -23,8 +23,9 @@ export const enum ResultCode {
 /**
  * Creates a taker that takes a single char that matches the code.
  */
-export function char(charCode: number): Taker {
-  return (input, offset) => input.charCodeAt(offset) === charCode ? offset + 1 : ResultCode.NO_MATCH;
+export function char(char: number | string): Taker {
+  char = typeof char === 'string' ? char.charAt(0) : char;
+  return (input, offset) => input.charCodeAt(offset) === char ? offset + 1 : ResultCode.NO_MATCH;
 }
 
 /**
