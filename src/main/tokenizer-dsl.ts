@@ -122,12 +122,16 @@ export function maybe(taker: Taker): Taker {
  * Creates taker that repeatedly takes chars that `taker` takes.
  *
  * @param taker The taker that takes chars.
+ * @param [minCount = 0] The minimum number of matches to consider success.
+ * @param [maxCount = Infinity] The maximum number of matches to read
  */
-export function all(taker: Taker): Taker {
+export function all(taker: Taker, minCount = 0, maxCount = Infinity): Taker {
   return (input, offset) => {
     const charCount = input.length;
 
-    while (offset < charCount) {
+    let count = 0;
+
+    while (offset < charCount && count < maxCount) {
       const result = taker(input, offset);
 
       if (result === ResultCode.NO_MATCH || result === offset) {
@@ -137,6 +141,10 @@ export function all(taker: Taker): Taker {
         return result;
       }
       offset = result;
+      count++;
+    }
+    if (count < minCount) {
+      return ResultCode.NO_MATCH;
     }
     return offset;
   };
@@ -144,15 +152,23 @@ export function all(taker: Taker): Taker {
 
 /**
  * Performance optimization for `all(charBy(…))` composition.
+ *
+ * @param charCodeChecker The checker that tests the chars from the string.
+ * @param [minCount = 0] The minimum number of chars to consider success.
+ * @param [maxCount = Infinity] The maximum number of chars to read.
  */
-export function allCharBy(charCodeChecker: CharCodeChecker): Taker {
+export function allCharBy(charCodeChecker: CharCodeChecker, minCount = 0, maxCount = Infinity): Taker {
   return (input, offset) => {
-    const charCount = input.length;
+    const charCount = Math.min(input.length, offset + maxCount);
 
-    while (offset < charCount && charCodeChecker(input.charCodeAt(offset))) {
-      offset++;
+    let i = offset;
+    while (i < charCount && charCodeChecker(input.charCodeAt(i))) {
+      i++;
     }
-    return offset;
+    if (i - offset < minCount) {
+      return ResultCode.NO_MATCH;
+    }
+    return i;
   };
 }
 

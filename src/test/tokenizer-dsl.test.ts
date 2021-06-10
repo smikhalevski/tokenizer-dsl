@@ -177,6 +177,44 @@ describe('all', () => {
     expect(all(takerMock)('aabbcc', 2)).toBe(ResultCode.ERROR);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
+
+  it('return ResultCode.NO_MATCH if minimum matches was not reached', () => {
+    const takerMock = jest.fn();
+    takerMock.mockReturnValueOnce(1);
+
+    expect(all(takerMock, 2)('a', 0)).toBe(ResultCode.NO_MATCH);
+    expect(takerMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('return offset if minimum was reached', () => {
+    const takerMock = jest.fn();
+    takerMock.mockReturnValueOnce(1);
+    takerMock.mockReturnValueOnce(2);
+    takerMock.mockReturnValueOnce(3);
+
+    expect(all(takerMock, 2)('aaa', 0)).toBe(3);
+    expect(takerMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('limits maximum read char count', () => {
+    const takerMock = jest.fn();
+    takerMock.mockReturnValueOnce(1);
+    takerMock.mockReturnValueOnce(2);
+    takerMock.mockReturnValueOnce(3);
+
+    expect(all(takerMock, 0, 2)('aaa', 0)).toBe(2);
+    expect(takerMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('maximum does not affect the minimum', () => {
+    const takerMock = jest.fn();
+    takerMock.mockReturnValueOnce(1);
+    takerMock.mockReturnValueOnce(2);
+    takerMock.mockReturnValueOnce(3);
+
+    expect(all(takerMock, 0, 2)('a', 0)).toBe(1);
+    expect(takerMock).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('allCharBy', () => {
@@ -187,6 +225,16 @@ describe('allCharBy', () => {
 
   it('returns current offset if no chars matched', () => {
     expect(allCharBy(() => false)('aabbcc', 2)).toBe(2);
+  });
+
+  it('limits minimum read char count', () => {
+    expect(allCharBy(() => true, 2)('aaa', 0)).toBe(3);
+    expect(allCharBy(() => true, 2)('a', 0)).toBe(ResultCode.NO_MATCH);
+  });
+
+  it('limits maximum read char count', () => {
+    expect(allCharBy(() => true, 0, 2)('a', 0)).toBe(1);
+    expect(allCharBy(() => true, 0, 2)('aaa', 0)).toBe(2);
   });
 });
 
