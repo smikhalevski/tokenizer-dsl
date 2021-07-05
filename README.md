@@ -1,4 +1,4 @@
-# tokenizer-dsl [![Build Status](https://travis-ci.com/smikhalevski/tokenizer-dsl.svg?branch=main)](https://travis-ci.com/smikhalevski/tokenizer-dsl)
+# tokenizer-dsl [![build](https://github.com/smikhalevski/tokenizer-dsl/actions/workflows/master.yml/badge.svg?branch=master&event=push)](https://github.com/smikhalevski/tokenizer-dsl/actions/workflows/master.yml)
 
 DSL for building streaming tokenizers.
 
