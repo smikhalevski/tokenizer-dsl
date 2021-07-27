@@ -2,6 +2,8 @@
 
 DSL for building streaming tokenizers.
 
+⚠️ [API documentation is available here.](https://smikhalevski.github.io/tokenizer-dsl/)
+
 Example below shows how to assemble takers to create tokenizer for numbers:
 
 ```ts
