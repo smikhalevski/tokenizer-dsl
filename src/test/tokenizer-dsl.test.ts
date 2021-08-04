@@ -1,16 +1,4 @@
-import {
-  all,
-  allCharBy,
-  char,
-  charBy,
-  maybe,
-  or,
-  ResultCode,
-  seq,
-  text,
-  untilCharBy,
-  untilText,
-} from '../main/tokenizer-dsl';
+import {all, allCharBy, char, charBy, maybe, or, ResultCode, seq, text, untilCharBy, untilText} from '../main';
 
 const A = 'a'.charCodeAt(0);
 const B = 'b'.charCodeAt(0);
@@ -50,8 +38,8 @@ describe('text', () => {
   });
 
   it('reads case-insensitive substr at offset', () => {
-    expect(text('AB', true)('aaabbb', 2)).toBe(4);
-    expect(text('BB', true)('aaabbb', 4)).toBe(6);
+    expect(text('AB', {caseInsensitive: true})('aaabbb', 2)).toBe(4);
+    expect(text('BB', {caseInsensitive: true})('aaabbb', 4)).toBe(6);
   });
 
   it('does not read if substring is not matched', () => {
@@ -63,32 +51,32 @@ describe('text', () => {
 describe('untilText', () => {
 
   it('reads chars until substr is met', () => {
-    expect(untilText('b', false, false)('aaabbb', 0)).toBe(3);
+    expect(untilText('b')('aaabbb', 0)).toBe(3);
   });
 
   it('reads chars until end of string if substr is not met', () => {
-    expect(untilText('c', false, true)('aaabbb', 0)).toBe(6);
-    expect(untilText('c', true, true)('aaabbb', 0)).toBe(7);
+    expect(untilText('c', {openEnded: true})('aaabbb', 0)).toBe(6);
+    expect(untilText('c', {inclusive: true, openEnded: true})('aaabbb', 0)).toBe(7);
   });
 
   it('reads chars including substr', () => {
-    expect(untilText('b', true, false)('aaabbb', 0)).toBe(4);
+    expect(untilText('b', {inclusive: true})('aaabbb', 0)).toBe(4);
   });
 });
 
 describe('untilCharBy', () => {
 
   it('reads chars until substr is met', () => {
-    expect(untilCharBy((charCode) => charCode === B, false, false)('aaabbb', 0)).toBe(3);
+    expect(untilCharBy((charCode) => charCode === B)('aaabbb', 0)).toBe(3);
   });
 
   it('reads chars until end of string if substr is not met', () => {
-    expect(untilCharBy(() => false, false, true)('aaabbb', 0)).toBe(6);
-    expect(untilCharBy(() => false, true, true)('aaabbb', 0)).toBe(7);
+    expect(untilCharBy(() => false, {openEnded: true})('aaabbb', 0)).toBe(6);
+    expect(untilCharBy(() => false, {inclusive: true, openEnded: true})('aaabbb', 0)).toBe(7);
   });
 
   it('reads chars including substr', () => {
-    expect(untilCharBy((charCode) => charCode === B, true, false)('aaabbb', 0)).toBe(4);
+    expect(untilCharBy((charCode) => charCode === B, {inclusive: true})('aaabbb', 0)).toBe(4);
   });
 });
 
@@ -182,7 +170,7 @@ describe('all', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(1);
 
-    expect(all(takerMock, 2)('a', 0)).toBe(ResultCode.NO_MATCH);
+    expect(all(takerMock, {minimumCount: 2})('a', 0)).toBe(ResultCode.NO_MATCH);
     expect(takerMock).toHaveBeenCalledTimes(1);
   });
 
@@ -192,7 +180,7 @@ describe('all', () => {
     takerMock.mockReturnValueOnce(2);
     takerMock.mockReturnValueOnce(3);
 
-    expect(all(takerMock, 2)('aaa', 0)).toBe(3);
+    expect(all(takerMock, {minimumCount: 2})('aaa', 0)).toBe(3);
     expect(takerMock).toHaveBeenCalledTimes(3);
   });
 
@@ -202,7 +190,7 @@ describe('all', () => {
     takerMock.mockReturnValueOnce(2);
     takerMock.mockReturnValueOnce(3);
 
-    expect(all(takerMock, 0, 2)('aaa', 0)).toBe(2);
+    expect(all(takerMock, {maximumCount: 2})('aaa', 0)).toBe(2);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -212,7 +200,7 @@ describe('all', () => {
     takerMock.mockReturnValueOnce(2);
     takerMock.mockReturnValueOnce(3);
 
-    expect(all(takerMock, 0, 2)('a', 0)).toBe(1);
+    expect(all(takerMock, {maximumCount: 2})('a', 0)).toBe(1);
     expect(takerMock).toHaveBeenCalledTimes(1);
   });
 });
@@ -228,13 +216,13 @@ describe('allCharBy', () => {
   });
 
   it('limits minimum read char count', () => {
-    expect(allCharBy(() => true, 2)('aaa', 0)).toBe(3);
-    expect(allCharBy(() => true, 2)('a', 0)).toBe(ResultCode.NO_MATCH);
+    expect(allCharBy(() => true, {minimumCount: 2})('aaa', 0)).toBe(3);
+    expect(allCharBy(() => true, {minimumCount: 2})('a', 0)).toBe(ResultCode.NO_MATCH);
   });
 
   it('limits maximum read char count', () => {
-    expect(allCharBy(() => true, 0, 2)('a', 0)).toBe(1);
-    expect(allCharBy(() => true, 0, 2)('aaa', 0)).toBe(2);
+    expect(allCharBy(() => true, {maximumCount: 2})('a', 0)).toBe(1);
+    expect(allCharBy(() => true, {maximumCount: 2})('aaa', 0)).toBe(2);
   });
 });
 
