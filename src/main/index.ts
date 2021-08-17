@@ -1,2 +1,2 @@
 export * from './dsl';
-export * from './ResultCode';
+export * from './types';

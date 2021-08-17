@@ -1,6 +1,6 @@
-import {CharCodeChecker, Taker} from '../types';
-import {ResultCode} from '../ResultCode';
-import {charBy} from './char';
+import {Taker} from '../types';
+import {ResultCode, takeNoMatch, takeNone} from './taker-utils';
+import {isNode, NodeProperty, NodeType} from './node-utils';
 
 export interface IAllOptions {
 
@@ -14,67 +14,59 @@ export interface IAllOptions {
   /**
    * The maximum number of matches to read.
    *
-   * @default -1
+   * @default Infinity
    */
   maximumCount?: number;
 }
 
 /**
- * Creates taker that repeatedly takes chars that `taker` takes.
+ * Creates taker that repeatedly takes chars using `taker`.
  *
  * @param taker The taker that takes chars.
  * @param options Taker options.
  */
 export function all(taker: Taker, options: IAllOptions = {}): Taker {
-  const {minimumCount = 0, maximumCount = -1} = options;
+  const {minimumCount = 0, maximumCount = Infinity} = options;
 
-  if (taker.__factory?.[0] === charBy) {
-    return allCharBy(taker.__factory[1], options);
+  if (minimumCount > maximumCount) {
+    return takeNoMatch;
+  }
+  if (maximumCount === 0) {
+    return takeNone;
+  }
+
+  if (isNode(taker, NodeType.CHAR_CODE_CHECKER)) {
+    const charCodeChecker = taker[NodeProperty.VALUE];
+
+    return (input, offset) => {
+      const maximumOffset = offset + maximumCount;
+      let i = offset;
+      while (charCodeChecker(input.charCodeAt(i)) && i < maximumOffset) {
+        ++i;
+      }
+      if (i - offset < minimumCount) {
+        return ResultCode.NO_MATCH;
+      }
+      return i;
+    };
   }
 
   return (input, offset) => {
-    const charCount = input.length;
+    let takeCount = 0;
+    let result = offset;
+    let i;
 
-    let count = 0;
+    do {
+      i = result;
+      result = taker(input, i);
+    } while (result > i && ++takeCount < maximumCount);
 
-    while (offset < charCount && (maximumCount < 0 || count < maximumCount)) {
-      const result = taker(input, offset);
-
-      if (result === ResultCode.NO_MATCH || result === offset) {
-        break;
-      }
-      if (result < ResultCode.NO_MATCH) {
-        return result;
-      }
-      offset = result;
-      ++count;
-    }
-    if (count < minimumCount) {
+    if (takeCount < minimumCount) {
       return ResultCode.NO_MATCH;
     }
-    return offset;
-  };
-}
-
-/**
- * Performance optimization for `all(charBy(…))` composition.
- *
- * @param charCodeChecker The checker that tests the chars from the string.
- * @param options Taker options.
- */
-export function allCharBy(charCodeChecker: CharCodeChecker, options: IAllOptions = {}): Taker {
-  const {minimumCount = 0, maximumCount = -1} = options;
-
-  return (input, offset) => {
-    const charCount = maximumCount < 0 ? input.length : Math.min(input.length, offset + maximumCount);
-
-    let i = offset;
-    while (i < charCount && charCodeChecker(input.charCodeAt(i))) {
-      ++i;
+    if (result === ResultCode.NO_MATCH) {
+      return i;
     }
-    if (i - offset < minimumCount) {
-      return ResultCode.NO_MATCH;
-    }
-    return i;
+    return result;
   };
 }

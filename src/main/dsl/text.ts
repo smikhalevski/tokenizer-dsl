@@ -1,63 +1,68 @@
 import {Taker} from '../types';
-import {ResultCode} from '../ResultCode';
+import {char} from './char';
+import {ResultCode, takeNone, toCharCodes} from './taker-utils';
+import {createNode, NodeType} from './node-utils';
 
 export interface ITextOptions {
 
   /**
-   * If set to `true` then string comparison is case insensitive.
+   * If set to `false` then string comparison is case insensitive.
    *
-   * @default false
+   * @default true
    */
-  caseInsensitive?: boolean;
+  caseSensitive?: boolean;
 }
 
 /**
- * Creates a taker that takes the text.
+ * Creates taker that reads a substring from the input.
  *
- * @param text The text to match.
+ * @param str The text to match.
  * @param options Taker options.
+ * @see {@link char}
  */
-export function text(text: string, options?: ITextOptions): Taker {
-  return options?.caseInsensitive ? textCaseInsensitive(text) : textCaseSensitive(text);
-}
+export function text(str: string, options: ITextOptions = {}): Taker {
+  const {caseSensitive = true} = options;
 
-function textCaseSensitive(text: string): Taker {
-  const charCount = text.length;
-  const charCodes = toCharCodes(text);
+  const strLength = str.length;
 
-  return (input, offset) => {
-    for (let i = 0; i < charCount; ++i) {
-      if (input.charCodeAt(i + offset) !== charCodes[i]) {
+  if (strLength === 0) {
+    return takeNone;
+  }
+
+  const lowerStr = str.toLowerCase();
+  const upperStr = str.toUpperCase();
+
+  if (caseSensitive || lowerStr === upperStr) {
+
+    const charCodes = toCharCodes(str);
+
+    if (strLength === 1) {
+      return char(charCodes[0]);
+    }
+
+    return createNode(NodeType.TEXT_CASE_SENSITIVE, str, (input, offset) => {
+      for (let i = 0; i < strLength; ++i) {
+        if (input.charCodeAt(i + offset) === charCodes[i]) {
+          continue;
+        }
         return ResultCode.NO_MATCH;
       }
-    }
-    return offset + charCount;
-  };
-}
+      return offset + strLength;
+    });
+  }
 
-function textCaseInsensitive(text: string): Taker {
-  const charCount = text.length;
+  const lowerCharCodes = toCharCodes(lowerStr);
+  const upperCharCodes = toCharCodes(upperStr);
 
-  const lowerCharCodes = toCharCodes(text.toLowerCase());
-  const upperCharCodes = toCharCodes(text.toUpperCase());
-
-  return (input, offset) => {
-    for (let i = 0; i < charCount; ++i) {
+  return createNode(NodeType.TEXT_CASE_INSENSITIVE, str, (input, offset) => {
+    for (let i = 0; i < strLength; ++i) {
       const charCode = input.charCodeAt(i + offset);
 
-      if (charCode !== lowerCharCodes[i] && charCode !== upperCharCodes[i]) {
-        return ResultCode.NO_MATCH;
+      if (charCode === lowerCharCodes[i] || charCode === upperCharCodes[i]) {
+        continue;
       }
+      return ResultCode.NO_MATCH;
     }
-    return offset + charCount;
-  };
-}
-
-function toCharCodes(str: string): Array<number> {
-  const charCodes: Array<number> = [];
-
-  for (let i = 0; i < str.length; ++i) {
-    charCodes.push(str.charCodeAt(i));
-  }
-  return charCodes;
+    return offset + strLength;
+  });
 }

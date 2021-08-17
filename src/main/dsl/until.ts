@@ -1,78 +1,72 @@
-import {CharCodeChecker, Taker} from '../types';
-import {ResultCode} from '../ResultCode';
+import {Taker} from '../types';
+import {ResultCode} from './taker-utils';
+import {isNode, NodeProperty, NodeType} from './node-utils';
 
-export interface UntilOptions {
+export interface IUntilOptions {
 
   /**
-   * If set to `true` then termination char is included in match.
+   * If set to `true` then chars matched by `taker` are included in result.
    *
    * @default false
    */
   inclusive?: boolean;
-
-  /**
-   * If set to `true` and termination char wasn't found then length of the string is returned, otherwise
-   * {@link ResultCode.NO_MATCH} is returned.
-   *
-   * @default false
-   */
-  openEnded?: boolean;
-}
-
-export function until(value: string | CharCodeChecker, options: UntilOptions = {}): Taker {
-  if (typeof value === 'string') {
-    return untilText(value, options);
-  } else {
-    return untilCharBy(value, options);
-  }
 }
 
 /**
- * Creates a taker that takes all chars until termination char is met.
+ * Creates taker that takes chars until `taker` matches.
  *
- * **Note:** If both `inclusive` and `openEnded` are set to `true` and the termination char wasn't found then
- * `str.length + 1` is returned.
- *
- * @param charCodeChecker The char checker that returns `true` for termination char code.
+ * @param taker The taker that takes chars.
  * @param options Taker options.
  */
-export function untilCharBy(charCodeChecker: CharCodeChecker, options: UntilOptions = {}): Taker {
-  const {inclusive = false, openEnded = false} = options;
+export function until(taker: Taker, options: IUntilOptions = {}): Taker {
+  const {inclusive = false} = options;
 
-  return (input, offset) => {
-    const charCount = input.length;
+  const searchStr =
+      isNode(taker, NodeType.CHAR_CASE_SENSITIVE) ? String.fromCharCode(taker[NodeProperty.VALUE]) :
+      isNode(taker, NodeType.TEXT_CASE_SENSITIVE) ? taker[NodeProperty.VALUE] :
+      null;
 
-    while (offset < charCount) {
-      if (charCodeChecker(input.charCodeAt(offset))) {
-        return inclusive ? offset + 1 : offset;
-      }
-      ++offset;
-    }
-    return openEnded ? inclusive ? offset + 1 : offset : ResultCode.NO_MATCH;
-  };
-}
+  if (searchStr != null) {
+    const takenOffset = inclusive ? searchStr.length : 0;
 
-/**
- * Creates taker that takes all chars until termination text is met.
- *
- * **Note:** If both `inclusive` and `openEnded` are set to true and the termination text wasn't found then
- * `str.length + text.length` is returned.
- *
- * @param text The termination text.
- * @param options Taker options.
- */
-export function untilText(text: string, options: UntilOptions = {}): Taker {
-  const {inclusive = false, openEnded = false} = options;
+    return (input, offset) => {
+      const index = input.indexOf(searchStr, offset);
 
-  return (input, offset) => {
-    let index = input.indexOf(text, offset);
-
-    if (index === -1) {
-      if (!openEnded) {
+      if (index === -1) {
         return ResultCode.NO_MATCH;
       }
-      index = input.length;
+      return index + takenOffset;
+    };
+  }
+
+  if (isNode(taker, NodeType.CHAR_CODE_CHECKER)) {
+    const charCodeChecker = taker[NodeProperty.VALUE];
+    const takenOffset = inclusive ? 1 : 0;
+
+    return (input, offset) => {
+      let i = offset;
+      while (!charCodeChecker(input.charCodeAt(i))) {
+        ++i;
+      }
+      if (i === input.length) {
+        return ResultCode.NO_MATCH;
+      }
+      return i + takenOffset;
+    };
+  }
+
+  return (input, offset) => {
+    let result;
+    let i = offset;
+
+    do {
+      result = taker(input, i);
+      ++i;
+    } while (result === ResultCode.NO_MATCH);
+
+    if (result < 0) {
+      return result;
     }
-    return inclusive ? index + text.length : index;
+    return inclusive ? result : i - 1;
   };
 }
