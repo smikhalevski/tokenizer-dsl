@@ -71,5 +71,3 @@ takeNumber(/*input*/ 'a123', /*offset*/ 0); // → -1
 takeNumber(/*input*/ '0000', /*offset*/ 0);
   // → 1, because valid number starts at 0 and ends at 1 
 ```
-
-Reading out-of-bounds is very slow.

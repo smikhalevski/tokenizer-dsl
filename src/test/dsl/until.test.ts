@@ -21,11 +21,6 @@ describe('until', () => {
     expect(until(text('b'))('aaabbb', 0)).toBe(3);
   });
 
-  // it('reads chars until end of string if substr is not met', () => {
-  //   expect(until(text('c', {openEnded: true}))('aaabbb', 0)).toBe(6);
-  //   expect(until(text('c', {inclusive: true, openEnded: true})('aaabbb', 0)).toBe(7);
-  // });
-
   it('reads chars including substr', () => {
     expect(until(text('b'), {inclusive: true})('aaabbb', 0)).toBe(4);
   });

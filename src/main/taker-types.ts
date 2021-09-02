@@ -19,6 +19,7 @@ export const enum TakerType {
   TEXT_CASE_SENSITIVE,
   TEXT_CASE_INSENSITIVE,
   CHAR,
+  REGEX,
   NONE,
   NEVER,
 }
