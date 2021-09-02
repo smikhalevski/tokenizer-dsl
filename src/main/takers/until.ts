@@ -37,11 +37,13 @@ export function until(taker: Taker, options: IUntilOptions = {}): Taker {
     const takenOffset = inclusive ? 1 : 0;
 
     return withType(TakerType.UNTIL_CHAR, charCodeChecker, (input, offset) => {
+      const inputLength = input.length;
+
       let i = offset;
-      while (!charCodeChecker(input.charCodeAt(i))) {
+      while (i < inputLength && !charCodeChecker(input.charCodeAt(i))) {
         ++i;
       }
-      if (i === input.length) {
+      if (i === inputLength) {
         return ResultCode.NO_MATCH;
       }
       return i + takenOffset;
