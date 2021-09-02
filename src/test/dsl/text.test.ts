@@ -1,13 +1,13 @@
-import {text} from '../../main/dsl/text';
-import {INode, NodeProperty, NodeType} from '../../main/dsl/node-utils';
-import {takeNone} from '../../main/dsl/taker-utils';
+import {text} from '../../main/takers/text';
+import {takeNone} from '../../main/taker-utils';
+import {TakerType} from '../../main';
 
 describe('text', () => {
 
   test('returns char for a single char string', () => {
     const taker = text('a');
 
-    expect((taker as INode)[NodeProperty.TYPE]).toBe(NodeType.CHAR_CASE_SENSITIVE);
+    expect(taker.type).toBe(TakerType.CHAR_CASE_SENSITIVE);
   });
 
   test('returns takeNone for an empty string', () => {
@@ -17,7 +17,7 @@ describe('text', () => {
   test('takes case-sensitive text', () => {
     const taker = text('abc');
 
-    expect((taker as INode)[NodeProperty.TYPE]).toBe(NodeType.TEXT_CASE_SENSITIVE);
+    expect((taker as INode)[NodeProperty.TYPE]).toBe(TakerType.TEXT_CASE_SENSITIVE);
     expect((taker as INode)[NodeProperty.VALUE]).toBe('abc');
 
     expect(taker('aaaabc', 3)).toBe(6);
@@ -29,7 +29,7 @@ describe('text', () => {
   test('takes case-insensitive text', () => {
     const taker = text('abc', {caseSensitive: false});
 
-    expect((taker as INode)[NodeProperty.TYPE]).toBe(NodeType.TEXT_CASE_INSENSITIVE);
+    expect((taker as INode)[NodeProperty.TYPE]).toBe(TakerType.TEXT_CASE_INSENSITIVE);
     expect((taker as INode)[NodeProperty.VALUE]).toBe('abc');
 
     expect(taker('AAAABC', 3)).toBe(6);

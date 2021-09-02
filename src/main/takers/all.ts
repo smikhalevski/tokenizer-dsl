@@ -1,6 +1,5 @@
-import {Taker} from '../types';
-import {ResultCode, takeNoMatch, takeNone} from './taker-utils';
-import {isNode, NodeProperty, NodeType} from './node-utils';
+import {CharCodeChecker, ResultCode, Taker, TakerType} from '../taker-types';
+import {takeNever, takeNone, withType} from '../taker-utils';
 
 export interface IAllOptions {
 
@@ -28,17 +27,20 @@ export interface IAllOptions {
 export function all(taker: Taker, options: IAllOptions = {}): Taker {
   const {minimumCount = 0, maximumCount = Infinity} = options;
 
-  if (minimumCount > maximumCount) {
-    return takeNoMatch;
+  if (minimumCount > maximumCount || maximumCount < 0) {
+    return takeNever;
   }
   if (maximumCount === 0) {
     return takeNone;
   }
+  if (maximumCount === 1) {
+    return taker;
+  }
 
-  if (isNode(taker, NodeType.CHAR_CODE_CHECKER)) {
-    const charCodeChecker = taker[NodeProperty.VALUE];
+  if (taker.type === TakerType.CHAR) {
+    const charCodeChecker: CharCodeChecker = taker.data;
 
-    return (input, offset) => {
+    return withType(TakerType.ALL_CHAR, charCodeChecker, (input, offset) => {
       const maximumOffset = offset + maximumCount;
       let i = offset;
       while (charCodeChecker(input.charCodeAt(i)) && i < maximumOffset) {
@@ -48,10 +50,10 @@ export function all(taker: Taker, options: IAllOptions = {}): Taker {
         return ResultCode.NO_MATCH;
       }
       return i;
-    };
+    });
   }
 
-  return (input, offset) => {
+  return withType(TakerType.ALL, taker, (input, offset) => {
     let takeCount = 0;
     let result = offset;
     let i;
@@ -68,5 +70,5 @@ export function all(taker: Taker, options: IAllOptions = {}): Taker {
       return i;
     }
     return result;
-  };
+  });
 }

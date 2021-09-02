@@ -1,7 +1,5 @@
-import {Taker} from '../types';
-import {char} from './char';
-import {ResultCode, takeNone, toCharCodes} from './taker-utils';
-import {createNode, NodeType} from './node-utils';
+import {ResultCode, Taker, TakerType} from '../taker-types';
+import {takeNone, toCharCodes, withType} from '../taker-utils';
 
 export interface ITextOptions {
 
@@ -33,28 +31,36 @@ export function text(str: string, options: ITextOptions = {}): Taker {
   const upperStr = str.toUpperCase();
 
   if (caseSensitive || lowerStr === upperStr) {
-
-    const charCodes = toCharCodes(str);
+    let taker: Taker;
 
     if (strLength === 1) {
-      return char(charCodes[0]);
+
+      // Single char
+      const charCode = str.charCodeAt(0);
+      taker = (input, offset) => input.charCodeAt(offset) === charCode ? offset + 1 : ResultCode.NO_MATCH;
+
+    } else {
+
+      // Multiple chars
+      const charCodes = toCharCodes(str);
+      taker = (input, offset) => {
+        for (let i = 0; i < strLength; ++i) {
+          if (input.charCodeAt(i + offset) === charCodes[i]) {
+            continue;
+          }
+          return ResultCode.NO_MATCH;
+        }
+        return offset + strLength;
+      };
     }
 
-    return createNode(NodeType.TEXT_CASE_SENSITIVE, str, (input, offset) => {
-      for (let i = 0; i < strLength; ++i) {
-        if (input.charCodeAt(i + offset) === charCodes[i]) {
-          continue;
-        }
-        return ResultCode.NO_MATCH;
-      }
-      return offset + strLength;
-    });
+    return withType(TakerType.TEXT_CASE_SENSITIVE, str, taker);
   }
 
   const lowerCharCodes = toCharCodes(lowerStr);
   const upperCharCodes = toCharCodes(upperStr);
 
-  return createNode(NodeType.TEXT_CASE_INSENSITIVE, str, (input, offset) => {
+  return withType(TakerType.TEXT_CASE_INSENSITIVE, str, (input, offset) => {
     for (let i = 0; i < strLength; ++i) {
       const charCode = input.charCodeAt(i + offset);
 

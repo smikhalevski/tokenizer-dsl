@@ -1,19 +1,35 @@
-import {all} from '../../main/dsl/all';
-import {NO_MATCH} from '../../main/types';
+import {all} from '../../main/takers/all';
+import {ResultCode, Taker, TakerType} from '../../main/taker-types';
 
 describe('all', () => {
 
-  it('reads chars until taker returns NO_MATCH', () => {
+  it('optimizes char code taker', () => {
+    const takeChar: Taker = () => 0;
+    takeChar.type = TakerType.CHAR;
+
+    expect(all(takeChar).type).toBe(TakerType.ALL_CHAR);
+  });
+
+  it('creates taker', () => {
+    const takeOther: Taker = () => 0;
+
+    const takeAll = all(takeOther);
+
+    expect(takeAll.type).toBe(TakerType.ALL);
+    expect(takeAll.data).toBe(takeOther);
+  });
+
+  it('takes until taker returns ResultCode.NO_MATCH', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(3);
     takerMock.mockReturnValueOnce(4);
-    takerMock.mockReturnValueOnce(NO_MATCH);
+    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
     expect(all(takerMock)('aabbcc', 2)).toBe(4);
     expect(takerMock).toHaveBeenCalledTimes(3);
   });
 
-  it('reads chars until taker returns the same offset', () => {
+  it('takes until taker returns the same offset', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(3);
     takerMock.mockReturnValueOnce(3);
@@ -22,7 +38,7 @@ describe('all', () => {
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
-  it('reads error result', () => {
+  it('returns error result from underlying taker', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(3);
     takerMock.mockReturnValueOnce(-2);
@@ -32,21 +48,21 @@ describe('all', () => {
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
-  it('return NO_MATCH if minimum matches was not reached', () => {
+  it('returns ResultCode.NO_MATCH if minimum matches was not reached', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(1);
-    takerMock.mockReturnValueOnce(NO_MATCH);
+    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
-    expect(all(takerMock, {minimumCount: 2})('a', 0)).toBe(NO_MATCH);
+    expect(all(takerMock, {minimumCount: 2})('a', 0)).toBe(ResultCode.NO_MATCH);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
-  it('return offset if minimum was reached', () => {
+  it('returns offset if minimum was reached', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(1);
     takerMock.mockReturnValueOnce(2);
     takerMock.mockReturnValueOnce(3);
-    takerMock.mockReturnValueOnce(NO_MATCH);
+    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
     expect(all(takerMock, {minimumCount: 2})('aaa', 0)).toBe(3);
     expect(takerMock).toHaveBeenCalledTimes(4);
@@ -65,7 +81,7 @@ describe('all', () => {
   it('maximum does not affect the minimum', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(1);
-    takerMock.mockReturnValueOnce(NO_MATCH);
+    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
     expect(all(takerMock, {maximumCount: 2})('a', 0)).toBe(1);
     expect(takerMock).toHaveBeenCalledTimes(2);

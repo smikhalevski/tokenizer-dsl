@@ -1,11 +1,11 @@
-import {or} from '../../main/dsl/or';
-import {NO_MATCH} from '../../main/types';
+import {or} from '../../main/takers/or';
+import {ResultCode} from '../../main/taker-types';
 
 describe('or', () => {
 
   it('returns after the first match', () => {
     const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(NO_MATCH);
+    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
     takerMock.mockReturnValueOnce(2);
     takerMock.mockReturnValueOnce(4);
 
@@ -13,17 +13,17 @@ describe('or', () => {
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
-  it('returns NO_MATCH', () => {
+  it('returns ResultCode.NO_MATCH', () => {
     const takerMock = jest.fn();
-    takerMock.mockReturnValue(NO_MATCH);
+    takerMock.mockReturnValue(ResultCode.NO_MATCH);
 
-    expect(or(takerMock, takerMock)('aabbcc', 2)).toBe(NO_MATCH);
+    expect(or(takerMock, takerMock)('aabbcc', 2)).toBe(ResultCode.NO_MATCH);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
   it('returns error result', () => {
     const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(NO_MATCH);
+    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
     takerMock.mockReturnValueOnce(-2);
     takerMock.mockReturnValueOnce(4);
 

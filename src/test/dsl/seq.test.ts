@@ -1,5 +1,5 @@
-import {seq} from '../../main/dsl/seq';
-import {NO_MATCH} from '../../main/types';
+import {seq} from '../../main/takers/seq';
+import {ResultCode} from '../../main/taker-types';
 
 describe('seq', () => {
 
@@ -15,10 +15,10 @@ describe('seq', () => {
   it('fails if any of takers fail', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(4);
-    takerMock.mockReturnValueOnce(NO_MATCH);
+    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
     takerMock.mockReturnValueOnce(5);
 
-    expect(seq(takerMock, takerMock, takerMock)('aabbcc', 2)).toBe(NO_MATCH);
+    expect(seq(takerMock, takerMock, takerMock)('aabbcc', 2)).toBe(ResultCode.NO_MATCH);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 

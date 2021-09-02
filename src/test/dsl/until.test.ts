@@ -1,7 +1,7 @@
-import {until} from '../../main/dsl/until';
-import {text} from '../../main/dsl/text';
-import {char} from '../../main/dsl/char';
-import {NO_MATCH} from '../../main';
+import {until} from '../../main/takers/until';
+import {text} from '../../main/takers/text';
+import {char} from '../../main/takers/char';
+import {ResultCode} from '../../main';
 
 describe('until', () => {
 
@@ -10,7 +10,7 @@ describe('until', () => {
   });
 
   it('reads chars until end of string if substr is not met', () => {
-    expect(until(char(isNaN), {inclusive: true})('aaabbb', 0)).toBe(NO_MATCH);
+    expect(until(char(isNaN), {inclusive: true})('aaabbb', 0)).toBe(ResultCode.NO_MATCH);
   });
 
   it('reads chars including substr', () => {

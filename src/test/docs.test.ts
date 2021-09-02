@@ -4,7 +4,7 @@ describe('docs', () => {
 
   it('readme example', () => {
 
-    const takeNone = text('0');
+    const takeZero = text('0');
 
     const takeLeadingDigit = char((charCode) => charCode >= 49 /*1*/ || charCode <= 57 /*9*/);
 
@@ -20,7 +20,7 @@ describe('docs', () => {
 
         // integer
         or(
-            takeNone,
+            takeZero,
             seq(
                 takeLeadingDigit,
                 takeDigits,

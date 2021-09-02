@@ -1,5 +1,5 @@
-import {maybe} from '../../main/dsl/maybe';
-import {NO_MATCH} from '../../main/types';
+import {maybe} from '../../main/takers/maybe';
+import {ResultCode} from '../../main/taker-types';
 
 describe('maybe', () => {
 
@@ -13,7 +13,7 @@ describe('maybe', () => {
 
   it('returns offset if taker did not match', () => {
     const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(NO_MATCH);
+    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
     expect(maybe(takerMock)('aabbcc', 2)).toBe(2);
     expect(takerMock).toHaveBeenCalledTimes(1);

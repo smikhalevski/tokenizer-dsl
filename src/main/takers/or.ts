@@ -1,5 +1,5 @@
-import {Taker} from '../types';
-import {ResultCode, takeNone} from './taker-utils';
+import {ResultCode, Taker, TakerType} from '../taker-types';
+import {takeNone, withType} from '../taker-utils';
 
 /**
  * Returns the result of the first matched taker.
@@ -12,17 +12,16 @@ export function or(...takers: Array<Taker>): Taker {
   if (takerCount === 0) {
     return takeNone;
   }
-
   if (takerCount === 1) {
     return takers[0];
   }
 
-  return (input, offset) => {
+  return withType(TakerType.OR, takers, (input, offset) => {
     let result = ResultCode.NO_MATCH;
 
     for (let i = 0; i < takerCount && result === ResultCode.NO_MATCH; ++i) {
       result = takers[i](input, offset);
     }
     return result;
-  };
+  });
 }

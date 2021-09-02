@@ -1,6 +1,5 @@
-import {Taker} from '../types';
-import {ResultCode} from './taker-utils';
-import {isNode, NodeProperty, NodeType} from './node-utils';
+import {CharCodeChecker, ResultCode, Taker, TakerType} from '../taker-types';
+import {withType} from '../taker-utils';
 
 export interface IUntilOptions {
 
@@ -21,29 +20,23 @@ export interface IUntilOptions {
 export function until(taker: Taker, options: IUntilOptions = {}): Taker {
   const {inclusive = false} = options;
 
-  const searchStr =
-      isNode(taker, NodeType.CHAR_CASE_SENSITIVE) ? String.fromCharCode(taker[NodeProperty.VALUE]) :
-      isNode(taker, NodeType.TEXT_CASE_SENSITIVE) ? taker[NodeProperty.VALUE] :
-      null;
+  if (taker.type === TakerType.TEXT_CASE_SENSITIVE) {
 
-  if (searchStr != null) {
-    const takenOffset = inclusive ? searchStr.length : 0;
+    const str = taker.data;
+    const takenOffset = inclusive ? str.length : 0;
 
-    return (input, offset) => {
-      const index = input.indexOf(searchStr, offset);
+    return withType(TakerType.UNTIL_TEXT_CASE_SENSITIVE, str, (input, offset) => {
+      const index = input.indexOf(str, offset);
 
-      if (index === -1) {
-        return ResultCode.NO_MATCH;
-      }
-      return index + takenOffset;
-    };
+      return index === -1 ? ResultCode.NO_MATCH : index + takenOffset;
+    });
   }
 
-  if (isNode(taker, NodeType.CHAR_CODE_CHECKER)) {
-    const charCodeChecker = taker[NodeProperty.VALUE];
+  if (taker.type === TakerType.CHAR) {
+    const charCodeChecker: CharCodeChecker = taker.data;
     const takenOffset = inclusive ? 1 : 0;
 
-    return (input, offset) => {
+    return withType(TakerType.UNTIL_CHAR, charCodeChecker, (input, offset) => {
       let i = offset;
       while (!charCodeChecker(input.charCodeAt(i))) {
         ++i;
@@ -52,10 +45,10 @@ export function until(taker: Taker, options: IUntilOptions = {}): Taker {
         return ResultCode.NO_MATCH;
       }
       return i + takenOffset;
-    };
+    });
   }
 
-  return (input, offset) => {
+  return withType(TakerType.UNTIL, taker, (input, offset) => {
     let result;
     let i = offset;
 
@@ -68,5 +61,5 @@ export function until(taker: Taker, options: IUntilOptions = {}): Taker {
       return result;
     }
     return inclusive ? result : i - 1;
-  };
+  });
 }

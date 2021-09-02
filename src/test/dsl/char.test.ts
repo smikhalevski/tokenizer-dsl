@@ -1,6 +1,3 @@
-import {char} from '../../main/dsl/char';
-import {CharCodeChecker, NO_MATCH} from '../../main/types';
-import {INode, NodeProperty, NodeType} from '../../main/dsl/node-utils';
 
 const A = 'a'.charCodeAt(0);
 const B = 'b'.charCodeAt(0);
@@ -10,7 +7,7 @@ describe('char', () => {
   it('types char code node', () => {
     const taker = char(A);
 
-    expect((taker as INode)[NodeProperty.TYPE]).toBe(NodeType.CHAR_CASE_SENSITIVE);
+    expect((taker as INode)[NodeProperty.TYPE]).toBe(TakerType.CHAR_CASE_SENSITIVE);
     expect((taker as INode)[NodeProperty.VALUE]).toBe(A);
   });
 
@@ -18,7 +15,7 @@ describe('char', () => {
     const charCodeChecker: CharCodeChecker = (charCode) => charCode === A;
     const taker = char(charCodeChecker);
 
-    expect((taker as INode)[NodeProperty.TYPE]).toBe(NodeType.CHAR_CODE_CHECKER);
+    expect((taker as INode)[NodeProperty.TYPE]).toBe(TakerType.CHAR_CODE_CHECKER);
     expect((taker as INode)[NodeProperty.VALUE]).toBe(charCodeChecker);
   });
 
@@ -28,8 +25,8 @@ describe('char', () => {
   });
 
   it('does not read unmatched char', () => {
-    expect(char(A)('aaabbb', 4)).toBe(NO_MATCH);
-    expect(char(B)('aaabbb', 2)).toBe(NO_MATCH);
+    expect(char(A)('aaabbb', 4)).toBe(ResultCode.NO_MATCH);
+    expect(char(B)('aaabbb', 2)).toBe(ResultCode.NO_MATCH);
   });
 
   it('reads char at offset', () => {
@@ -38,7 +35,7 @@ describe('char', () => {
   });
 
   it('does not read unmatched char', () => {
-    expect(char((charCode) => charCode === A)('aaabbb', 4)).toBe(NO_MATCH);
-    expect(char((charCode) => charCode === B)('aaabbb', 2)).toBe(NO_MATCH);
+    expect(char((charCode) => charCode === A)('aaabbb', 4)).toBe(ResultCode.NO_MATCH);
+    expect(char((charCode) => charCode === B)('aaabbb', 2)).toBe(ResultCode.NO_MATCH);
   });
 });
