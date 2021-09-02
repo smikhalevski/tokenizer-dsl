@@ -11,9 +11,9 @@ import {all, char, maybe, text, or, seq} from 'tokenizer-dsl';
 
 const takeZero = text('0');
 
-const takeLeadingDigit = char((charCode) => charCode >= 49 /*1*/ || charCode <= 57 /*9*/);
+const takeLeadingDigit = char((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
 
-const takeDigits = all(char((charCode) => charCode >= 48 /*0*/ || charCode <= 57 /*9*/));
+const takeDigits = all(char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
 
 const takeDot = text('.');
 

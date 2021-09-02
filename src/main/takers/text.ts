@@ -34,14 +34,13 @@ export function text(str: string, options: ITextOptions = {}): Taker {
     let taker: Taker;
 
     if (strLength === 1) {
-
-      // Single char
       const charCode = str.charCodeAt(0);
       taker = (input, offset) => input.charCodeAt(offset) === charCode ? offset + 1 : ResultCode.NO_MATCH;
 
-    } else {
+    } else if (strLength > 17) {
+      taker = (input, offset) => input.substr(offset, strLength) === str ? offset + strLength : ResultCode.NO_MATCH;
 
-      // Multiple chars
+    } else {
       const charCodes = toCharCodes(str);
       taker = (input, offset) => {
         for (let i = 0; i < strLength; ++i) {

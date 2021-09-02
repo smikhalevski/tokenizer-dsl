@@ -13,7 +13,7 @@ export function toCharCodes(str: string): Array<number> {
   return charCodes;
 }
 
-export function withType(type: TakerType, data: any, taker: Taker): Taker {
+export function withType(type: TakerType, data: unknown, taker: Taker): Taker {
   taker.type = type;
   taker.data = data;
   return taker;

@@ -42,8 +42,9 @@ export function all(taker: Taker, options: IAllOptions = {}): Taker {
 
     return withType(TakerType.ALL_CHAR, charCodeChecker, (input, offset) => {
       const maximumOffset = offset + maximumCount;
+
       let i = offset;
-      while (charCodeChecker(input.charCodeAt(i)) && i < maximumOffset) {
+      while (i < maximumOffset && charCodeChecker(input.charCodeAt(i))) {
         ++i;
       }
       if (i - offset < minimumCount) {

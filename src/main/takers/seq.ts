@@ -16,6 +16,17 @@ export function seq(...takers: Array<Taker>): Taker {
     return takers[0];
   }
 
+  if (takerCount === 2) {
+    const taker0 = takers[0];
+    const taker1 = takers[1];
+
+    return withType(TakerType.SEQ, takers, (input, offset) => {
+      const result = taker0(input, offset);
+
+      return result >= 0 ? taker1(input, result) : result;
+    });
+  }
+
   return withType(TakerType.SEQ, takers, (input, offset) => {
     for (let i = 0; i < takerCount && offset >= 0; ++i) {
       offset = takers[i](input, offset);

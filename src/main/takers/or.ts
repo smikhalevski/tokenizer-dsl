@@ -16,6 +16,17 @@ export function or(...takers: Array<Taker>): Taker {
     return takers[0];
   }
 
+  if (takerCount === 2) {
+    const taker0 = takers[0];
+    const taker1 = takers[1];
+
+    return withType(TakerType.OR, takers, (input, offset) => {
+      const result = taker0(input, offset);
+
+      return result === ResultCode.NO_MATCH ? taker1(input, offset) : result;
+    });
+  }
+
   return withType(TakerType.OR, takers, (input, offset) => {
     let result = ResultCode.NO_MATCH;
 
