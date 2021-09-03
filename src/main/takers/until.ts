@@ -9,6 +9,10 @@ export interface IUntilOptions {
    * @default false
    */
   inclusive?: boolean;
+
+  openEnded?: boolean;
+
+  endOffset?: number;
 }
 
 /**
@@ -18,7 +22,11 @@ export interface IUntilOptions {
  * @param options Taker options.
  */
 export function until(taker: Taker, options: IUntilOptions = {}): Taker {
-  const {inclusive = false} = options;
+  const {
+    inclusive = false,
+    openEnded = false,
+    endOffset = 0,
+  } = options;
 
   if (taker.type === TakerType.TEXT_CASE_SENSITIVE) {
 
@@ -28,7 +36,10 @@ export function until(taker: Taker, options: IUntilOptions = {}): Taker {
     return withType(TakerType.UNTIL_TEXT_CASE_SENSITIVE, str, (input, offset) => {
       const index = input.indexOf(str, offset);
 
-      return index === -1 ? ResultCode.NO_MATCH : index + takenOffset;
+      if (index === -1) {
+        return openEnded ? input.length + endOffset : ResultCode.NO_MATCH;
+      }
+      return index + takenOffset;
     });
   }
 
@@ -44,21 +55,26 @@ export function until(taker: Taker, options: IUntilOptions = {}): Taker {
         ++i;
       }
       if (i === inputLength) {
-        return ResultCode.NO_MATCH;
+        return openEnded ? inputLength + endOffset : ResultCode.NO_MATCH;
       }
       return i + takenOffset;
     });
   }
 
   return withType(TakerType.UNTIL, taker, (input, offset) => {
-    let result;
+    const inputLength = input.length;
+
+    let result = ResultCode.NO_MATCH;
     let i = offset;
 
-    do {
+    while (i < inputLength && result === ResultCode.NO_MATCH) {
       result = taker(input, i);
       ++i;
-    } while (result === ResultCode.NO_MATCH);
+    }
 
+    if (result === ResultCode.NO_MATCH) {
+      return openEnded ? inputLength + endOffset : result;
+    }
     if (result < 0) {
       return result;
     }

@@ -25,7 +25,10 @@ export interface IAllOptions {
  * @param options Taker options.
  */
 export function all(taker: Taker, options: IAllOptions = {}): Taker {
-  const {minimumCount = 0, maximumCount = Infinity} = options;
+  const {
+    minimumCount = 0,
+    maximumCount = Infinity,
+  } = options;
 
   if (minimumCount > maximumCount || maximumCount < 0) {
     return takeNever;
