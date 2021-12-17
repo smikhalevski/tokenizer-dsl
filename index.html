@@ -64,17 +64,17 @@
 				<p>DSL for building streaming tokenizers.</p>
 				<p>⚠️ <a href="https://smikhalevski.github.io/tokenizer-dsl/">API documentation is available here.</a></p>
 				<p>Example below shows how to assemble takers to create tokenizer for numbers:</p>
-				<pre><code class="language-ts"><span style="color: #AF00DB">import</span><span style="color: #000000"> {</span><span style="color: #001080">allCharBy</span><span style="color: #000000">, </span><span style="color: #001080">char</span><span style="color: #000000">, </span><span style="color: #001080">charBy</span><span style="color: #000000">, </span><span style="color: #001080">maybe</span><span style="color: #000000">, </span><span style="color: #001080">or</span><span style="color: #000000">, </span><span style="color: #001080">seq</span><span style="color: #000000">} </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;tokenizer-dsl&#039;</span><span style="color: #000000">;</span>
+				<pre><code class="language-ts"><span style="color: #AF00DB">import</span><span style="color: #000000"> {</span><span style="color: #001080">all</span><span style="color: #000000">, </span><span style="color: #001080">char</span><span style="color: #000000">, </span><span style="color: #001080">maybe</span><span style="color: #000000">, </span><span style="color: #001080">text</span><span style="color: #000000">, </span><span style="color: #001080">or</span><span style="color: #000000">, </span><span style="color: #001080">seq</span><span style="color: #000000">} </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;tokenizer-dsl&#039;</span><span style="color: #000000">;</span>
 
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">takeZero</span><span style="color: #000000"> = </span><span style="color: #795E26">char</span><span style="color: #000000">(</span><span style="color: #098658">48</span><span style="color: #000000"> </span><span style="color: #008000">/*0*/</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">takeZero</span><span style="color: #000000"> = </span><span style="color: #795E26">text</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;0&#039;</span><span style="color: #000000">);</span>
 
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">takeLeadingDigit</span><span style="color: #000000"> = </span><span style="color: #795E26">charBy</span><span style="color: #000000">((</span><span style="color: #001080">charCode</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">charCode</span><span style="color: #000000"> &gt;= </span><span style="color: #098658">49</span><span style="color: #000000"> </span><span style="color: #008000">/*1*/</span><span style="color: #000000"> || </span><span style="color: #001080">charCode</span><span style="color: #000000"> &lt;= </span><span style="color: #098658">57</span><span style="color: #000000"> </span><span style="color: #008000">/*9*/</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">takeLeadingDigit</span><span style="color: #000000"> = </span><span style="color: #795E26">char</span><span style="color: #000000">((</span><span style="color: #001080">charCode</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">charCode</span><span style="color: #000000"> &gt;= </span><span style="color: #098658">49</span><span style="color: #000000"> </span><span style="color: #008000">/*1*/</span><span style="color: #000000"> &amp;&amp; </span><span style="color: #001080">charCode</span><span style="color: #000000"> &lt;= </span><span style="color: #098658">57</span><span style="color: #000000"> </span><span style="color: #008000">/*9*/</span><span style="color: #000000">);</span>
 
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">takeDigits</span><span style="color: #000000"> = </span><span style="color: #795E26">allCharBy</span><span style="color: #000000">((</span><span style="color: #001080">charCode</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">charCode</span><span style="color: #000000"> &gt;= </span><span style="color: #098658">48</span><span style="color: #000000"> </span><span style="color: #008000">/*0*/</span><span style="color: #000000"> || </span><span style="color: #001080">charCode</span><span style="color: #000000"> &lt;= </span><span style="color: #098658">57</span><span style="color: #000000"> </span><span style="color: #008000">/*9*/</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">takeDigits</span><span style="color: #000000"> = </span><span style="color: #795E26">all</span><span style="color: #000000">(</span><span style="color: #795E26">char</span><span style="color: #000000">((</span><span style="color: #001080">charCode</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">charCode</span><span style="color: #000000"> &gt;= </span><span style="color: #098658">48</span><span style="color: #000000"> </span><span style="color: #008000">/*0*/</span><span style="color: #000000"> &amp;&amp; </span><span style="color: #001080">charCode</span><span style="color: #000000"> &lt;= </span><span style="color: #098658">57</span><span style="color: #000000"> </span><span style="color: #008000">/*9*/</span><span style="color: #000000">));</span>
 
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">takeDot</span><span style="color: #000000"> = </span><span style="color: #795E26">char</span><span style="color: #000000">(</span><span style="color: #098658">46</span><span style="color: #000000"> </span><span style="color: #008000">/*.*/</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">takeDot</span><span style="color: #000000"> = </span><span style="color: #795E26">text</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;.&#039;</span><span style="color: #000000">);</span>
 
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">takeSign</span><span style="color: #000000"> = </span><span style="color: #795E26">charBy</span><span style="color: #000000">((</span><span style="color: #001080">charCode</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">charCode</span><span style="color: #000000"> === </span><span style="color: #098658">43</span><span style="color: #000000"> </span><span style="color: #008000">/*+*/</span><span style="color: #000000"> || </span><span style="color: #001080">charCode</span><span style="color: #000000"> === </span><span style="color: #098658">45</span><span style="color: #000000"> </span><span style="color: #008000">/*-*/</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">takeSign</span><span style="color: #000000"> = </span><span style="color: #795E26">char</span><span style="color: #000000">((</span><span style="color: #001080">charCode</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">charCode</span><span style="color: #000000"> === </span><span style="color: #098658">43</span><span style="color: #000000"> </span><span style="color: #008000">/*+*/</span><span style="color: #000000"> || </span><span style="color: #001080">charCode</span><span style="color: #000000"> === </span><span style="color: #098658">45</span><span style="color: #000000"> </span><span style="color: #008000">/*-*/</span><span style="color: #000000">);</span>
 
 <span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">takeNumber</span><span style="color: #000000"> = </span><span style="color: #795E26">seq</span><span style="color: #000000">(</span>
 
@@ -120,7 +120,7 @@
 <span style="color: #795E26">takeNumber</span><span style="color: #000000">(</span><span style="color: #008000">/*input*/</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;a123&#039;</span><span style="color: #000000">, </span><span style="color: #008000">/*offset*/</span><span style="color: #000000"> </span><span style="color: #098658">0</span><span style="color: #000000">); </span><span style="color: #008000">// → -1</span>
 
 <span style="color: #795E26">takeNumber</span><span style="color: #000000">(</span><span style="color: #008000">/*input*/</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;0000&#039;</span><span style="color: #000000">, </span><span style="color: #008000">/*offset*/</span><span style="color: #000000"> </span><span style="color: #098658">0</span><span style="color: #000000">);</span>
-<span style="color: #000000">  </span><span style="color: #008000">// → 1, because valid number ends at 0 and ends at 1 </span>
+<span style="color: #000000">  </span><span style="color: #008000">// → 1, because valid number starts at 0 and ends at 1 </span>
 </code></pre>
 			</div>
 		</div>
@@ -137,23 +137,32 @@
 					<li class=" tsd-kind-enum">
 						<a href="enums/ResultCode.html" class="tsd-kind-icon">Result<wbr>Code</a>
 					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#CharCodeChecker" class="tsd-kind-icon">Char<wbr>Code<wbr>Checker</a>
+					<li class=" tsd-kind-enum">
+						<a href="enums/TakerType.html" class="tsd-kind-icon">Taker<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/IAllOptions.html" class="tsd-kind-icon">IAll<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/ITextOptions.html" class="tsd-kind-icon">IText<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/IUntilOptions.html" class="tsd-kind-icon">IUntil<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/Taker.html" class="tsd-kind-icon">Taker</a>
 					</li>
 					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#Taker" class="tsd-kind-icon">Taker</a>
+						<a href="modules.html#CharCodeChecker" class="tsd-kind-icon">Char<wbr>Code<wbr>Checker</a>
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="modules.html#all" class="tsd-kind-icon">all</a>
 					</li>
 					<li class=" tsd-kind-function">
-						<a href="modules.html#allCharBy" class="tsd-kind-icon">all<wbr>Char<wbr>By</a>
-					</li>
-					<li class=" tsd-kind-function">
 						<a href="modules.html#char" class="tsd-kind-icon">char</a>
 					</li>
 					<li class=" tsd-kind-function">
-						<a href="modules.html#charBy" class="tsd-kind-icon">char<wbr>By</a>
+						<a href="modules.html#end" class="tsd-kind-icon">end</a>
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="modules.html#maybe" class="tsd-kind-icon">maybe</a>
@@ -162,16 +171,16 @@
 						<a href="modules.html#or" class="tsd-kind-icon">or</a>
 					</li>
 					<li class=" tsd-kind-function">
+						<a href="modules.html#regex" class="tsd-kind-icon">regex</a>
+					</li>
+					<li class=" tsd-kind-function">
 						<a href="modules.html#seq" class="tsd-kind-icon">seq</a>
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="modules.html#text" class="tsd-kind-icon">text</a>
 					</li>
 					<li class=" tsd-kind-function">
-						<a href="modules.html#untilCharBy" class="tsd-kind-icon">until<wbr>Char<wbr>By</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#untilText" class="tsd-kind-icon">until<wbr>Text</a>
+						<a href="modules.html#until" class="tsd-kind-icon">until</a>
 					</li>
 				</ul>
 			</nav>
@@ -182,6 +191,9 @@
 	<div class="container">
 		<h2>Legend</h2>
 		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+			</ul>
 		</div>
 	</div>
 </footer>

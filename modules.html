@@ -65,28 +65,36 @@
 							<h3>Enumerations</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-enum"><a href="enums/ResultCode.html" class="tsd-kind-icon">Result<wbr>Code</a></li>
+								<li class="tsd-kind-enum"><a href="enums/TakerType.html" class="tsd-kind-icon">Taker<wbr>Type</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Interfaces</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-interface"><a href="interfaces/IAllOptions.html" class="tsd-kind-icon">IAll<wbr>Options</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/ITextOptions.html" class="tsd-kind-icon">IText<wbr>Options</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/IUntilOptions.html" class="tsd-kind-icon">IUntil<wbr>Options</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/Taker.html" class="tsd-kind-icon">Taker</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Type aliases</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-type-alias"><a href="modules.html#CharCodeChecker" class="tsd-kind-icon">Char<wbr>Code<wbr>Checker</a></li>
-								<li class="tsd-kind-type-alias"><a href="modules.html#Taker" class="tsd-kind-icon">Taker</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-function"><a href="modules.html#all" class="tsd-kind-icon">all</a></li>
-								<li class="tsd-kind-function"><a href="modules.html#allCharBy" class="tsd-kind-icon">all<wbr>Char<wbr>By</a></li>
 								<li class="tsd-kind-function"><a href="modules.html#char" class="tsd-kind-icon">char</a></li>
-								<li class="tsd-kind-function"><a href="modules.html#charBy" class="tsd-kind-icon">char<wbr>By</a></li>
+								<li class="tsd-kind-function"><a href="modules.html#end" class="tsd-kind-icon">end</a></li>
 								<li class="tsd-kind-function"><a href="modules.html#maybe" class="tsd-kind-icon">maybe</a></li>
 								<li class="tsd-kind-function"><a href="modules.html#or" class="tsd-kind-icon">or</a></li>
+								<li class="tsd-kind-function"><a href="modules.html#regex" class="tsd-kind-icon">regex</a></li>
 								<li class="tsd-kind-function"><a href="modules.html#seq" class="tsd-kind-icon">seq</a></li>
 								<li class="tsd-kind-function"><a href="modules.html#text" class="tsd-kind-icon">text</a></li>
-								<li class="tsd-kind-function"><a href="modules.html#untilCharBy" class="tsd-kind-icon">until<wbr>Char<wbr>By</a></li>
-								<li class="tsd-kind-function"><a href="modules.html#untilText" class="tsd-kind-icon">until<wbr>Text</a></li>
+								<li class="tsd-kind-function"><a href="modules.html#until" class="tsd-kind-icon">until</a></li>
 							</ul>
 						</section>
 					</div>
@@ -100,7 +108,7 @@
 					<div class="tsd-signature tsd-kind-icon">Char<wbr>Code<wbr>Checker<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>charCode<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/94403d4/src/main/tokenizer-dsl.ts#L7">tokenizer-dsl.ts:7</a></li>
+							<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/541fbe9/src/main/taker-types.ts#L45">taker-types.ts:45</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -125,46 +133,6 @@
 						</ul>
 					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-type-alias">
-					<a name="Taker" class="tsd-anchor"></a>
-					<h3>Taker</h3>
-					<div class="tsd-signature tsd-kind-icon">Taker<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>input<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, offset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="enums/ResultCode.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ResultCode</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/94403d4/src/main/tokenizer-dsl.ts#L5">tokenizer-dsl.ts:5</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter-signature">
-								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias">
-									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>input<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, offset<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="enums/ResultCode.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ResultCode</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></li>
-								</ul>
-								<ul class="tsd-descriptions">
-									<li class="tsd-description">
-										<div class="tsd-comment tsd-typography">
-											<div class="lead">
-												<p>Takes the string <code>input</code> and the offset in this string <code>offset</code> and returns the new offset in <code>input</code> if taker
-												matched or a result code if taker didn&#39;t match. The taker may return offsets that exceed the <code>input</code> length.</p>
-											</div>
-										</div>
-										<h4 class="tsd-parameters-title">Parameters</h4>
-										<ul class="tsd-parameters">
-											<li>
-												<h5>input: <span class="tsd-signature-type">string</span></h5>
-											</li>
-											<li>
-												<h5>offset: <span class="tsd-signature-type">number</span></h5>
-											</li>
-										</ul>
-										<h4 class="tsd-returns-title">Returns <a href="enums/ResultCode.html" class="tsd-signature-type" data-tsd-kind="Enumeration">ResultCode</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h4>
-									</li>
-								</ul>
-							</li>
-						</ul>
-					</div>
-				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Functions</h2>
@@ -172,73 +140,36 @@
 					<a name="all" class="tsd-anchor"></a>
 					<h3>all</h3>
 					<ul class="tsd-signatures tsd-kind-function">
-						<li class="tsd-signature tsd-kind-icon">all<span class="tsd-signature-symbol">(</span>taker<span class="tsd-signature-symbol">: </span><a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a>, minCount<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span>, maxCount<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></li>
+						<li class="tsd-signature tsd-kind-icon">all<span class="tsd-signature-symbol">(</span>taker<span class="tsd-signature-symbol">: </span><a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a>, options<span class="tsd-signature-symbol">?: </span><a href="interfaces/IAllOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">IAllOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/94403d4/src/main/tokenizer-dsl.ts#L129">tokenizer-dsl.ts:129</a></li>
+									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/541fbe9/src/main/takers/all.ts#L27">takers/all.ts:27</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Creates taker that repeatedly takes chars that <code>taker</code> takes.</p>
+									<p>Creates taker that repeatedly takes chars using <code>taker</code>.</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>taker: <a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></h5>
+									<h5>taker: <a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>The taker that takes chars.</p>
 									</div>
 								</li>
 								<li>
-									<h5>minCount: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></h5>
-								</li>
-								<li>
-									<h5>maxCount: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = ...</span></h5>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-function">
-					<a name="allCharBy" class="tsd-anchor"></a>
-					<h3>all<wbr>Char<wbr>By</h3>
-					<ul class="tsd-signatures tsd-kind-function">
-						<li class="tsd-signature tsd-kind-icon">all<wbr>Char<wbr>By<span class="tsd-signature-symbol">(</span>charCodeChecker<span class="tsd-signature-symbol">: </span><a href="modules.html#CharCodeChecker" class="tsd-signature-type" data-tsd-kind="Type alias">CharCodeChecker</a>, minCount<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span>, maxCount<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/94403d4/src/main/tokenizer-dsl.ts#L161">tokenizer-dsl.ts:161</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Performance optimization for <code>all(charBy(…))</code> composition.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>charCodeChecker: <a href="modules.html#CharCodeChecker" class="tsd-signature-type" data-tsd-kind="Type alias">CharCodeChecker</a></h5>
+									<h5>options: <a href="interfaces/IAllOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">IAllOptions</a><span class="tsd-signature-symbol"> = {}</span></h5>
 									<div class="tsd-comment tsd-typography">
-										<p>The checker that tests the chars from the string.</p>
+										<p>Taker options.</p>
 									</div>
 								</li>
-								<li>
-									<h5>minCount: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></h5>
-								</li>
-								<li>
-									<h5>maxCount: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = ...</span></h5>
-								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -246,55 +177,58 @@
 					<a name="char" class="tsd-anchor"></a>
 					<h3>char</h3>
 					<ul class="tsd-signatures tsd-kind-function">
-						<li class="tsd-signature tsd-kind-icon">char<span class="tsd-signature-symbol">(</span>char<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></li>
+						<li class="tsd-signature tsd-kind-icon">char<span class="tsd-signature-symbol">(</span>charCodeChecker<span class="tsd-signature-symbol">: </span><a href="modules.html#CharCodeChecker" class="tsd-signature-type" data-tsd-kind="Type alias">CharCodeChecker</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/94403d4/src/main/tokenizer-dsl.ts#L26">tokenizer-dsl.ts:26</a></li>
+									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/541fbe9/src/main/takers/char.ts#L10">takers/char.ts:10</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Creates a taker that takes a single char that matches the code.</p>
+									<p>Creates a taker that matches a single char by its code.</p>
 								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>char: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-function">
-					<a name="charBy" class="tsd-anchor"></a>
-					<h3>char<wbr>By</h3>
-					<ul class="tsd-signatures tsd-kind-function">
-						<li class="tsd-signature tsd-kind-icon">char<wbr>By<span class="tsd-signature-symbol">(</span>charCodeChecker<span class="tsd-signature-symbol">: </span><a href="modules.html#CharCodeChecker" class="tsd-signature-type" data-tsd-kind="Type alias">CharCodeChecker</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/94403d4/src/main/tokenizer-dsl.ts#L34">tokenizer-dsl.ts:34</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Creates a taker that takes a single char if it matches the checker.</p>
-								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="modules.html#text">text</a></p>
+									</dd>
+								</dl>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>charCodeChecker: <a href="modules.html#CharCodeChecker" class="tsd-signature-type" data-tsd-kind="Type alias">CharCodeChecker</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>A function that receives a char code from the input and returns <code>true</code> if it matches.</p>
+									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function">
+					<a name="end" class="tsd-anchor"></a>
+					<h3>end</h3>
+					<ul class="tsd-signatures tsd-kind-function">
+						<li class="tsd-signature tsd-kind-icon">end<span class="tsd-signature-symbol">(</span>offset<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/541fbe9/src/main/takers/end.ts#L4">takers/end.ts:4</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>offset: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -302,13 +236,13 @@
 					<a name="maybe" class="tsd-anchor"></a>
 					<h3>maybe</h3>
 					<ul class="tsd-signatures tsd-kind-function">
-						<li class="tsd-signature tsd-kind-icon">maybe<span class="tsd-signature-symbol">(</span>taker<span class="tsd-signature-symbol">: </span><a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></li>
+						<li class="tsd-signature tsd-kind-icon">maybe<span class="tsd-signature-symbol">(</span>taker<span class="tsd-signature-symbol">: </span><a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/94403d4/src/main/tokenizer-dsl.ts#L115">tokenizer-dsl.ts:115</a></li>
+									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/541fbe9/src/main/takers/maybe.ts#L9">takers/maybe.ts:9</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -319,13 +253,13 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>taker: <a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></h5>
+									<h5>taker: <a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>The taker which match must be considered optional.</p>
 									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -333,27 +267,53 @@
 					<a name="or" class="tsd-anchor"></a>
 					<h3>or</h3>
 					<ul class="tsd-signatures tsd-kind-function">
-						<li class="tsd-signature tsd-kind-icon">or<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>takers<span class="tsd-signature-symbol">: </span><a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></li>
+						<li class="tsd-signature tsd-kind-icon">or<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>takers<span class="tsd-signature-symbol">: </span><a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/94403d4/src/main/tokenizer-dsl.ts#L193">tokenizer-dsl.ts:193</a></li>
+									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/541fbe9/src/main/takers/or.ts#L9">takers/or.ts:9</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Creates taker that returns the result of the first taker that matched.</p>
+									<p>Returns the result of the first matched taker.</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>takers: <a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a><span class="tsd-signature-symbol">[]</span></h5>
+									<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>takers: <a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a><span class="tsd-signature-symbol">[]</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Takers that are called.</p>
+									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function">
+					<a name="regex" class="tsd-anchor"></a>
+					<h3>regex</h3>
+					<ul class="tsd-signatures tsd-kind-function">
+						<li class="tsd-signature tsd-kind-icon">regex<span class="tsd-signature-symbol">(</span>re<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">RegExp</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/541fbe9/src/main/takers/regex.ts#L4">takers/regex.ts:4</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>re: <span class="tsd-signature-type">RegExp</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -361,27 +321,30 @@
 					<a name="seq" class="tsd-anchor"></a>
 					<h3>seq</h3>
 					<ul class="tsd-signatures tsd-kind-function">
-						<li class="tsd-signature tsd-kind-icon">seq<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>takers<span class="tsd-signature-symbol">: </span><a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></li>
+						<li class="tsd-signature tsd-kind-icon">seq<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>takers<span class="tsd-signature-symbol">: </span><a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/94403d4/src/main/tokenizer-dsl.ts#L179">tokenizer-dsl.ts:179</a></li>
+									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/541fbe9/src/main/takers/seq.ts#L9">takers/seq.ts:9</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Creates taker that takes chars using <code>takers</code> executing them one after another as a sequence.</p>
+									<p>Creates a taker that applies takers one after another.</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>takers: <a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a><span class="tsd-signature-symbol">[]</span></h5>
+									<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>takers: <a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a><span class="tsd-signature-symbol">[]</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Takers that are called.</p>
+									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -389,111 +352,78 @@
 					<a name="text" class="tsd-anchor"></a>
 					<h3>text</h3>
 					<ul class="tsd-signatures tsd-kind-function">
-						<li class="tsd-signature tsd-kind-icon">text<span class="tsd-signature-symbol">(</span>text<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, ignoreCase<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></li>
+						<li class="tsd-signature tsd-kind-icon">text<span class="tsd-signature-symbol">(</span>str<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="interfaces/ITextOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">ITextOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/94403d4/src/main/tokenizer-dsl.ts#L44">tokenizer-dsl.ts:44</a></li>
+									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/541fbe9/src/main/takers/text.ts#L21">takers/text.ts:21</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Creates a taker that takes the text.</p>
+									<p>Creates taker that reads a substring from the input.</p>
 								</div>
+								<dl class="tsd-comment-tags">
+									<dt>see</dt>
+									<dd><p><a href="modules.html#char">char</a></p>
+									</dd>
+								</dl>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>text: <span class="tsd-signature-type">string</span></h5>
+									<h5>str: <span class="tsd-signature-type">string</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>The text to match.</p>
 									</div>
 								</li>
 								<li>
-									<h5>ignoreCase: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5>
+									<h5>options: <a href="interfaces/ITextOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">ITextOptions</a><span class="tsd-signature-symbol"> = {}</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Taker options.</p>
+									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></h4>
 						</li>
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-function">
-					<a name="untilCharBy" class="tsd-anchor"></a>
-					<h3>until<wbr>Char<wbr>By</h3>
+					<a name="until" class="tsd-anchor"></a>
+					<h3>until</h3>
 					<ul class="tsd-signatures tsd-kind-function">
-						<li class="tsd-signature tsd-kind-icon">until<wbr>Char<wbr>By<span class="tsd-signature-symbol">(</span>charCodeChecker<span class="tsd-signature-symbol">: </span><a href="modules.html#CharCodeChecker" class="tsd-signature-type" data-tsd-kind="Type alias">CharCodeChecker</a>, inclusive<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span>, openEnded<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></li>
+						<li class="tsd-signature tsd-kind-icon">until<span class="tsd-signature-symbol">(</span>taker<span class="tsd-signature-symbol">: </span><a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a>, options<span class="tsd-signature-symbol">?: </span><a href="interfaces/IUntilOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">IUntilOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/94403d4/src/main/tokenizer-dsl.ts#L71">tokenizer-dsl.ts:71</a></li>
+									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/541fbe9/src/main/takers/until.ts#L24">takers/until.ts:24</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Creates a taker that takes all chars until termination char is met.</p>
+									<p>Creates taker that takes chars until <code>taker</code> matches.</p>
 								</div>
-								<p><strong>Note:</strong> If both <code>inclusive</code> and <code>openEnded</code> are set to true and the termination char wasn&#39;t found then
-								<code>str.length + 1</code> is returned.</p>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>charCodeChecker: <a href="modules.html#CharCodeChecker" class="tsd-signature-type" data-tsd-kind="Type alias">CharCodeChecker</a></h5>
+									<h5>taker: <a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></h5>
 									<div class="tsd-comment tsd-typography">
-										<p>The char checker that returns <code>true</code> for termination char code.</p>
+										<p>The taker that takes chars.</p>
 									</div>
 								</li>
 								<li>
-									<h5>inclusive: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5>
-								</li>
-								<li>
-									<h5>openEnded: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-function">
-					<a name="untilText" class="tsd-anchor"></a>
-					<h3>until<wbr>Text</h3>
-					<ul class="tsd-signatures tsd-kind-function">
-						<li class="tsd-signature tsd-kind-icon">until<wbr>Text<span class="tsd-signature-symbol">(</span>text<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, inclusive<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span>, openEnded<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/smikhalevski/tokenizer-dsl/blob/94403d4/src/main/tokenizer-dsl.ts#L96">tokenizer-dsl.ts:96</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Creates taker that takes all chars until termination text is met.</p>
-								</div>
-								<p><strong>Note:</strong> If both <code>inclusive</code> and <code>openEnded</code> are set to true and the termination text wasn&#39;t found then
-								<code>str.length + text.length</code> is returned.</p>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>text: <span class="tsd-signature-type">string</span></h5>
+									<h5>options: <a href="interfaces/IUntilOptions.html" class="tsd-signature-type" data-tsd-kind="Interface">IUntilOptions</a><span class="tsd-signature-symbol"> = {}</span></h5>
 									<div class="tsd-comment tsd-typography">
-										<p>The termination text.</p>
+										<p>Taker options.</p>
 									</div>
 								</li>
-								<li>
-									<h5>inclusive: <span class="tsd-signature-type">boolean</span></h5>
-								</li>
-								<li>
-									<h5>openEnded: <span class="tsd-signature-type">boolean</span></h5>
-								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="modules.html#Taker" class="tsd-signature-type" data-tsd-kind="Type alias">Taker</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="interfaces/Taker.html" class="tsd-signature-type" data-tsd-kind="Interface">Taker</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -512,23 +442,32 @@
 					<li class=" tsd-kind-enum">
 						<a href="enums/ResultCode.html" class="tsd-kind-icon">Result<wbr>Code</a>
 					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#CharCodeChecker" class="tsd-kind-icon">Char<wbr>Code<wbr>Checker</a>
+					<li class=" tsd-kind-enum">
+						<a href="enums/TakerType.html" class="tsd-kind-icon">Taker<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/IAllOptions.html" class="tsd-kind-icon">IAll<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/ITextOptions.html" class="tsd-kind-icon">IText<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/IUntilOptions.html" class="tsd-kind-icon">IUntil<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/Taker.html" class="tsd-kind-icon">Taker</a>
 					</li>
 					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#Taker" class="tsd-kind-icon">Taker</a>
+						<a href="modules.html#CharCodeChecker" class="tsd-kind-icon">Char<wbr>Code<wbr>Checker</a>
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="modules.html#all" class="tsd-kind-icon">all</a>
 					</li>
 					<li class=" tsd-kind-function">
-						<a href="modules.html#allCharBy" class="tsd-kind-icon">all<wbr>Char<wbr>By</a>
-					</li>
-					<li class=" tsd-kind-function">
 						<a href="modules.html#char" class="tsd-kind-icon">char</a>
 					</li>
 					<li class=" tsd-kind-function">
-						<a href="modules.html#charBy" class="tsd-kind-icon">char<wbr>By</a>
+						<a href="modules.html#end" class="tsd-kind-icon">end</a>
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="modules.html#maybe" class="tsd-kind-icon">maybe</a>
@@ -537,16 +476,16 @@
 						<a href="modules.html#or" class="tsd-kind-icon">or</a>
 					</li>
 					<li class=" tsd-kind-function">
+						<a href="modules.html#regex" class="tsd-kind-icon">regex</a>
+					</li>
+					<li class=" tsd-kind-function">
 						<a href="modules.html#seq" class="tsd-kind-icon">seq</a>
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="modules.html#text" class="tsd-kind-icon">text</a>
 					</li>
 					<li class=" tsd-kind-function">
-						<a href="modules.html#untilCharBy" class="tsd-kind-icon">until<wbr>Char<wbr>By</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#untilText" class="tsd-kind-icon">until<wbr>Text</a>
+						<a href="modules.html#until" class="tsd-kind-icon">until</a>
 					</li>
 				</ul>
 			</nav>
@@ -557,6 +496,9 @@
 	<div class="container">
 		<h2>Legend</h2>
 		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+			</ul>
 		</div>
 	</div>
 </footer>
