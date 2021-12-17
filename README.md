@@ -2,20 +2,22 @@
 
 DSL for building streaming tokenizers.
 
+⚠️ [API documentation is available here.](https://smikhalevski.github.io/tokenizer-dsl/)
+
 Example below shows how to assemble takers to create tokenizer for numbers:
 
 ```ts
-import {allCharBy, char, charBy, maybe, or, seq} from 'tokenizer-dsl';
+import {all, char, maybe, text, or, seq} from 'tokenizer-dsl';
 
-const takeZero = char(48 /*0*/);
+const takeZero = text('0');
 
-const takeLeadingDigit = charBy((charCode) => charCode >= 49 /*1*/ || charCode <= 57 /*9*/);
+const takeLeadingDigit = char((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
 
-const takeDigits = allCharBy((charCode) => charCode >= 48 /*0*/ || charCode <= 57 /*9*/);
+const takeDigits = all(char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
 
-const takeDot = char(46 /*.*/);
+const takeDot = text('.');
 
-const takeSign = charBy((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
+const takeSign = char((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
 
 const takeNumber = seq(
 
@@ -67,5 +69,5 @@ takeNumber(/*input*/ 'aaa', /*offset*/ 0); // → -1
 takeNumber(/*input*/ 'a123', /*offset*/ 0); // → -1
 
 takeNumber(/*input*/ '0000', /*offset*/ 0);
-  // → 1, because valid number ends at 0 and ends at 1 
+  // → 1, because valid number starts at 0 and ends at 1 
 ```
