@@ -1,8 +1,22 @@
-import {ResultCode, Taker, TakerType} from './taker-types';
+import {ITaker, ResultCode, TakerLike} from './taker-types';
 
-export const takeNone = withType(TakerType.NONE, undefined, (input, offset) => offset);
+export class NeverTaker implements ITaker {
 
-export const takeNever = withType(TakerType.NEVER, undefined, () => ResultCode.NO_MATCH);
+  public take(): number {
+    return ResultCode.NO_MATCH;
+  }
+}
+
+export class NoneTaker implements ITaker {
+
+  public take(input: string, offset: number): number {
+    return offset;
+  }
+}
+
+export const noneTaker = new NoneTaker();
+
+export const neverTaker = new NeverTaker();
 
 export function toCharCodes(str: string): Array<number> {
   const charCodes: Array<number> = [];
@@ -13,8 +27,6 @@ export function toCharCodes(str: string): Array<number> {
   return charCodes;
 }
 
-export function withType(type: TakerType, data: unknown, taker: Taker): Taker {
-  taker.type = type;
-  taker.data = data;
-  return taker;
+export function toTaker(taker: TakerLike): ITaker {
+  return typeof taker === 'function' ? {take: taker} : taker;
 }

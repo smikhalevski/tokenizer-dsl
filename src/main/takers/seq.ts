@@ -1,36 +1,39 @@
-import {Taker, TakerType} from '../taker-types';
-import {takeNone, withType} from '../taker-utils';
+import {ITaker, TakerLike} from '../taker-types';
+import {noneTaker, toTaker} from '../taker-utils';
 
 /**
  * Creates a taker that applies takers one after another.
  *
  * @param takers Takers that are called.
  */
-export function seq(...takers: Array<Taker>): Taker {
+export function seq(...takers: Array<TakerLike>): ITaker {
   const takerCount = takers.length;
 
   if (takerCount === 0) {
-    return takeNone;
+    return noneTaker;
   }
   if (takerCount === 1) {
-    return takers[0];
+    return toTaker(takers[0]);
   }
 
-  if (takerCount === 2) {
-    const taker0 = takers[0];
-    const taker1 = takers[1];
+  return new SeqTaker(takers.map(toTaker));
+}
 
-    return withType(TakerType.SEQ, takers, (input, offset) => {
-      const result = taker0(input, offset);
+export class SeqTaker implements ITaker {
 
-      return result >= 0 ? taker1(input, result) : result;
-    });
+  private _takers;
+
+  public constructor(takers: Array<ITaker>) {
+    this._takers = takers;
   }
 
-  return withType(TakerType.SEQ, takers, (input, offset) => {
+  public take(input: string, offset: number): number {
+    const takers = this._takers;
+    const takerCount = takers.length;
+
     for (let i = 0; i < takerCount && offset >= 0; ++i) {
-      offset = takers[i](input, offset);
+      offset = takers[i].take(input, offset);
     }
     return offset;
-  });
+  }
 }

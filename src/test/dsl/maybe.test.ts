@@ -7,7 +7,7 @@ describe('maybe', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(4);
 
-    expect(maybe(takerMock)('aabbcc', 2)).toBe(4);
+    expect(maybe(takerMock).take('aabbcc', 2)).toBe(4);
     expect(takerMock).toHaveBeenCalledTimes(1);
   });
 
@@ -15,7 +15,7 @@ describe('maybe', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
-    expect(maybe(takerMock)('aabbcc', 2)).toBe(2);
+    expect(maybe(takerMock).take('aabbcc', 2)).toBe(2);
     expect(takerMock).toHaveBeenCalledTimes(1);
   });
 });

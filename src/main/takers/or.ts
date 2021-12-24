@@ -1,38 +1,41 @@
-import {ResultCode, Taker, TakerType} from '../taker-types';
-import {takeNone, withType} from '../taker-utils';
+import {ITaker, ResultCode, TakerLike} from '../taker-types';
+import {noneTaker, toTaker} from '../taker-utils';
 
 /**
  * Returns the result of the first matched taker.
  *
  * @param takers Takers that are called.
  */
-export function or(...takers: Array<Taker>): Taker {
+export function or(...takers: Array<TakerLike>): ITaker {
   const takerCount = takers.length;
 
   if (takerCount === 0) {
-    return takeNone;
+    return noneTaker;
   }
   if (takerCount === 1) {
-    return takers[0];
+    return toTaker(takers[0]);
   }
 
-  if (takerCount === 2) {
-    const taker0 = takers[0];
-    const taker1 = takers[1];
+  return new OrTaker(takers.map(toTaker));
+}
 
-    return withType(TakerType.OR, takers, (input, offset) => {
-      const result = taker0(input, offset);
+export class OrTaker implements ITaker {
 
-      return result === ResultCode.NO_MATCH ? taker1(input, offset) : result;
-    });
+  private _takers;
+
+  public constructor(takers: Array<ITaker>) {
+    this._takers = takers;
   }
 
-  return withType(TakerType.OR, takers, (input, offset) => {
+  public take(input: string, offset: number): number {
+    const takers = this._takers;
+    const takerCount = takers.length;
+
     let result = ResultCode.NO_MATCH;
 
     for (let i = 0; i < takerCount && result === ResultCode.NO_MATCH; ++i) {
-      result = takers[i](input, offset);
+      result = takers[i].take(input, offset);
     }
     return result;
-  });
+  }
 }

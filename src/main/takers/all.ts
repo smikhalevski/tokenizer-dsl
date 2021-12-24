@@ -1,5 +1,6 @@
-import {CharCodeChecker, ResultCode, Taker, TakerType} from '../taker-types';
-import {takeNever, takeNone, withType} from '../taker-utils';
+import {CharCodeChecker, ITaker, ResultCode, TakerLike} from '../taker-types';
+import {neverTaker, noneTaker, toTaker} from '../taker-utils';
+import {CharTaker} from './char';
 
 export interface IAllOptions {
 
@@ -24,47 +25,80 @@ export interface IAllOptions {
  * @param taker The taker that takes chars.
  * @param options Taker options.
  */
-export function all(taker: Taker, options: IAllOptions = {}): Taker {
+export function all(taker: TakerLike, options: IAllOptions = {}): ITaker {
+  taker = toTaker(taker);
+
   const {
     minimumCount = 0,
     maximumCount = Infinity,
   } = options;
 
   if (minimumCount > maximumCount || maximumCount < 0) {
-    return takeNever;
+    return neverTaker;
   }
   if (maximumCount === 0) {
-    return takeNone;
+    return noneTaker;
   }
   if (maximumCount === 1) {
     return taker;
   }
+  if (taker instanceof CharTaker) {
+    return new AllCharTaker(taker._charCodeChecker, minimumCount, maximumCount);
+  }
+  return new AllTaker(taker, minimumCount, maximumCount);
+}
 
-  if (taker.type === TakerType.CHAR) {
-    const charCodeChecker: CharCodeChecker = taker.data;
+export class AllCharTaker implements ITaker {
 
-    return withType(TakerType.ALL_CHAR, charCodeChecker, (input, offset) => {
-      const maximumOffset = offset + maximumCount;
+  private _charCodeChecker;
+  private _minimumCount;
+  private _maximumCount;
 
-      let i = offset;
-      while (i < maximumOffset && charCodeChecker(input.charCodeAt(i))) {
-        ++i;
-      }
-      if (i - offset < minimumCount) {
-        return ResultCode.NO_MATCH;
-      }
-      return i;
-    });
+  public constructor(charCodeChecker: CharCodeChecker, minimumCount: number, maximumCount: number) {
+    this._charCodeChecker = charCodeChecker;
+    this._minimumCount = minimumCount;
+    this._maximumCount = maximumCount;
   }
 
-  return withType(TakerType.ALL, taker, (input, offset) => {
+  public take(input: string, offset: number): number {
+    const charCodeChecker = this._charCodeChecker;
+    const maximumOffset = offset + this._maximumCount;
+
+    let i = offset;
+    while (i < maximumOffset && charCodeChecker(input.charCodeAt(i))) {
+      ++i;
+    }
+    if (i - offset < this._minimumCount) {
+      return ResultCode.NO_MATCH;
+    }
+    return i;
+  }
+}
+
+export class AllTaker implements ITaker {
+
+  private _taker;
+  private _minimumCount;
+  private _maximumCount;
+
+  public constructor(taker: ITaker, minimumCount: number, maximumCount: number) {
+    this._taker = taker;
+    this._minimumCount = minimumCount;
+    this._maximumCount = maximumCount;
+  }
+
+  public take(input: string, offset: number): number {
+    const taker = this._taker;
+    const maximumCount = this._maximumCount;
+    const minimumCount = this._minimumCount;
+
     let takeCount = 0;
     let result = offset;
     let i;
 
     do {
       i = result;
-      result = taker(input, i);
+      result = taker.take(input, i);
     } while (result > i && ++takeCount < maximumCount);
 
     if (takeCount < minimumCount) {
@@ -74,5 +108,5 @@ export function all(taker: Taker, options: IAllOptions = {}): Taker {
       return i;
     }
     return result;
-  });
+  }
 }

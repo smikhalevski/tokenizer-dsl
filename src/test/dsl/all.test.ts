@@ -1,23 +1,7 @@
 import {all} from '../../main/takers/all';
-import {ResultCode, Taker, TakerType} from '../../main/taker-types';
+import {ResultCode} from '../../main/taker-types';
 
 describe('all', () => {
-
-  it('optimizes char code taker', () => {
-    const takeChar: Taker = () => 0;
-    takeChar.type = TakerType.CHAR;
-
-    expect(all(takeChar).type).toBe(TakerType.ALL_CHAR);
-  });
-
-  it('creates taker', () => {
-    const takeOther: Taker = () => 0;
-
-    const takeAll = all(takeOther);
-
-    expect(takeAll.type).toBe(TakerType.ALL);
-    expect(takeAll.data).toBe(takeOther);
-  });
 
   it('takes until taker returns ResultCode.NO_MATCH', () => {
     const takerMock = jest.fn();
@@ -25,7 +9,7 @@ describe('all', () => {
     takerMock.mockReturnValueOnce(4);
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
-    expect(all(takerMock)('aabbcc', 2)).toBe(4);
+    expect(all(takerMock).take('aabbcc', 2)).toBe(4);
     expect(takerMock).toHaveBeenCalledTimes(3);
   });
 
@@ -34,7 +18,7 @@ describe('all', () => {
     takerMock.mockReturnValueOnce(3);
     takerMock.mockReturnValueOnce(3);
 
-    expect(all(takerMock)('aabbcc', 2)).toBe(3);
+    expect(all(takerMock).take('aabbcc', 2)).toBe(3);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -44,7 +28,7 @@ describe('all', () => {
     takerMock.mockReturnValueOnce(-2);
     takerMock.mockReturnValueOnce(3);
 
-    expect(all(takerMock)('aabbcc', 2)).toBe(-2);
+    expect(all(takerMock).take('aabbcc', 2)).toBe(-2);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -53,7 +37,7 @@ describe('all', () => {
     takerMock.mockReturnValueOnce(1);
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
-    expect(all(takerMock, {minimumCount: 2})('a', 0)).toBe(ResultCode.NO_MATCH);
+    expect(all(takerMock, {minimumCount: 2}).take('a', 0)).toBe(ResultCode.NO_MATCH);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -64,7 +48,7 @@ describe('all', () => {
     takerMock.mockReturnValueOnce(3);
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
-    expect(all(takerMock, {minimumCount: 2})('aaa', 0)).toBe(3);
+    expect(all(takerMock, {minimumCount: 2}).take('aaa', 0)).toBe(3);
     expect(takerMock).toHaveBeenCalledTimes(4);
   });
 
@@ -74,7 +58,7 @@ describe('all', () => {
     takerMock.mockReturnValueOnce(2);
     takerMock.mockReturnValueOnce(3);
 
-    expect(all(takerMock, {maximumCount: 2})('aaa', 0)).toBe(2);
+    expect(all(takerMock, {maximumCount: 2}).take('aaa', 0)).toBe(2);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -83,7 +67,7 @@ describe('all', () => {
     takerMock.mockReturnValueOnce(1);
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
-    expect(all(takerMock, {maximumCount: 2})('a', 0)).toBe(1);
+    expect(all(takerMock, {maximumCount: 2}).take('a', 0)).toBe(1);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 });

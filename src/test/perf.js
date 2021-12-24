@@ -91,7 +91,7 @@ console.log('\n' + chalk.bold.inverse(' Docs ') + '\n');
 
     const takeNext = takeNumber;
 
-    test('next  ', () => takeNext(input, 0));
+    test('next  ', () => takeNext.take(input, 0));
   }
 }
 
@@ -108,7 +108,7 @@ console.log('\n' + chalk.bold.inverse(' char ') + '\n');
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -127,7 +127,7 @@ console.log('\n' + chalk.bold('ASCII/length=1/caseSensitive=true'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -143,7 +143,7 @@ console.log('\n' + chalk.bold('ASCII/length=1/caseSensitive=false'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -159,7 +159,7 @@ console.log('\n' + chalk.bold('ASCII/length=5/caseSensitive=true'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -175,7 +175,7 @@ console.log('\n' + chalk.bold('ASCII/length=5/caseSensitive=false'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -191,7 +191,7 @@ console.log('\n' + chalk.bold('non-ASCII/length=1/caseSensitive=true'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -207,7 +207,7 @@ console.log('\n' + chalk.bold('non-ASCII/length=1/caseSensitive=false'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -223,7 +223,7 @@ console.log('\n' + chalk.bold('non-ASCII/length=5/caseSensitive=true'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -239,7 +239,7 @@ console.log('\n' + chalk.bold('non-ASCII/length=5/caseSensitive=false'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -258,7 +258,7 @@ console.log('\n' + chalk.bold('char'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -274,7 +274,7 @@ console.log('\n' + chalk.bold('char/minimumCount=1'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -290,7 +290,7 @@ console.log('\n' + chalk.bold('char/maximumCount=3'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -306,7 +306,7 @@ console.log('\n' + chalk.bold('text'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -325,7 +325,7 @@ console.log('\n' + chalk.bold('char'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -341,7 +341,7 @@ console.log('\n' + chalk.bold('char/open-ended'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -357,7 +357,7 @@ console.log('\n' + chalk.bold('charCodeChecker'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -375,7 +375,7 @@ console.log('\n' + chalk.bold('text'));
   doGc();
   test('latest ', () => takeLatest(input, 0));
   doGc();
-  test('next   ', () => takeNext(input, 0));
+  test('next   ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -394,7 +394,7 @@ console.log('\n' + chalk.bold('char/2'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -410,7 +410,7 @@ console.log('\n' + chalk.bold('char/3'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -429,7 +429,7 @@ console.log('\n' + chalk.bold('char/2'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }
 
@@ -445,6 +445,6 @@ console.log('\n' + chalk.bold('char/3'));
   doGc();
   test('latest', () => takeLatest(input, 0));
   doGc();
-  test('next  ', () => takeNext(input, 0));
+  test('next  ', () => takeNext.take(input, 0));
   doGc();
 }

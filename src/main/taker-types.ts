@@ -1,3 +1,5 @@
+export type CharCodeChecker = (charCode: number) => boolean;
+
 export const enum ResultCode {
 
   /**
@@ -6,40 +8,13 @@ export const enum ResultCode {
   NO_MATCH = -1,
 }
 
-export const enum TakerType {
-  UNTIL,
-  UNTIL_TEXT_CASE_SENSITIVE,
-  UNTIL_CHAR,
-  ALL,
-  ALL_CHAR,
-  END,
-  MAYBE,
-  SEQ,
-  OR,
-  TEXT_CASE_SENSITIVE,
-  TEXT_CASE_INSENSITIVE,
-  CHAR,
-  REGEX,
-  NONE,
-  NEVER,
-}
-
-/**
- * Takes the string `input` and the offset in this string `offset` and returns the new offset in `input` if taker
- * matched or a result code if taker didn't match. The taker may return offsets that exceed the `input` length.
- */
-export interface Taker {
-  (input: string, offset: number): number;
+export interface ITaker {
 
   /**
-   * The type that distinguishes takers so we can pick be best optimization strategy.
+   * Takes the string `input` and the offset in this string `offset` and returns the new offset in `input` if taker
+   * matched or a result code if taker didn't match. The taker may return offsets that exceed the `input` length.
    */
-  type?: TakerType;
-
-  /**
-   * Additional data associated with taker that can be used during optimization.
-   */
-  data?: any;
+  take(input: string, offset: number): number;
 }
 
-export type CharCodeChecker = (charCode: number) => boolean;
+export type TakerLike = ITaker | ITaker['take'];
