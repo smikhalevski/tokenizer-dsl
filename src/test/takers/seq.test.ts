@@ -3,7 +3,7 @@ import {ResultCode} from '../../main/taker-types';
 
 describe('seq', () => {
 
-  it('fails if any of takers fail', () => {
+  test('fails if any of takers fail', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(4);
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
@@ -13,11 +13,11 @@ describe('seq', () => {
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
-  it('allows takers to return the same offset', () => {
+  test('allows takers to return the same offset', () => {
     expect(seq(() => 2, () => 4).take('aabbcc', 2)).toBe(4);
   });
 
-  it('returns error result', () => {
+  test('returns error result', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(4);
     takerMock.mockReturnValueOnce(-2);

@@ -18,7 +18,7 @@ describe('text', () => {
   });
 
   test('takes case-insensitive text', () => {
-    const taker = text('abc', {caseSensitive: false});
+    const taker = text('abc', {caseInsensitive: true});
 
     expect(taker.take('AAAABC', 3)).toBe(6);
     expect(taker.take('AAAABCDE', 3)).toBe(6);
@@ -27,6 +27,6 @@ describe('text', () => {
 
   test('does not take if substring is not matched', () => {
     expect(text('abc').take('aaaabd', 3)).toBe(ResultCode.NO_MATCH);
-    expect(text('abc', {caseSensitive: false}).take('AAAABDE', 3)).toBe(ResultCode.NO_MATCH);
+    expect(text('abc', {caseInsensitive: true}).take('AAAABDE', 3)).toBe(ResultCode.NO_MATCH);
   });
 });

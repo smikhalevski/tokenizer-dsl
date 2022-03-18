@@ -9,7 +9,8 @@
     "outDir": "./lib",
     "lib": [
       "ES5",
-      "ES2015.Symbol"
+      "ES2015.Symbol",
+      "ES2015.Core"
     ]
   },
   "include": [

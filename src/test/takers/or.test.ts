@@ -3,7 +3,7 @@ import {ResultCode} from '../../main/taker-types';
 
 describe('or', () => {
 
-  it('returns after the first match', () => {
+  test('returns after the first match', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
     takerMock.mockReturnValueOnce(2);
@@ -13,7 +13,7 @@ describe('or', () => {
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
-  it('returns ResultCode.NO_MATCH', () => {
+  test('returns ResultCode.NO_MATCH', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValue(ResultCode.NO_MATCH);
 
@@ -21,7 +21,7 @@ describe('or', () => {
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
-  it('returns error result', () => {
+  test('returns error result', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
     takerMock.mockReturnValueOnce(-2);

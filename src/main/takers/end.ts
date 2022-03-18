@@ -1,18 +1,18 @@
-import {ITaker} from '../taker-types';
+import {Taker} from '../taker-types';
 
-export function end(offset = 0): ITaker {
+export function end(offset = 0): Taker {
   return new EndTaker(offset);
 }
 
-export class EndTaker implements ITaker {
+export class EndTaker implements Taker {
 
-  private _offset;
+  public readonly __offset;
 
   public constructor(offset: number) {
-    this._offset = offset;
+    this.__offset = offset;
   }
 
   public take(input: string, offset: number): number {
-    return input.length + this._offset;
+    return input.length + this.__offset;
   }
 }

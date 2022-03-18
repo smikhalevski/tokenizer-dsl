@@ -8,7 +8,7 @@ export const enum ResultCode {
   NO_MATCH = -1,
 }
 
-export interface ITaker {
+export interface Taker {
 
   /**
    * Takes the string `input` and the offset in this string `offset` and returns the new offset in `input` if taker
@@ -17,4 +17,4 @@ export interface ITaker {
   take(input: string, offset: number): number;
 }
 
-export type TakerLike = ITaker | ITaker['take'];
+export type TakerLike = Taker | Taker['take'];

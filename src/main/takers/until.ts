@@ -1,9 +1,9 @@
-import {CharCodeChecker, ITaker, ResultCode, TakerLike} from '../taker-types';
+import {CharCodeChecker, Taker, ResultCode, TakerLike} from '../taker-types';
 import {CharTaker} from './char';
 import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
 import {toTaker} from '../taker-utils';
 
-export interface IUntilOptions {
+export interface UntilOptions {
 
   /**
    * If set to `true` then chars matched by `taker` are included in result.
@@ -23,7 +23,7 @@ export interface IUntilOptions {
  * @param taker The taker that takes chars.
  * @param options Taker options.
  */
-export function until(taker: TakerLike, options: IUntilOptions = {}): ITaker {
+export function until(taker: TakerLike, options: UntilOptions = {}): Taker {
   taker = toTaker(taker);
 
   const {
@@ -33,97 +33,107 @@ export function until(taker: TakerLike, options: IUntilOptions = {}): ITaker {
   } = options;
 
   if (taker instanceof CaseSensitiveCharTaker) {
-    return new UntilCaseSensitiveTextTaker(taker._char, openEnded, endOffset, inclusive);
+    return new UntilCaseSensitiveTextTaker(taker.__char, openEnded, endOffset, inclusive);
   }
   if (taker instanceof CaseSensitiveTextTaker) {
-    return new UntilCaseSensitiveTextTaker(taker._str, openEnded, endOffset, inclusive);
+    return new UntilCaseSensitiveTextTaker(taker.__str, openEnded, endOffset, inclusive);
   }
   if (taker instanceof CharTaker) {
-    return new UntilCharTaker(taker._charCodeChecker, openEnded, endOffset, inclusive);
+    return new UntilCharTaker(taker.__charCodeChecker, openEnded, endOffset, inclusive);
   }
   return new UntilTaker(taker, openEnded, endOffset, inclusive);
 }
 
-export class UntilCaseSensitiveTextTaker implements ITaker {
+export class UntilCaseSensitiveTextTaker implements Taker {
 
-  private _str;
-  private _openEnded;
-  private _endOffset;
-  private _takenOffset;
+  private readonly __str;
+  private readonly __openEnded;
+  private readonly __endOffset;
+  private readonly __takenOffset;
 
   public constructor(str: string, openEnded: boolean, endOffset: number, inclusive: boolean) {
-    this._str = str;
-    this._openEnded = openEnded;
-    this._endOffset = endOffset;
-    this._takenOffset = inclusive ? str.length : 0;
+    this.__str = str;
+    this.__openEnded = openEnded;
+    this.__endOffset = endOffset;
+    this.__takenOffset = inclusive ? str.length : 0;
   }
 
   public take(input: string, offset: number): number {
-    const openEnded = this._openEnded;
-    const endOffset = this._endOffset;
-    const takenOffset = this._takenOffset;
 
-    const index = input.indexOf(this._str, offset);
+    const {
+      __str,
+      __openEnded,
+      __endOffset,
+      __takenOffset,
+    } = this;
+
+    const index = input.indexOf(__str, offset);
 
     if (index === -1) {
-      return openEnded ? input.length + endOffset : ResultCode.NO_MATCH;
+      return __openEnded ? input.length + __endOffset : ResultCode.NO_MATCH;
     }
-    return index + takenOffset;
+    return index + __takenOffset;
   }
 }
 
-export class UntilCharTaker implements ITaker {
+export class UntilCharTaker implements Taker {
 
-  private _charCodeChecker;
-  private _openEnded;
-  private _endOffset;
-  private _takenOffset;
+  private readonly __charCodeChecker;
+  private readonly __openEnded;
+  private readonly __endOffset;
+  private readonly __takenOffset;
 
   public constructor(charCodeChecker: CharCodeChecker, openEnded: boolean, endOffset: number, inclusive: boolean) {
-    this._charCodeChecker = charCodeChecker;
-    this._openEnded = openEnded;
-    this._endOffset = endOffset;
-    this._takenOffset = inclusive ? 1 : 0;
+    this.__charCodeChecker = charCodeChecker;
+    this.__openEnded = openEnded;
+    this.__endOffset = endOffset;
+    this.__takenOffset = inclusive ? 1 : 0;
   }
 
   public take(input: string, offset: number): number {
-    const charCodeChecker = this._charCodeChecker;
-    const openEnded = this._openEnded;
-    const endOffset = this._endOffset;
-    const takenOffset = this._takenOffset;
+
+    const {
+      __charCodeChecker,
+      __openEnded,
+      __endOffset,
+      __takenOffset,
+    } = this;
 
     const inputLength = input.length;
 
     let i = offset;
-    while (i < inputLength && !charCodeChecker(input.charCodeAt(i))) {
+    while (i < inputLength && !__charCodeChecker(input.charCodeAt(i))) {
       ++i;
     }
     if (i === inputLength) {
-      return openEnded ? inputLength + endOffset : ResultCode.NO_MATCH;
+      return __openEnded ? inputLength + __endOffset : ResultCode.NO_MATCH;
     }
-    return i + takenOffset;
+    return i + __takenOffset;
   }
 }
 
-export class UntilTaker implements ITaker {
+export class UntilTaker implements Taker {
 
-  private _taker;
-  private _openEnded;
-  private _endOffset;
-  private _inclusive;
+  private readonly __taker;
+  private readonly __openEnded;
+  private readonly __endOffset;
+  private readonly __inclusive;
 
-  public constructor(taker: ITaker, openEnded: boolean, endOffset: number, inclusive: boolean) {
-    this._taker = taker;
-    this._openEnded = openEnded;
-    this._endOffset = endOffset;
-    this._inclusive = inclusive;
+  public constructor(taker: Taker, openEnded: boolean, endOffset: number, inclusive: boolean) {
+    this.__taker = taker;
+    this.__openEnded = openEnded;
+    this.__endOffset = endOffset;
+    this.__inclusive = inclusive;
   }
 
   public take(input: string, offset: number): number {
-    const taker = this._taker;
-    const openEnded = this._openEnded;
-    const endOffset = this._endOffset;
-    const inclusive = this._inclusive;
+
+    const {
+      __taker,
+      __openEnded,
+      __endOffset,
+      __inclusive,
+    } = this;
 
     const inputLength = input.length;
 
@@ -131,16 +141,16 @@ export class UntilTaker implements ITaker {
     let i = offset;
 
     while (i < inputLength && result === ResultCode.NO_MATCH) {
-      result = taker.take(input, i);
+      result = __taker.take(input, i);
       ++i;
     }
 
     if (result === ResultCode.NO_MATCH) {
-      return openEnded ? inputLength + endOffset : result;
+      return __openEnded ? inputLength + __endOffset : result;
     }
     if (result < 0) {
       return result;
     }
-    return inclusive ? result : i - 1;
+    return __inclusive ? result : i - 1;
   }
 }

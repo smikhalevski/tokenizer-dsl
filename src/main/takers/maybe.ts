@@ -1,4 +1,4 @@
-import {ITaker, ResultCode, TakerLike} from '../taker-types';
+import {Taker, ResultCode, TakerLike} from '../taker-types';
 import {toTaker} from '../taker-utils';
 
 /**
@@ -6,20 +6,20 @@ import {toTaker} from '../taker-utils';
  *
  * @param taker The taker which match must be considered optional.
  */
-export function maybe(taker: TakerLike): ITaker {
+export function maybe(taker: TakerLike): Taker {
   return new MaybeTaker(toTaker(taker));
 }
 
-export class MaybeTaker implements ITaker {
+export class MaybeTaker implements Taker {
 
-  private _taker;
+  private readonly __taker;
 
-  public constructor(taker: ITaker) {
-    this._taker = taker;
+  public constructor(taker: Taker) {
+    this.__taker = taker;
   }
 
   public take(input: string, offset: number): number {
-    const result = this._taker.take(input, offset);
+    const result = this.__taker.take(input, offset);
 
     return result === ResultCode.NO_MATCH ? offset : result;
   }

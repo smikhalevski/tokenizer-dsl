@@ -1,14 +1,14 @@
-import {ITaker, ResultCode} from '../taker-types';
+import {Taker, ResultCode} from '../taker-types';
 import {noneTaker, toCharCodes} from '../taker-utils';
 
-export interface ITextOptions {
+export interface TextOptions {
 
   /**
-   * If set to `false` then string comparison is case insensitive.
+   * If set to `true` then string comparison is case insensitive.
    *
-   * @default true
+   * @default false
    */
-  caseSensitive?: boolean;
+  caseInsensitive?: boolean;
 }
 
 /**
@@ -18,15 +18,15 @@ export interface ITextOptions {
  * @param options Taker options.
  * @see {@link char}
  */
-export function text(str: string, options: ITextOptions = {}): ITaker {
-  const {caseSensitive = true} = options;
+export function text(str: string, options: TextOptions = {}): Taker {
+  const {caseInsensitive = false} = options;
 
   const strLength = str.length;
 
   if (strLength === 0) {
     return noneTaker;
   }
-  if (!caseSensitive && str.toLowerCase() !== str.toUpperCase()) {
+  if (caseInsensitive && str.toLowerCase() !== str.toUpperCase()) {
     return new CaseInsensitiveTextTaker(str);
   }
   if (strLength === 1) {
@@ -35,57 +35,64 @@ export function text(str: string, options: ITextOptions = {}): ITaker {
   return new CaseSensitiveTextTaker(str);
 }
 
-export class CaseSensitiveCharTaker implements ITaker {
+export class CaseSensitiveCharTaker implements Taker {
 
-  public _char;
-  public _charCode;
+  public readonly __char;
+  public readonly __charCode;
 
   public constructor(char: string) {
-    this._char = char;
-    this._charCode = char.charCodeAt(0);
+    this.__char = char;
+    this.__charCode = char.charCodeAt(0);
   }
 
   public take(input: string, offset: number): number {
-    return input.charCodeAt(offset) === this._charCode ? offset + 1 : ResultCode.NO_MATCH;
+    return input.charCodeAt(offset) === this.__charCode ? offset + 1 : ResultCode.NO_MATCH;
   }
 }
 
-export class CaseSensitiveTextTaker implements ITaker {
+export class CaseSensitiveTextTaker implements Taker {
 
-  public _str;
+  public readonly __str;
 
   public constructor(str: string) {
-    this._str = str;
+    this.__str = str;
   }
 
   public take(input: string, offset: number): number {
-    const str = this._str;
-    const strLength = str.length;
-    return input.substr(offset, strLength) === str ? offset + strLength : ResultCode.NO_MATCH;
+    const {__str} = this;
+    const strLength = __str.length;
+
+    // input.startsWith(__str, offset) is slower
+    return input.substr(offset, strLength) === __str ? offset + strLength : ResultCode.NO_MATCH;
   }
 }
 
-export class CaseInsensitiveTextTaker implements ITaker {
+export class CaseInsensitiveTextTaker implements Taker {
 
-  private _str;
-  private _lowerCharCodes;
-  private _upperCharCodes;
+  private readonly __str;
+  private readonly __lowerCharCodes;
+  private readonly __upperCharCodes;
 
   public constructor(str: string) {
-    this._str = str;
-    this._lowerCharCodes = toCharCodes(str.toLowerCase());
-    this._upperCharCodes = toCharCodes(str.toUpperCase());
+    this.__str = str;
+    this.__lowerCharCodes = toCharCodes(str.toLowerCase());
+    this.__upperCharCodes = toCharCodes(str.toUpperCase());
   }
 
   public take(input: string, offset: number): number {
-    const strLength = this._str.length;
-    const lowerCharCodes = this._lowerCharCodes;
-    const upperCharCodes = this._upperCharCodes;
+
+    const {
+      __str,
+      __lowerCharCodes,
+      __upperCharCodes,
+    } = this;
+
+    const strLength = __str.length;
 
     for (let i = 0; i < strLength; ++i) {
       const charCode = input.charCodeAt(i + offset);
 
-      if (charCode === lowerCharCodes[i] || charCode === upperCharCodes[i]) {
+      if (charCode === __lowerCharCodes[i] || charCode === __upperCharCodes[i]) {
         continue;
       }
       return ResultCode.NO_MATCH;

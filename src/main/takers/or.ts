@@ -1,4 +1,4 @@
-import {ITaker, ResultCode, TakerLike} from '../taker-types';
+import {Taker, ResultCode, TakerLike} from '../taker-types';
 import {noneTaker, toTaker} from '../taker-utils';
 
 /**
@@ -6,7 +6,7 @@ import {noneTaker, toTaker} from '../taker-utils';
  *
  * @param takers Takers that are called.
  */
-export function or(...takers: Array<TakerLike>): ITaker {
+export function or(...takers: TakerLike[]): Taker {
   const takerCount = takers.length;
 
   if (takerCount === 0) {
@@ -19,22 +19,22 @@ export function or(...takers: Array<TakerLike>): ITaker {
   return new OrTaker(takers.map(toTaker));
 }
 
-export class OrTaker implements ITaker {
+export class OrTaker implements Taker {
 
-  private _takers;
+  private readonly __takers;
 
-  public constructor(takers: Array<ITaker>) {
-    this._takers = takers;
+  public constructor(takers: Taker[]) {
+    this.__takers = takers;
   }
 
   public take(input: string, offset: number): number {
-    const takers = this._takers;
-    const takerCount = takers.length;
+    const {__takers} = this;
+    const takerCount = __takers.length;
 
     let result = ResultCode.NO_MATCH;
 
     for (let i = 0; i < takerCount && result === ResultCode.NO_MATCH; ++i) {
-      result = takers[i].take(input, offset);
+      result = __takers[i].take(input, offset);
     }
     return result;
   }

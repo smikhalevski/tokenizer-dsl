@@ -1,33 +1,34 @@
-import {ITaker, ResultCode} from '../taker-types';
+import {Taker, ResultCode} from '../taker-types';
 
-export function regex(pattern: RegExp): ITaker {
+export function regex(pattern: RegExp): Taker {
   return new RegexTaker(pattern);
 }
 
-export class RegexTaker implements ITaker {
+export class RegexTaker implements Taker {
 
-  private _pattern;
+  private readonly __pattern;
 
   public constructor(pattern: RegExp) {
-    this._pattern = pattern;
+    this.__pattern = pattern;
 
     if (pattern.sticky !== undefined) {
       if (!pattern.sticky) {
-        this._pattern = RegExp(pattern, pattern.flags + 'y');
+        this.__pattern = RegExp(pattern, pattern.flags + 'y');
       }
     } else {
       if (!pattern.global) {
-        this._pattern = RegExp(pattern, pattern.flags + 'g');
+        this.__pattern = RegExp(pattern, pattern.flags + 'g');
       }
     }
   }
 
   public take(input: string, offset: number): number {
-    const pattern = this._pattern;
-    pattern.lastIndex = offset;
+    const {__pattern} = this;
 
-    const result = pattern.exec(input);
+    __pattern.lastIndex = offset;
 
-    return result === null || result.index !== offset ? ResultCode.NO_MATCH : pattern.lastIndex;
+    const result = __pattern.exec(input);
+
+    return result === null || result.index !== offset ? ResultCode.NO_MATCH : __pattern.lastIndex;
   }
 }

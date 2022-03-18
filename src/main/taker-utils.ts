@@ -1,25 +1,27 @@
-import {ITaker, ResultCode, TakerLike} from './taker-types';
+import {Taker, ResultCode, TakerLike} from './taker-types';
 
-export class NeverTaker implements ITaker {
+/**
+ * Taker that always returns `NO_MATCH`.
+ */
+export const noneTaker: Taker = {
+  take: () => ResultCode.NO_MATCH,
+};
 
-  public take(): number {
-    return ResultCode.NO_MATCH;
-  }
-}
+/**
+ * Taker that returns the current offset.
+ */
+export const neverTaker: Taker = {
+  take: (input, offset) => offset,
+};
 
-export class NoneTaker implements ITaker {
-
-  public take(input: string, offset: number): number {
-    return offset;
-  }
-}
-
-export const noneTaker = new NoneTaker();
-
-export const neverTaker = new NeverTaker();
-
-export function toCharCodes(str: string): Array<number> {
-  const charCodes: Array<number> = [];
+/**
+ * Converts string to an array of char codes.
+ *
+ * @param str The string to read chars from.
+ * @returns An array of char codes.
+ */
+export function toCharCodes(str: string): number[] {
+  const charCodes: number[] = [];
 
   for (let i = 0; i < str.length; ++i) {
     charCodes.push(str.charCodeAt(i));
@@ -27,6 +29,11 @@ export function toCharCodes(str: string): Array<number> {
   return charCodes;
 }
 
-export function toTaker(taker: TakerLike): ITaker {
+/**
+ * Converts a function to a {@link Taker} instance.
+ *
+ * @param taker The function or a {@link Taker} instance.
+ */
+export function toTaker(taker: TakerLike): Taker {
   return typeof taker === 'function' ? {take: taker} : taker;
 }

@@ -1,8 +1,9 @@
-import {CharCodeChecker, ITaker, ResultCode, TakerLike} from '../taker-types';
+import {CharCodeChecker, Taker, ResultCode, TakerLike} from '../taker-types';
 import {neverTaker, noneTaker, toTaker} from '../taker-utils';
 import {CharTaker} from './char';
+import {CaseSensitiveTextTaker} from './text';
 
-export interface IAllOptions {
+export interface AllOptions {
 
   /**
    * The minimum number of matches to consider success.
@@ -25,7 +26,7 @@ export interface IAllOptions {
  * @param taker The taker that takes chars.
  * @param options Taker options.
  */
-export function all(taker: TakerLike, options: IAllOptions = {}): ITaker {
+export function all(taker: TakerLike, options: AllOptions = {}): Taker {
   taker = toTaker(taker);
 
   const {
@@ -43,54 +44,112 @@ export function all(taker: TakerLike, options: IAllOptions = {}): ITaker {
     return taker;
   }
   if (taker instanceof CharTaker) {
-    return new AllCharTaker(taker._charCodeChecker, minimumCount, maximumCount);
+    return new AllCharTaker(taker.__charCodeChecker, minimumCount, maximumCount);
+  }
+  if (taker instanceof CaseSensitiveTextTaker) {
+    return new AllCaseSensitiveTextTaker(taker.__str, minimumCount, maximumCount);
   }
   return new AllTaker(taker, minimumCount, maximumCount);
 }
 
-export class AllCharTaker implements ITaker {
+/**
+ * Takes all chars using a checker callback.
+ */
+export class AllCharTaker implements Taker {
 
-  private _charCodeChecker;
-  private _minimumCount;
-  private _maximumCount;
+  private readonly __charCodeChecker;
+  private readonly __minimumCount;
+  private readonly __maximumCount;
 
   public constructor(charCodeChecker: CharCodeChecker, minimumCount: number, maximumCount: number) {
-    this._charCodeChecker = charCodeChecker;
-    this._minimumCount = minimumCount;
-    this._maximumCount = maximumCount;
+    this.__charCodeChecker = charCodeChecker;
+    this.__minimumCount = minimumCount;
+    this.__maximumCount = maximumCount;
   }
 
   public take(input: string, offset: number): number {
-    const charCodeChecker = this._charCodeChecker;
-    const maximumOffset = offset + this._maximumCount;
 
+    const {
+      __charCodeChecker,
+      __minimumCount,
+      __maximumCount,
+    } = this;
+
+    let takeCount = 0;
     let i = offset;
-    while (i < maximumOffset && charCodeChecker(input.charCodeAt(i))) {
+
+    while (takeCount < __maximumCount && __charCodeChecker(input.charCodeAt(i))) {
+      ++takeCount;
       ++i;
     }
-    if (i - offset < this._minimumCount) {
+    if (takeCount < __minimumCount) {
       return ResultCode.NO_MATCH;
     }
     return i;
   }
 }
 
-export class AllTaker implements ITaker {
+/**
+ * Takes all sequential matches of a case-sensitive string.
+ */
+export class AllCaseSensitiveTextTaker implements Taker {
 
-  private _taker;
-  private _minimumCount;
-  private _maximumCount;
+  private readonly __str;
+  private readonly __minimumCount;
+  private readonly __maximumCount;
 
-  public constructor(taker: ITaker, minimumCount: number, maximumCount: number) {
-    this._taker = taker;
-    this._minimumCount = minimumCount;
-    this._maximumCount = maximumCount;
+  public constructor(str: string, minimumCount: number, maximumCount: number) {
+    this.__str = str;
+    this.__minimumCount = minimumCount;
+    this.__maximumCount = maximumCount;
   }
 
   public take(input: string, offset: number): number {
-    const taker = this._taker;
-    const maximumCount = this._maximumCount;
-    const minimumCount = this._minimumCount;
+
+    const {
+      __str,
+      __minimumCount,
+      __maximumCount,
+    } = this;
+
+    const strLength = __str.length;
+
+    let takeCount = 0;
+    let i = offset;
+
+    while (takeCount < __maximumCount && input.startsWith(__str, i)) {
+      ++takeCount;
+      i += strLength;
+    }
+    if (takeCount < __minimumCount) {
+      return ResultCode.NO_MATCH;
+    }
+    return i;
+  }
+}
+
+/**
+ * Takes all sequential matches of another taker.
+ */
+export class AllTaker implements Taker {
+
+  private readonly __taker;
+  private readonly __minimumCount;
+  private readonly __maximumCount;
+
+  public constructor(taker: Taker, minimumCount: number, maximumCount: number) {
+    this.__taker = taker;
+    this.__minimumCount = minimumCount;
+    this.__maximumCount = maximumCount;
+  }
+
+  public take(input: string, offset: number): number {
+
+    const {
+      __taker,
+      __maximumCount,
+      __minimumCount,
+    } = this;
 
     let takeCount = 0;
     let result = offset;
@@ -98,10 +157,10 @@ export class AllTaker implements ITaker {
 
     do {
       i = result;
-      result = taker.take(input, i);
-    } while (result > i && ++takeCount < maximumCount);
+      result = __taker.take(input, i);
+    } while (result > i && ++takeCount < __maximumCount);
 
-    if (takeCount < minimumCount) {
+    if (takeCount < __minimumCount) {
       return ResultCode.NO_MATCH;
     }
     if (result === ResultCode.NO_MATCH) {

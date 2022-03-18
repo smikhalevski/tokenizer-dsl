@@ -1,4 +1,4 @@
-import {ITaker, TakerLike} from '../taker-types';
+import {Taker, TakerLike} from '../taker-types';
 import {noneTaker, toTaker} from '../taker-utils';
 
 /**
@@ -6,7 +6,7 @@ import {noneTaker, toTaker} from '../taker-utils';
  *
  * @param takers Takers that are called.
  */
-export function seq(...takers: Array<TakerLike>): ITaker {
+export function seq(...takers: TakerLike[]): Taker {
   const takerCount = takers.length;
 
   if (takerCount === 0) {
@@ -19,20 +19,20 @@ export function seq(...takers: Array<TakerLike>): ITaker {
   return new SeqTaker(takers.map(toTaker));
 }
 
-export class SeqTaker implements ITaker {
+export class SeqTaker implements Taker {
 
-  private _takers;
+  private readonly __takers;
 
-  public constructor(takers: Array<ITaker>) {
-    this._takers = takers;
+  public constructor(takers: Taker[]) {
+    this.__takers = takers;
   }
 
   public take(input: string, offset: number): number {
-    const takers = this._takers;
-    const takerCount = takers.length;
+    const {__takers} = this;
+    const takerCount = __takers.length;
 
     for (let i = 0; i < takerCount && offset >= 0; ++i) {
-      offset = takers[i].take(input, offset);
+      offset = __takers[i].take(input, offset);
     }
     return offset;
   }

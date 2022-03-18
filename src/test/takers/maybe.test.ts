@@ -3,7 +3,7 @@ import {ResultCode} from '../../main/taker-types';
 
 describe('maybe', () => {
 
-  it('returns result of taker', () => {
+  test('returns result of taker', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(4);
 
@@ -11,7 +11,7 @@ describe('maybe', () => {
     expect(takerMock).toHaveBeenCalledTimes(1);
   });
 
-  it('returns offset if taker did not match', () => {
+  test('returns offset if taker did not match', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
