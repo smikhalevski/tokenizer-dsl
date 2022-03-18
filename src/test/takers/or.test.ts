@@ -1,7 +1,23 @@
-import {or} from '../../main/takers/or';
-import {ResultCode} from '../../main/taker-types';
+import {none, or, OrTaker, ResultCode} from '../../main';
 
 describe('or', () => {
+
+  test('returns none taker', () => {
+    expect(or()).toBe(none);
+  });
+
+  test('returns single taker', () => {
+    const takerMock = {take: () => 0};
+    expect(or(takerMock)).toBe(takerMock);
+  });
+
+  test('returns OrTaker', () => {
+    const takerMock = jest.fn();
+    expect(or(takerMock, takerMock)).toBeInstanceOf(OrTaker);
+  });
+});
+
+describe('OrTaker', () => {
 
   test('returns after the first match', () => {
     const takerMock = jest.fn();

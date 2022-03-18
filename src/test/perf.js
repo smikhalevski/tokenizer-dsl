@@ -101,10 +101,11 @@ describe('char', () => {
 });
 */
 
+
 /*
 describe('text', () => {
 
-  describe('ASCII / length=1 / !caseInsensitive', () => {
+  describe('CaseSensitiveCharTaker', () => {
 
     const input = 'ababab';
 
@@ -124,7 +125,7 @@ describe('text', () => {
     });
   });
 
-  describe('ASCII / length=1 / caseInsensitive', () => {
+  describe('CaseInsensitiveCharTaker', () => {
 
     const input = 'ababab';
 
@@ -134,7 +135,7 @@ describe('text', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.text('A', true);
+      const take = latest.charBy((charCode) => charCode === 65 || charCode === 97);
       measure(() => take(input, 0));
     });
 
@@ -144,7 +145,7 @@ describe('text', () => {
     });
   });
 
-  describe('ASCII / length=5 / !caseInsensitive', () => {
+  describe('CaseSensitiveTextTaker', () => {
 
     const input = 'ababab';
 
@@ -164,7 +165,7 @@ describe('text', () => {
     });
   });
 
-  describe('ASCII / length=5 / caseInsensitive', () => {
+  describe('CaseInsensitiveTextTaker', () => {
 
     const input = 'aBAbab';
 
@@ -183,88 +184,52 @@ describe('text', () => {
       measure(() => taker.take(input, 0));
     });
   });
+});
+*/
 
-  describe('non-ASCII / length=1 / !caseInsensitive', () => {
+describe('or', () => {
 
-    const input = 'åω';
+  describe('OrTaker (2x CaseSensitiveCharTaker)', () => {
+
+    const input = 'aaa';
 
     test('RegExp', (measure) => {
-      const re = /^å/;
+      const re = /^[ba]/;
       measure(() => re.exec(input));
     });
 
     test('latest', (measure) => {
-      const take = latest.text('å');
+      const take = latest.or(latest.char(98), latest.char(97));
       measure(() => take(input, 0));
     });
 
     test('next', (measure) => {
-      const taker = next.text('å');
+      const taker = next.or(next.text('b'), next.text('a'));
       measure(() => taker.take(input, 0));
     });
   });
 
-  describe('non-ASCII / length=1 / caseInsensitive', () => {
+  describe('OrTaker (3x CaseSensitiveCharTaker)', () => {
 
-    const input = 'åω';
+    const input = 'aaaa';
 
     test('RegExp', (measure) => {
-      const re = /^Å/i;
+      const re = /^[cba]/;
       measure(() => re.exec(input));
     });
 
     test('latest', (measure) => {
-      const take = latest.text('Å', true);
+      const take = latest.or(latest.char(99), latest.char(98), latest.char(97));
       measure(() => take(input, 0));
     });
 
     test('next', (measure) => {
-      const taker = next.text('Å', {caseInsensitive: true});
-      measure(() => taker.take(input, 0));
-    });
-  });
-
-  describe('non-ASCII / length=5 / !caseInsensitive', () => {
-
-    const input = 'åωызк';
-
-    test('RegExp', (measure) => {
-      const re = /^åωызк/;
-      measure(() => re.exec(input));
-    });
-
-    test('latest', (measure) => {
-      const take = latest.text('åωызк');
-      measure(() => take(input, 0));
-    });
-
-    test('next', (measure) => {
-      const taker = next.text('åωызк');
-      measure(() => taker.take(input, 0));
-    });
-  });
-
-  describe('non-ASCII / length=5 / caseInsensitive', () => {
-
-    const input = 'åΩЫзк';
-
-    test('RegExp', (measure) => {
-      const re = /^ÅΩЫЗК/i;
-      measure(() => re.exec(input));
-    });
-
-    test('latest', (measure) => {
-      const take = latest.text('ÅΩЫЗК', true);
-      measure(() => take(input, 0));
-    });
-
-    test('next', (measure) => {
-      const taker = next.text('ÅΩЫЗК', {caseInsensitive: true});
+      const taker = next.or(next.text('c'), next.text('b'), next.text('a'));
       measure(() => taker.take(input, 0));
     });
   });
 });
-*/
+
 
 /*
 describe('all', () => {
@@ -475,49 +440,6 @@ describe('seq', () => {
 
     test('next', (measure) => {
       const taker = next.seq(next.text('a'), next.text('a'), next.text('a'));
-      measure(() => taker.take(input, 0));
-    });
-  });
-});
-
-describe('or', () => {
-
-  describe('2x char', () => {
-
-    const input = 'aaa';
-
-    test('RegExp', (measure) => {
-      const re = /^[ba][ba]/;
-      measure(() => re.exec(input));
-    });
-
-    test('latest', (measure) => {
-      const take = latest.or(latest.char(98), latest.char(97));
-      measure(() => take(input, 0));
-    });
-
-    test('next', (measure) => {
-      const taker = next.or(next.text('b'), next.text('a'));
-      measure(() => taker.take(input, 0));
-    });
-  });
-
-  describe('3x char', () => {
-
-    const input = 'aaaa';
-
-    test('RegExp', (measure) => {
-      const re = /^[cba]/;
-      measure(() => re.exec(input));
-    });
-
-    test('latest', (measure) => {
-      const take = latest.or(latest.char(99), latest.char(98), latest.char(97));
-      measure(() => take(input, 0));
-    });
-
-    test('next', (measure) => {
-      const taker = next.or(next.text('c'), next.text('b'), next.text('a'));
       measure(() => taker.take(input, 0));
     });
   });

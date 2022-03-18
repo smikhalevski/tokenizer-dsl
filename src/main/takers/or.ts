@@ -1,5 +1,6 @@
 import {Taker, ResultCode, TakerLike} from '../taker-types';
-import {noneTaker, toTaker} from '../taker-utils';
+import {toTaker} from '../toTaker';
+import {none} from './none';
 
 /**
  * Returns the result of the first matched taker.
@@ -10,7 +11,7 @@ export function or(...takers: TakerLike[]): Taker {
   const takerCount = takers.length;
 
   if (takerCount === 0) {
-    return noneTaker;
+    return none;
   }
   if (takerCount === 1) {
     return toTaker(takers[0]);

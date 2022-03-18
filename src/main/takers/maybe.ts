@@ -1,5 +1,5 @@
 import {Taker, ResultCode, TakerLike} from '../taker-types';
-import {toTaker} from '../taker-utils';
+import {toTaker} from '../toTaker';
 
 /**
  * Creates taker that returns `taker` result or current offset if taker returned {@link ResultCode.NO_MATCH}.

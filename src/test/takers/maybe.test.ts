@@ -1,7 +1,13 @@
-import {maybe} from '../../main/takers/maybe';
-import {ResultCode} from '../../main/taker-types';
+import {maybe, MaybeTaker, ResultCode} from '../../main';
 
 describe('maybe', () => {
+
+  test('returns MaybeTaker', () => {
+    expect(maybe(() => 0)).toBeInstanceOf(MaybeTaker);
+  });
+});
+
+describe('MaybeTaker', () => {
 
   test('returns result of taker', () => {
     const takerMock = jest.fn();

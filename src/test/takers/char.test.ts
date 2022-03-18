@@ -1,10 +1,16 @@
-import {ResultCode} from '../../main/taker-types';
-import {char} from '../../main/takers/char';
+import {char, CharTaker, ResultCode} from '../../main';
 
 const A = 'a'.charCodeAt(0);
 const B = 'b'.charCodeAt(0);
 
 describe('char', () => {
+
+  test('returns CharTaker', () => {
+    expect(char(() => false)).toBeInstanceOf(CharTaker);
+  });
+});
+
+describe('CharTaker', () => {
 
   test('reads char at offset', () => {
     expect(char((charCode) => charCode === A).take('aaabbb', 2)).toBe(3);

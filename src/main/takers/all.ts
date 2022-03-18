@@ -1,7 +1,9 @@
 import {CharCodeChecker, Taker, ResultCode, TakerLike} from '../taker-types';
-import {neverTaker, noneTaker, toTaker} from '../taker-utils';
+import {toTaker} from '../toTaker';
 import {CharTaker} from './char';
 import {CaseSensitiveTextTaker} from './text';
+import {none} from './none';
+import {never} from './never';
 
 export interface AllOptions {
 
@@ -35,10 +37,10 @@ export function all(taker: TakerLike, options: AllOptions = {}): Taker {
   } = options;
 
   if (minimumCount > maximumCount || maximumCount < 0) {
-    return neverTaker;
+    return never;
   }
   if (maximumCount === 0) {
-    return noneTaker;
+    return none;
   }
   if (maximumCount === 1) {
     return taker;

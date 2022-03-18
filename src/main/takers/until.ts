@@ -1,7 +1,7 @@
 import {CharCodeChecker, Taker, ResultCode, TakerLike} from '../taker-types';
 import {CharTaker} from './char';
 import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
-import {toTaker} from '../taker-utils';
+import {toTaker} from '../toTaker';
 
 export interface UntilOptions {
 
