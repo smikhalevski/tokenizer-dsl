@@ -1,7 +1,9 @@
-import {CharCodeChecker, Taker, ResultCode, TakerLike} from '../taker-types';
+import {CharCodeChecker, ResultCode, Taker, TakerLike} from '../taker-types';
 import {CharTaker} from './char';
 import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
 import {toTaker} from '../toTaker';
+import {never} from './never';
+import {none} from './none';
 
 export interface UntilOptions {
 
@@ -32,16 +34,19 @@ export function until(taker: TakerLike, options: UntilOptions = {}): Taker {
     endOffset = 0,
   } = options;
 
+  if (taker === never || taker === none || taker instanceof UntilTaker) {
+    return taker;
+  }
   if (taker instanceof CaseSensitiveCharTaker) {
-    return new UntilCaseSensitiveTextTaker(taker.__char, openEnded, endOffset, inclusive);
+    return new UntilCaseSensitiveTextTaker(taker.__char, inclusive, openEnded, endOffset);
   }
   if (taker instanceof CaseSensitiveTextTaker) {
-    return new UntilCaseSensitiveTextTaker(taker.__str, openEnded, endOffset, inclusive);
+    return new UntilCaseSensitiveTextTaker(taker.__str, inclusive, openEnded, endOffset);
   }
   if (taker instanceof CharTaker) {
-    return new UntilCharTaker(taker.__charCodeChecker, openEnded, endOffset, inclusive);
+    return new UntilCharTaker(taker.__charCodeChecker, inclusive, openEnded, endOffset);
   }
-  return new UntilTaker(taker, openEnded, endOffset, inclusive);
+  return new UntilTaker(taker, inclusive, openEnded, endOffset);
 }
 
 export class UntilCaseSensitiveTextTaker implements Taker {
@@ -51,7 +56,7 @@ export class UntilCaseSensitiveTextTaker implements Taker {
   private readonly __endOffset;
   private readonly __takenOffset;
 
-  public constructor(str: string, openEnded: boolean, endOffset: number, inclusive: boolean) {
+  public constructor(str: string, inclusive: boolean, openEnded: boolean, endOffset: number) {
     this.__str = str;
     this.__openEnded = openEnded;
     this.__endOffset = endOffset;
@@ -83,7 +88,7 @@ export class UntilCharTaker implements Taker {
   private readonly __endOffset;
   private readonly __takenOffset;
 
-  public constructor(charCodeChecker: CharCodeChecker, openEnded: boolean, endOffset: number, inclusive: boolean) {
+  public constructor(charCodeChecker: CharCodeChecker, inclusive: boolean, openEnded: boolean, endOffset: number) {
     this.__charCodeChecker = charCodeChecker;
     this.__openEnded = openEnded;
     this.__endOffset = endOffset;
@@ -119,7 +124,7 @@ export class UntilTaker implements Taker {
   private readonly __endOffset;
   private readonly __inclusive;
 
-  public constructor(taker: Taker, openEnded: boolean, endOffset: number, inclusive: boolean) {
+  public constructor(taker: Taker, inclusive: boolean, openEnded: boolean, endOffset: number) {
     this.__taker = taker;
     this.__openEnded = openEnded;
     this.__endOffset = endOffset;

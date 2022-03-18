@@ -1,4 +1,5 @@
-import {none, or, OrTaker, ResultCode} from '../../main';
+import {none, or, ResultCode} from '../../main';
+import {OrTaker} from '../../main/takers/or';
 
 describe('or', () => {
 
@@ -20,30 +21,30 @@ describe('or', () => {
 describe('OrTaker', () => {
 
   test('returns after the first match', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
-    takerMock.mockReturnValueOnce(2);
-    takerMock.mockReturnValueOnce(4);
+    const takeMock = jest.fn();
+    takeMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+    takeMock.mockReturnValueOnce(2);
+    takeMock.mockReturnValueOnce(4);
 
-    expect(or(takerMock, takerMock, takerMock).take('aabbcc', 0)).toBe(2);
-    expect(takerMock).toHaveBeenCalledTimes(2);
+    expect(new OrTaker([{take: takeMock}, {take: takeMock}, {take: takeMock}]).take('aabbcc', 0)).toBe(2);
+    expect(takeMock).toHaveBeenCalledTimes(2);
   });
 
   test('returns ResultCode.NO_MATCH', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValue(ResultCode.NO_MATCH);
+    const takeMock = jest.fn();
+    takeMock.mockReturnValue(ResultCode.NO_MATCH);
 
-    expect(or(takerMock, takerMock).take('aabbcc', 2)).toBe(ResultCode.NO_MATCH);
-    expect(takerMock).toHaveBeenCalledTimes(2);
+    expect(new OrTaker([{take: takeMock}, {take: takeMock}]).take('aabbcc', 2)).toBe(ResultCode.NO_MATCH);
+    expect(takeMock).toHaveBeenCalledTimes(2);
   });
 
   test('returns error result', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
-    takerMock.mockReturnValueOnce(-2);
-    takerMock.mockReturnValueOnce(4);
+    const takeMock = jest.fn();
+    takeMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+    takeMock.mockReturnValueOnce(-2);
+    takeMock.mockReturnValueOnce(4);
 
-    expect(or(takerMock, takerMock).take('aabbcc', 2)).toBe(-2);
-    expect(takerMock).toHaveBeenCalledTimes(2);
+    expect(new OrTaker([{take: takeMock}, {take: takeMock}]).take('aabbcc', 2)).toBe(-2);
+    expect(takeMock).toHaveBeenCalledTimes(2);
   });
 });

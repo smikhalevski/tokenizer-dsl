@@ -1,12 +1,10 @@
+import {none, ResultCode, text} from '../../main';
 import {
   CaseInsensitiveCharTaker,
   CaseInsensitiveTextTaker,
   CaseSensitiveCharTaker,
-  CaseSensitiveTextTaker,
-  none,
-  ResultCode,
-  text
-} from '../../main';
+  CaseSensitiveTextTaker
+} from '../../main/takers/text';
 
 describe('text', () => {
 

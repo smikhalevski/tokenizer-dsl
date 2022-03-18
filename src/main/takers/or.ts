@@ -1,6 +1,7 @@
-import {Taker, ResultCode, TakerLike} from '../taker-types';
+import {ResultCode, Taker, TakerLike} from '../taker-types';
 import {toTaker} from '../toTaker';
 import {none} from './none';
+import {never} from './never';
 
 /**
  * Returns the result of the first matched taker.
@@ -8,21 +9,34 @@ import {none} from './none';
  * @param takers Takers that are called.
  */
 export function or(...takers: TakerLike[]): Taker {
-  const takerCount = takers.length;
 
-  if (takerCount === 0) {
+  const t = takers.reduce<Taker[]>((t, taker) => {
+    if (t.length !== 0 && t[t.length - 1] === none) {
+      return t;
+    }
+    if (taker instanceof OrTaker) {
+      t.push(...taker.__takers);
+      return t;
+    }
+    if (taker !== never) {
+      t.push(toTaker(taker));
+    }
+    return t;
+  }, []);
+
+  if (t.length === 0) {
     return none;
   }
-  if (takerCount === 1) {
-    return toTaker(takers[0]);
+  if (t.length === 1) {
+    return t[0];
   }
 
-  return new OrTaker(takers.map(toTaker));
+  return new OrTaker(t);
 }
 
 export class OrTaker implements Taker {
 
-  private readonly __takers;
+  public readonly __takers;
 
   public constructor(takers: Taker[]) {
     this.__takers = takers;

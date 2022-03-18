@@ -49,7 +49,7 @@ export function all(taker: TakerLike, options: AllOptions = {}): Taker {
   if (maximumCount === 1 && minimumCount === 1) {
     return taker;
   }
-  if (taker instanceof AllCharTaker || taker instanceof AllCaseSensitiveTextTaker || taker instanceof AllTaker) {
+  if (taker === never || taker === none || taker instanceof AllCharTaker || taker instanceof AllCaseSensitiveTextTaker || taker instanceof AllTaker) {
     return taker;
   }
   if (taker instanceof CharTaker) {

@@ -1,16 +1,37 @@
-import {seq} from '../../main/takers/seq';
-import {ResultCode} from '../../main/taker-types';
+import {seq, SeqTaker} from '../../main/takers/seq';
+import {never, none, ResultCode, Taker, text} from '../../main';
 
 describe('seq', () => {
 
-  test('fails if any of takers fail', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(4);
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
-    takerMock.mockReturnValueOnce(5);
+  test('returns none', () => {
+    expect(seq()).toBe(none);
+  });
 
-    expect(seq(takerMock, takerMock, takerMock).take('aabbcc', 2)).toBe(ResultCode.NO_MATCH);
-    expect(takerMock).toHaveBeenCalledTimes(2);
+  test('returns never', () => {
+    expect(seq(never)).toBe(never);
+    expect(seq(text('a'), never)).toBe(never);
+  });
+
+  test('returns taker', () => {
+    const takerMock: Taker = {take: () => 0};
+    expect(seq(takerMock)).toBe(takerMock);
+  });
+
+  test('returns SeqTaker', () => {
+    expect(seq(text('aaa'), text('bbb'))).toBeInstanceOf(SeqTaker);
+  });
+});
+
+describe('SeqTaker', () => {
+
+  test('fails if any of takers fail', () => {
+    const takeMock = jest.fn();
+    takeMock.mockReturnValueOnce(4);
+    takeMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+    takeMock.mockReturnValueOnce(5);
+
+    expect(new SeqTaker([{take: takeMock}, {take: takeMock}, {take: takeMock}]).take('aabbcc', 2)).toBe(ResultCode.NO_MATCH);
+    expect(takeMock).toHaveBeenCalledTimes(2);
   });
 
   test('allows takers to return the same offset', () => {
@@ -18,12 +39,12 @@ describe('seq', () => {
   });
 
   test('returns error result', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(4);
-    takerMock.mockReturnValueOnce(-2);
-    takerMock.mockReturnValueOnce(5);
+    const takeMock = jest.fn();
+    takeMock.mockReturnValueOnce(4);
+    takeMock.mockReturnValueOnce(-2);
+    takeMock.mockReturnValueOnce(5);
 
-    expect(seq(takerMock, takerMock, takerMock).take('aabbcc', 2)).toBe(-2);
-    expect(takerMock).toHaveBeenCalledTimes(2);
+    expect(new SeqTaker([{take: takeMock}, {take: takeMock}, {take: takeMock}]).take('aabbcc', 2)).toBe(-2);
+    expect(takeMock).toHaveBeenCalledTimes(2);
   });
 });

@@ -6,10 +6,12 @@ describe('all', () => {
 
   test('returns never', () => {
     expect(all(() => 0, {maximumCount: -1})).toBe(never);
+    expect(all(never)).toBe(never);
   });
 
   test('returns none', () => {
     expect(all(() => 0, {maximumCount: 0})).toBe(none);
+    expect(all(none)).toBe(none);
   });
 
   test('returns MaybeTaker', () => {

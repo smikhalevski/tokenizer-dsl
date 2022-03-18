@@ -1,6 +1,7 @@
 import {Taker, TakerLike} from '../taker-types';
 import {toTaker} from '../toTaker';
 import {none} from './none';
+import {never} from './never';
 
 /**
  * Creates a taker that applies takers one after another.
@@ -8,21 +9,34 @@ import {none} from './none';
  * @param takers Takers that are called.
  */
 export function seq(...takers: TakerLike[]): Taker {
-  const takerCount = takers.length;
+  if (takers.includes(never)) {
+    return never;
+  }
 
-  if (takerCount === 0) {
+  const t = takers.reduce<Taker[]>((t, taker) => {
+    if (taker instanceof SeqTaker) {
+      t.push(...taker.__takers);
+      return t;
+    }
+    if (taker !== none) {
+      t.push(toTaker(taker));
+    }
+    return t;
+  }, []);
+
+  if (t.length === 0) {
     return none;
   }
-  if (takerCount === 1) {
-    return toTaker(takers[0]);
+  if (t.length === 1) {
+    return t[0];
   }
 
-  return new SeqTaker(takers.map(toTaker));
+  return new SeqTaker(t);
 }
 
 export class SeqTaker implements Taker {
 
-  private readonly __takers;
+  public readonly __takers;
 
   public constructor(takers: Taker[]) {
     this.__takers = takers;

@@ -1,27 +1,50 @@
-import {until} from '../../main/takers/until';
-import {text} from '../../main/takers/text';
-import {char} from '../../main/takers/char';
-import {ResultCode} from '../../main';
+import {until, UntilCaseSensitiveTextTaker, UntilCharTaker, UntilTaker} from '../../main/takers/until';
+import {char, never, none, text} from '../../main';
 
 describe('until', () => {
 
-  test('reads chars until substr is met', () => {
-    expect(until(text('b')).take('aaabbb', 0)).toBe(3);
+  test('returns none', () => {
+    expect(until(none)).toBe(none);
   });
 
-  test('reads chars until end of string if substr is not met', () => {
-    expect(until(char(isNaN), {inclusive: true}).take('aaabbb', 0)).toBe(ResultCode.NO_MATCH);
+  test('returns never', () => {
+    expect(until(never)).toBe(never);
   });
 
-  test('reads chars including substr', () => {
-    expect(until(text('b'), {inclusive: true}).take('aaabbb', 0)).toBe(4);
+  test('returns UntilCaseSensitiveTextTaker', () => {
+    expect(until(text('a'))).toBeInstanceOf(UntilCaseSensitiveTextTaker);
+    expect(until(text('aaa'))).toBeInstanceOf(UntilCaseSensitiveTextTaker);
   });
 
-  test('reads chars until substr is met', () => {
-    expect(until(text('b')).take('aaabbb', 0)).toBe(3);
+  test('returns UntilCharTaker', () => {
+    expect(until(char(() => false))).toBeInstanceOf(UntilCharTaker);
   });
 
-  test('reads chars including substr', () => {
-    expect(until(text('b'), {inclusive: true}).take('aaabbb', 0)).toBe(4);
+  test('returns UntilCharTaker', () => {
+    expect(until(() => 0)).toBeInstanceOf(UntilTaker);
   });
 });
+
+describe('UntilCaseSensitiveTextTaker', () => {
+
+  test('reads chars until substr is met', () => {
+    expect(new UntilCaseSensitiveTextTaker('b', false, false, 0).take('aaabbb', 0)).toBe(3);
+  });
+
+  test('reads chars including substr', () => {
+    expect(new UntilCaseSensitiveTextTaker('b', true, false, 0).take('aaabbb', 0)).toBe(4);
+  });
+});
+
+// describe('UntilCharTaker', () => {
+//
+//   test('reads chars until end of string if substr is not met', () => {
+//     expect(new UntilCharTaker().take('aaabbb', 0)).toBe(ResultCode.NO_MATCH);
+//   });
+// });
+
+// describe('UntilTaker', () => {
+//
+//   test('', () => {
+//   });
+// });
