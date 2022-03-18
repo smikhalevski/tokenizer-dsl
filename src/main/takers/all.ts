@@ -1,9 +1,10 @@
-import {CharCodeChecker, Taker, ResultCode, TakerLike} from '../taker-types';
+import {CharCodeChecker, ResultCode, Taker, TakerLike} from '../taker-types';
 import {toTaker} from '../toTaker';
 import {CharTaker} from './char';
-import {CaseSensitiveTextTaker} from './text';
+import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
 import {none} from './none';
 import {never} from './never';
+import {MaybeTaker} from './maybe';
 
 export interface AllOptions {
 
@@ -42,11 +43,20 @@ export function all(taker: TakerLike, options: AllOptions = {}): Taker {
   if (maximumCount === 0) {
     return none;
   }
-  if (maximumCount === 1) {
+  if (maximumCount === 1 && minimumCount <= 0) {
+    return new MaybeTaker(taker);
+  }
+  if (maximumCount === 1 && minimumCount === 1) {
+    return taker;
+  }
+  if (taker instanceof AllCharTaker || taker instanceof AllCaseSensitiveTextTaker || taker instanceof AllTaker) {
     return taker;
   }
   if (taker instanceof CharTaker) {
     return new AllCharTaker(taker.__charCodeChecker, minimumCount, maximumCount);
+  }
+  if (taker instanceof CaseSensitiveCharTaker) {
+    return new AllCaseSensitiveTextTaker(taker.__char, minimumCount, maximumCount);
   }
   if (taker instanceof CaseSensitiveTextTaker) {
     return new AllCaseSensitiveTextTaker(taker.__str, minimumCount, maximumCount);
@@ -54,14 +64,11 @@ export function all(taker: TakerLike, options: AllOptions = {}): Taker {
   return new AllTaker(taker, minimumCount, maximumCount);
 }
 
-/**
- * Takes all chars using a checker callback.
- */
 export class AllCharTaker implements Taker {
 
-  private readonly __charCodeChecker;
-  private readonly __minimumCount;
-  private readonly __maximumCount;
+  public readonly __charCodeChecker;
+  public readonly __minimumCount;
+  public readonly __maximumCount;
 
   public constructor(charCodeChecker: CharCodeChecker, minimumCount: number, maximumCount: number) {
     this.__charCodeChecker = charCodeChecker;
@@ -77,10 +84,12 @@ export class AllCharTaker implements Taker {
       __maximumCount,
     } = this;
 
+    const inputLength = input.length;
+
     let takeCount = 0;
     let i = offset;
 
-    while (takeCount < __maximumCount && __charCodeChecker(input.charCodeAt(i))) {
+    while (i < inputLength && takeCount < __maximumCount && __charCodeChecker(input.charCodeAt(i))) {
       ++takeCount;
       ++i;
     }
@@ -91,14 +100,11 @@ export class AllCharTaker implements Taker {
   }
 }
 
-/**
- * Takes all sequential matches of a case-sensitive string.
- */
 export class AllCaseSensitiveTextTaker implements Taker {
 
-  private readonly __str;
-  private readonly __minimumCount;
-  private readonly __maximumCount;
+  public readonly __str;
+  public readonly __minimumCount;
+  public readonly __maximumCount;
 
   public constructor(str: string, minimumCount: number, maximumCount: number) {
     this.__str = str;
@@ -130,14 +136,11 @@ export class AllCaseSensitiveTextTaker implements Taker {
   }
 }
 
-/**
- * Takes all sequential matches of another taker.
- */
 export class AllTaker implements Taker {
 
-  private readonly __taker;
-  private readonly __minimumCount;
-  private readonly __maximumCount;
+  public readonly __taker;
+  public readonly __minimumCount;
+  public readonly __maximumCount;
 
   public constructor(taker: Taker, minimumCount: number, maximumCount: number) {
     this.__taker = taker;

@@ -1,4 +1,5 @@
-import {char, CharTaker, ResultCode} from '../../main';
+import {char, ResultCode} from '../../main';
+import {CharTaker} from '../../main/takers/char';
 
 const A = 'a'.charCodeAt(0);
 const B = 'b'.charCodeAt(0);

@@ -1,84 +1,123 @@
-import {all} from '../../main/takers/all';
-import {ResultCode} from '../../main/taker-types';
-import {text} from '../../main';
+import {all, char, never, none, ResultCode, Taker, text} from '../../main';
+import {AllCaseSensitiveTextTaker, AllCharTaker, AllTaker} from '../../main/takers/all';
+import {MaybeTaker} from '../../main/takers/maybe';
 
-describe('AllTaker', () => {
+describe('all', () => {
 
-  test('takes until taker returns ResultCode.NO_MATCH', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(3);
-    takerMock.mockReturnValueOnce(4);
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
-
-    expect(all(takerMock).take('aabbcc', 2)).toBe(4);
-    expect(takerMock).toHaveBeenCalledTimes(3);
+  test('returns never', () => {
+    expect(all(() => 0, {maximumCount: -1})).toBe(never);
   });
 
-  test('takes until taker returns the same offset', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(3);
-    takerMock.mockReturnValueOnce(3);
-
-    expect(all(takerMock).take('aabbcc', 2)).toBe(3);
-    expect(takerMock).toHaveBeenCalledTimes(2);
+  test('returns none', () => {
+    expect(all(() => 0, {maximumCount: 0})).toBe(none);
   });
 
-  test('returns error result from underlying taker', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(3);
-    takerMock.mockReturnValueOnce(-2);
-    takerMock.mockReturnValueOnce(3);
-
-    expect(all(takerMock).take('aabbcc', 2)).toBe(-2);
-    expect(takerMock).toHaveBeenCalledTimes(2);
+  test('returns MaybeTaker', () => {
+    expect(all(() => 0, {maximumCount: 1})).toBeInstanceOf(MaybeTaker);
   });
 
-  test('returns ResultCode.NO_MATCH if minimum matches was not reached', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(1);
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
-
-    expect(all(takerMock, {minimumCount: 2}).take('a', 0)).toBe(ResultCode.NO_MATCH);
-    expect(takerMock).toHaveBeenCalledTimes(2);
+  test('returns taker', () => {
+    const takerMock: Taker = {take: () => 0};
+    expect(all(takerMock, {minimumCount: 1, maximumCount: 1})).toBe(takerMock);
   });
 
-  test('returns offset if minimum was reached', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(1);
-    takerMock.mockReturnValueOnce(2);
-    takerMock.mockReturnValueOnce(3);
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
-
-    expect(all(takerMock, {minimumCount: 2}).take('aaa', 0)).toBe(3);
-    expect(takerMock).toHaveBeenCalledTimes(4);
+  test('returns AllCharTaker', () => {
+    expect(all(char(() => false))).toBeInstanceOf(AllCharTaker);
   });
 
-  test('limits maximum read char count', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(1);
-    takerMock.mockReturnValueOnce(2);
-    takerMock.mockReturnValueOnce(3);
-
-    expect(all(takerMock, {maximumCount: 2}).take('aaa', 0)).toBe(2);
-    expect(takerMock).toHaveBeenCalledTimes(2);
+  test('returns AllCaseSensitiveTextTaker', () => {
+    expect(all(text('a'))).toBeInstanceOf(AllCaseSensitiveTextTaker);
+    expect(all(text('aaa'))).toBeInstanceOf(AllCaseSensitiveTextTaker);
   });
 
-  test('maximum does not affect the minimum', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(1);
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+  test('returns AllTaker', () => {
+    expect(all(() => 0)).toBeInstanceOf(AllTaker);
+  });
+});
 
-    expect(all(takerMock, {maximumCount: 2}).take('a', 0)).toBe(1);
-    expect(takerMock).toHaveBeenCalledTimes(2);
+describe('AllCharTaker', () => {
+
+  test('takes sequential chars', () => {
+    expect(new AllCharTaker(() => true, 0, Infinity).take('aaabbbccc', 2)).toBe(9);
+    expect(new AllCharTaker(() => false, 1, Infinity).take('aaabbbccc', 2)).toBe(ResultCode.NO_MATCH);
   });
 });
 
 describe('AllCaseSensitiveTextTaker', () => {
 
-  test('takes sequential strings', () => {
-    expect(all(text('foo')).take('__foofoofoof', 2)).toBe(11);
-    expect(all(text('foo'), {minimumCount: 1}).take('__foofoofoof', 2)).toBe(11);
-    expect(all(text('foo'), {minimumCount: 4}).take('__foofoofoof', 2)).toBe(ResultCode.NO_MATCH);
-    expect(all(text('foo'), {maximumCount: 2}).take('__foofoofoof', 2)).toBe(8);
+  test('takes sequential case-insensitive substrings', () => {
+    expect(new AllCaseSensitiveTextTaker('abc', 0, Infinity).take('abcabcabcd', 3)).toBe(9);
+    expect(new AllCaseSensitiveTextTaker('abc', 3, Infinity).take('abcabcabcd', 3)).toBe(ResultCode.NO_MATCH);
+  });
+});
+
+describe('AllTaker', () => {
+
+  test('takes until taker returns ResultCode.NO_MATCH', () => {
+    const takeMock = jest.fn();
+    takeMock.mockReturnValueOnce(3);
+    takeMock.mockReturnValueOnce(4);
+    takeMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+
+    expect(new AllTaker({take: takeMock}, 0, Infinity).take('aabbcc', 2)).toBe(4);
+    expect(takeMock).toHaveBeenCalledTimes(3);
+  });
+
+  test('takes until taker returns the same offset', () => {
+    const takeMock = jest.fn();
+    takeMock.mockReturnValueOnce(3);
+    takeMock.mockReturnValueOnce(3);
+
+    expect(new AllTaker({take: takeMock}, 0, Infinity).take('aabbcc', 2)).toBe(3);
+    expect(takeMock).toHaveBeenCalledTimes(2);
+  });
+
+  test('returns error result from underlying taker', () => {
+    const takeMock = jest.fn();
+    takeMock.mockReturnValueOnce(3);
+    takeMock.mockReturnValueOnce(-2);
+    takeMock.mockReturnValueOnce(3);
+
+    expect(new AllTaker({take: takeMock}, 0, Infinity).take('aabbcc', 2)).toBe(-2);
+    expect(takeMock).toHaveBeenCalledTimes(2);
+  });
+
+  test('returns ResultCode.NO_MATCH if minimum matches was not reached', () => {
+    const takeMock = jest.fn();
+    takeMock.mockReturnValueOnce(1);
+    takeMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+
+    expect(new AllTaker({take: takeMock}, 2, Infinity).take('a', 0)).toBe(ResultCode.NO_MATCH);
+    expect(takeMock).toHaveBeenCalledTimes(2);
+  });
+
+  test('returns offset if minimum was reached', () => {
+    const takeMock = jest.fn();
+    takeMock.mockReturnValueOnce(1);
+    takeMock.mockReturnValueOnce(2);
+    takeMock.mockReturnValueOnce(3);
+    takeMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+
+    expect(new AllTaker({take: takeMock}, 2, Infinity).take('aaa', 0)).toBe(3);
+    expect(takeMock).toHaveBeenCalledTimes(4);
+  });
+
+  test('limits maximum read char count', () => {
+    const takeMock = jest.fn();
+    takeMock.mockReturnValueOnce(1);
+    takeMock.mockReturnValueOnce(2);
+    takeMock.mockReturnValueOnce(3);
+
+    expect(new AllTaker({take: takeMock}, 0, 2).take('aaa', 0)).toBe(2);
+    expect(takeMock).toHaveBeenCalledTimes(2);
+  });
+
+  test('maximum does not affect the minimum', () => {
+    const takeMock = jest.fn();
+    takeMock.mockReturnValueOnce(1);
+    takeMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+
+    expect(new AllTaker({take: takeMock}, 0, 2).take('a', 0)).toBe(1);
+    expect(takeMock).toHaveBeenCalledTimes(2);
   });
 });
