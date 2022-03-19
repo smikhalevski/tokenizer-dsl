@@ -9,65 +9,65 @@ Example below shows how to assemble takers to create tokenizer for numbers:
 ```ts
 import {all, char, maybe, text, or, seq} from 'tokenizer-dsl';
 
-const zeroTaker = text('0');
+const takeZero = text('0');
 
-const leadingDigitTaker = char((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
+const takeLeadingDigit = char((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
 
-const digitsTaker = all(char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
+const takeDigits = all(char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
 
-const dotTaker = text('.');
+const takeDot = text('.');
 
-const signTaker = char((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
+const takeSign = char((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
 
-const numberTaker = seq(
+const takeNumber = seq(
 
     // sign
-    maybe(signTaker),
+    maybe(takeSign),
 
     // integer
     or(
-        zeroTaker,
+        takeZero,
         seq(
-            leadingDigitTaker,
-            digitsTaker,
+            takeLeadingDigit,
+            takeDigits,
         ),
     ),
 
     // fraction
     maybe(
         seq(
-            dotTaker,
-            maybe(digitsTaker),
+            takeDot,
+            maybe(takeDigits),
         ),
     ),
 );
 ```
 
-To get the offset at which the number ends in the string call `numberTaker` and provide an `input` string, and
+To get the offset at which the number ends in the string call `takeNumber` and provide an `input` string, and
 an `offset` from which the reading should be started:
 
 ```ts
-numberTaker.take(/*input*/ '0', /*offset*/ 0); // → 1
+takeNumber(/*input*/ '0', /*offset*/ 0); // → 1
 
-numberTaker.take(/*input*/ '123', /*offset*/ 0); // → 3
+takeNumber(/*input*/ '123', /*offset*/ 0); // → 3
 
-numberTaker.take(/*input*/ '+123', /*offset*/ 0); // → 4
+takeNumber(/*input*/ '+123', /*offset*/ 0); // → 4
 
-numberTaker.take(/*input*/ '-0.123', /*offset*/ 0); // → 6
+takeNumber(/*input*/ '-0.123', /*offset*/ 0); // → 6
 
-numberTaker.take(/*input*/ '-123.123', /*offset*/ 0); // → 8
+takeNumber(/*input*/ '-123.123', /*offset*/ 0); // → 8
 
-numberTaker.take(/*input*/ 'aaa123bbb', /*offset*/ 3);
+takeNumber(/*input*/ 'aaa123bbb', /*offset*/ 3);
   // → 6, because valid number starts at offset 3 and ends at 6
 ```
 
 If `input` string doesn't contain a valid number at an `offset` then `ResultCode.NO_MATCH === -1` is returned:
 
 ```ts
-numberTaker.take(/*input*/ 'aaa', /*offset*/ 0); // → -1
+takeNumber(/*input*/ 'aaa', /*offset*/ 0); // → -1
 
-numberTaker.take(/*input*/ 'a123', /*offset*/ 0); // → -1
+takeNumber(/*input*/ 'a123', /*offset*/ 0); // → -1
 
-numberTaker.take(/*input*/ '0000', /*offset*/ 0);
+takeNumber(/*input*/ '0000', /*offset*/ 0);
   // → 1, because valid number starts at 0 and ends at 1 
 ```

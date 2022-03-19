@@ -1,3 +1,6 @@
+/**
+ * The callback that must return `true` is given char code is appropriate, and must return `false` otherwise.
+ */
 export type CharCodeChecker = (charCode: number) => boolean;
 
 export const enum ResultCode {

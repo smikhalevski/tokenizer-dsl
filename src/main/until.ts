@@ -15,8 +15,19 @@ export interface UntilOptions {
    */
   inclusive?: boolean;
 
+  /**
+   * If set to `true` and requested taker didn't match then the input length plus {@link endOffset} is returned.
+   * Otherwise, {@link ResultCode.NO_MATCH} is returned.
+   *
+   * @default false
+   */
   openEnded?: boolean;
 
+  /**
+   * Additional offset for open-ended takers.
+   *
+   * @default 0
+   */
   endOffset?: number;
 }
 

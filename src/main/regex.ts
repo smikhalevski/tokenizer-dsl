@@ -1,5 +1,10 @@
 import {ResultCode, Taker, TakerType} from './taker-types';
 
+/**
+ * Creates taker that matches a substring.
+ *
+ * @param re The `RegExp` to match.
+ */
 export function regex(re: RegExp): Taker {
   return createRegexTaker(re);
 }
