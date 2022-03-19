@@ -40,12 +40,12 @@ describe('UntilCaseSensitiveTextTaker', () => {
   });
 });
 
-// describe('UntilCharTaker', () => {
-//
-//   test('reads chars until end of string if substr is not met', () => {
-//     expect(new UntilCharTaker().take('aaabbb', 0)).toBe(ResultCode.NO_MATCH);
-//   });
-// });
+describe('UntilCharTaker', () => {
+
+  test('reads chars until char is met', () => {
+    expect(new UntilCharTaker((charCode) => charCode === 'b'.charCodeAt(0), false, false, 0).take('aaabbb', 0)).toBe(3);
+  });
+});
 
 describe('UntilRegexTaker', () => {
 
