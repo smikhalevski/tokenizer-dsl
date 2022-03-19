@@ -1,3 +1,8 @@
+/**
+ * The callback that must return `true` is given char code is appropriate, and must return `false` otherwise.
+ */
+export type CharCodeChecker = (charCode: number) => boolean;
+
 export const enum ResultCode {
 
   /**
@@ -6,40 +11,44 @@ export const enum ResultCode {
   NO_MATCH = -1,
 }
 
+/**
+ * The type of the taker function, used for internal taker optimizations.
+ *
+ * @internal
+ */
 export const enum TakerType {
-  UNTIL,
-  UNTIL_TEXT_CASE_SENSITIVE,
-  UNTIL_CHAR,
-  ALL,
   ALL_CHAR,
+  ALL_CASE_SENSITIVE_TEXT,
+  ALL_REGEX,
+  ALL_GENERIC,
+  CHAR,
   END,
   MAYBE,
-  SEQ,
   OR,
-  TEXT_CASE_SENSITIVE,
-  TEXT_CASE_INSENSITIVE,
-  CHAR,
   REGEX,
-  NONE,
-  NEVER,
+  SEQ,
+  CASE_SENSITIVE_CHAR,
+  CASE_INSENSITIVE_CHAR,
+  CASE_SENSITIVE_TEXT,
+  CASE_INSENSITIVE_TEXT,
+  UNTIL_CASE_SENSITIVE_TEXT,
+  UNTIL_CHAR,
+  UNTIL_REGEX,
+  UNTIL_GENERIC,
 }
 
-/**
- * Takes the string `input` and the offset in this string `offset` and returns the new offset in `input` if taker
- * matched or a result code if taker didn't match. The taker may return offsets that exceed the `input` length.
- */
 export interface Taker {
+
+  /**
+   * The type of the taker function, used for internal taker optimizations.
+   *
+   * @internal
+   */
+  __type?: TakerType;
+
+  /**
+   * Takes the string `input` and the offset in this string `offset` and returns the new offset in `input` if taker
+   * matched or a result code if taker didn't match. The taker may return offsets that exceed the `input` length.
+   */
   (input: string, offset: number): number;
-
-  /**
-   * The type that distinguishes takers so we can pick be best optimization strategy.
-   */
-  type?: TakerType;
-
-  /**
-   * Additional data associated with taker that can be used during optimization.
-   */
-  data?: any;
 }
-
-export type CharCodeChecker = (charCode: number) => boolean;
