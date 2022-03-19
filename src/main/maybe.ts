@@ -1,7 +1,7 @@
-import {ResultCode, Taker, TakerType} from './taker-types';
+import {isAllTaker} from './all';
 import {never} from './never';
 import {none} from './none';
-import {isAllTaker} from './all';
+import {ResultCode, Taker, TakerType} from './taker-types';
 
 /**
  * Creates taker that returns `taker` result or current offset if taker returned {@link ResultCode.NO_MATCH}.

@@ -1,5 +1,5 @@
-import {createRegexTaker, regex} from '../main/regex';
 import {ResultCode, TakerType} from '../main';
+import {createRegexTaker, regex} from '../main/regex';
 
 describe('regex', () => {
 

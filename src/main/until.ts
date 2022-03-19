@@ -1,10 +1,10 @@
-import {CharCodeChecker, ResultCode, Taker, TakerType} from './taker-types';
 import {CharTaker} from './char';
-import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
-import {isTaker} from './taker-utils';
 import {never} from './never';
 import {none} from './none';
 import {RegexTaker} from './regex';
+import {CharCodeChecker, ResultCode, Taker, TakerType} from './taker-types';
+import {isTaker} from './taker-utils';
+import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
 
 export interface UntilOptions {
 

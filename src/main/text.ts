@@ -1,5 +1,5 @@
-import {ResultCode, Taker, TakerType} from './taker-types';
 import {none} from './none';
+import {ResultCode, Taker, TakerType} from './taker-types';
 
 export interface TextOptions {
 

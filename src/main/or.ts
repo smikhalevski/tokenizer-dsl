@@ -1,7 +1,7 @@
+import {never} from './never';
+import {none} from './none';
 import {ResultCode, Taker, TakerType} from './taker-types';
 import {isTaker} from './taker-utils';
-import {none} from './none';
-import {never} from './never';
 
 /**
  * Returns the result of the first matched taker.

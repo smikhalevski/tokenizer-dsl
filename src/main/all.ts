@@ -1,11 +1,11 @@
+import {CharTaker} from './char';
+import {createMaybeTaker} from './maybe';
+import {never} from './never';
+import {none} from './none';
+import {RegexTaker} from './regex';
 import {CharCodeChecker, ResultCode, Taker, TakerType} from './taker-types';
 import {isTaker} from './taker-utils';
-import {CharTaker} from './char';
 import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
-import {none} from './none';
-import {never} from './never';
-import {createMaybeTaker} from './maybe';
-import {RegexTaker} from './regex';
 
 export interface AllOptions {
 

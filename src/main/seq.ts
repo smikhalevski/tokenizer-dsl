@@ -1,7 +1,7 @@
+import {never} from './never';
+import {none} from './none';
 import {Taker, TakerType} from './taker-types';
 import {isTaker} from './taker-utils';
-import {none} from './none';
-import {never} from './never';
 
 /**
  * Creates a taker that applies takers one after another.

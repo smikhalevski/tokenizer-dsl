@@ -1,10 +1,5 @@
-import {
-  createUntilCaseSensitiveTextTaker,
-  createUntilCharTaker,
-  createUntilRegexTaker,
-  until
-} from '../main/until';
 import {char, never, none, regex, ResultCode, TakerType, text} from '../main';
+import {createUntilCaseSensitiveTextTaker, createUntilCharTaker, createUntilRegexTaker, until} from '../main/until';
 
 describe('until', () => {
 

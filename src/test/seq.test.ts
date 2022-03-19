@@ -1,5 +1,5 @@
-import {createSeqTaker, seq} from '../main/seq';
 import {never, none, ResultCode, Taker, TakerType, text} from '../main';
+import {createSeqTaker, seq} from '../main/seq';
 
 describe('seq', () => {
 

@@ -2,8 +2,8 @@ import {all, char, never, none, ResultCode, Taker, TakerType, text} from '../mai
 import {
   createAllCaseSensitiveTextTaker,
   createAllCharTaker,
-  createAllRegexTaker,
-  createAllGenericTaker
+  createAllGenericTaker,
+  createAllRegexTaker
 } from '../main/all';
 
 describe('all', () => {

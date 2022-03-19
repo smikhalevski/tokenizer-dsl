@@ -1,4 +1,4 @@
-import {CharCodeChecker, Taker, ResultCode, TakerType} from './taker-types';
+import {CharCodeChecker, ResultCode, Taker, TakerType} from './taker-types';
 
 /**
  * Creates a taker that matches a single char by its code.
