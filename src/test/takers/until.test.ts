@@ -1,5 +1,5 @@
-import {until, UntilCaseSensitiveTextTaker, UntilCharTaker, UntilTaker} from '../../main/takers/until';
-import {char, never, none, text} from '../../main';
+import {until, UntilCaseSensitiveTextTaker, UntilCharTaker, UntilRegexTaker, UntilTaker} from '../../main/takers/until';
+import {char, never, none, regex, ResultCode, text} from '../../main';
 
 describe('until', () => {
 
@@ -18,6 +18,10 @@ describe('until', () => {
 
   test('returns UntilCharTaker', () => {
     expect(until(char(() => false))).toBeInstanceOf(UntilCharTaker);
+  });
+
+  test('returns UntilRegexTaker', () => {
+    expect(until(regex(/a/))).toBeInstanceOf(UntilRegexTaker);
   });
 
   test('returns UntilCharTaker', () => {
@@ -42,6 +46,24 @@ describe('UntilCaseSensitiveTextTaker', () => {
 //     expect(new UntilCharTaker().take('aaabbb', 0)).toBe(ResultCode.NO_MATCH);
 //   });
 // });
+
+describe('UntilRegexTaker', () => {
+
+  test('reads until regex is met', () => {
+    expect(new UntilRegexTaker(/b/, false, false, 0).take('aaabbbaaabbb', 0)).toBe(3);
+    expect(new UntilRegexTaker(/b/, false, false, 0).take('aaabbbaaabbb', 6)).toBe(9);
+    expect(new UntilRegexTaker(/c/, false, false, 0).take('aaabbbaaabbb', 6)).toBe(ResultCode.NO_MATCH);
+  });
+
+  test('reads chars including matched substr', () => {
+    expect(new UntilRegexTaker(/bb/, true, false, 0).take('aaabbbb', 0)).toBe(5);
+  });
+
+  test('reads open-ended', () => {
+    expect(new UntilRegexTaker(/c/, false, true, 0).take('aaabbb', 0)).toBe(6);
+    expect(new UntilRegexTaker(/c/, false, true, 3).take('aaabbb', 0)).toBe(9);
+  });
+});
 
 // describe('UntilTaker', () => {
 //

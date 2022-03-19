@@ -4,6 +4,7 @@ import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
 import {toTaker} from '../toTaker';
 import {never} from './never';
 import {none} from './none';
+import {RegexTaker} from './regex';
 
 export interface UntilOptions {
 
@@ -34,8 +35,11 @@ export function until(taker: TakerLike, options: UntilOptions = {}): Taker {
     endOffset = 0,
   } = options;
 
-  if (taker === never || taker === none || taker instanceof UntilTaker) {
+  if (taker === never || taker === none || taker instanceof UntilRegexTaker || taker instanceof UntilCaseSensitiveTextTaker || taker instanceof UntilCharTaker || taker instanceof UntilTaker) {
     return taker;
+  }
+  if (taker instanceof RegexTaker) {
+    return new UntilRegexTaker(taker.__re, inclusive, openEnded, endOffset);
   }
   if (taker instanceof CaseSensitiveCharTaker) {
     return new UntilCaseSensitiveTextTaker(taker.__char, inclusive, openEnded, endOffset);
@@ -51,10 +55,10 @@ export function until(taker: TakerLike, options: UntilOptions = {}): Taker {
 
 export class UntilCaseSensitiveTextTaker implements Taker {
 
-  private readonly __str;
-  private readonly __openEnded;
-  private readonly __endOffset;
-  private readonly __takenOffset;
+  public readonly __str;
+  public readonly __openEnded;
+  public readonly __endOffset;
+  public readonly __takenOffset;
 
   public constructor(str: string, inclusive: boolean, openEnded: boolean, endOffset: number) {
     this.__str = str;
@@ -83,10 +87,10 @@ export class UntilCaseSensitiveTextTaker implements Taker {
 
 export class UntilCharTaker implements Taker {
 
-  private readonly __charCodeChecker;
-  private readonly __openEnded;
-  private readonly __endOffset;
-  private readonly __takenOffset;
+  public readonly __charCodeChecker;
+  public readonly __openEnded;
+  public readonly __endOffset;
+  public readonly __takenOffset;
 
   public constructor(charCodeChecker: CharCodeChecker, inclusive: boolean, openEnded: boolean, endOffset: number) {
     this.__charCodeChecker = charCodeChecker;
@@ -117,27 +121,62 @@ export class UntilCharTaker implements Taker {
   }
 }
 
+export class UntilRegexTaker implements Taker {
+
+  public readonly __re;
+  public readonly __inclusive;
+  public readonly __openEnded;
+  public readonly __endOffset;
+
+  public constructor(re: RegExp, inclusive: boolean, openEnded: boolean, endOffset: number) {
+    this.__re = new RegExp(re.source, re.flags.replace(/[yg]/, '') + 'g');
+    this.__inclusive = inclusive;
+    this.__openEnded = openEnded;
+    this.__endOffset = endOffset;
+  }
+
+  public take(input: string, offset: number): number {
+
+    const {
+      __re,
+      __openEnded,
+      __endOffset,
+      __inclusive,
+    } = this;
+
+    __re.lastIndex = offset;
+
+    const result = __re.exec(input);
+
+    if (result === null) {
+      return __openEnded ? input.length + __endOffset : ResultCode.NO_MATCH;
+    }
+
+    return __inclusive ? __re.lastIndex : result.index;
+  }
+}
+
 export class UntilTaker implements Taker {
 
-  private readonly __taker;
-  private readonly __openEnded;
-  private readonly __endOffset;
-  private readonly __inclusive;
+  public readonly __taker;
+  public readonly __inclusive;
+  public readonly __openEnded;
+  public readonly __endOffset;
 
   public constructor(taker: Taker, inclusive: boolean, openEnded: boolean, endOffset: number) {
     this.__taker = taker;
+    this.__inclusive = inclusive;
     this.__openEnded = openEnded;
     this.__endOffset = endOffset;
-    this.__inclusive = inclusive;
   }
 
   public take(input: string, offset: number): number {
 
     const {
       __taker,
+      __inclusive,
       __openEnded,
       __endOffset,
-      __inclusive,
     } = this;
 
     const inputLength = input.length;

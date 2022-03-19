@@ -18,7 +18,7 @@ export function maybe(taker: TakerLike): Taker {
 
 export class MaybeTaker implements Taker {
 
-  private readonly __taker;
+  public readonly __taker;
 
   public constructor(taker: Taker) {
     this.__taker = taker;

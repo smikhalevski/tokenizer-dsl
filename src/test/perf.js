@@ -81,21 +81,24 @@ describe('Docs', () => {
 
 describe('char', () => {
 
-  const input = 'ababab';
+  describe('CharTaker', () => {
 
-  test('RegExp', (measure) => {
-    const re = /^a/;
-    measure(() => re.exec(input));
-  });
+    const input = 'ababab';
 
-  test('latest', (measure) => {
-    const take = latest.charBy((charCode) => charCode === 97);
-    measure(() => take(input, 0));
-  });
+    test('RegExp', (measure) => {
+      const re = /^a/;
+      measure(() => re.exec(input));
+    });
 
-  test('next', (measure) => {
-    const taker = next.char((charCode) => charCode === 97);
-    measure(() => taker.take(input, 0));
+    test('latest', (measure) => {
+      const take = latest.charBy((charCode) => charCode === 97);
+      measure(() => take(input, 0));
+    });
+
+    test('next', (measure) => {
+      const taker = next.char((charCode) => charCode === 97);
+      measure(() => taker.take(input, 0));
+    });
   });
 });
 
@@ -184,27 +187,7 @@ describe('all', () => {
 
 describe('or', () => {
 
-  describe('OrTaker (2x CaseSensitiveCharTaker)', () => {
-
-    const input = 'aaa';
-
-    test('RegExp', (measure) => {
-      const re = /^[ba]/;
-      measure(() => re.exec(input));
-    });
-
-    test('latest', (measure) => {
-      const take = latest.or(latest.char(98), latest.char(97));
-      measure(() => take(input, 0));
-    });
-
-    test('next', (measure) => {
-      const taker = next.or(next.text('b'), next.text('a'));
-      measure(() => taker.take(input, 0));
-    });
-  });
-
-  describe('OrTaker (3x CaseSensitiveCharTaker)', () => {
+  describe('OrTaker', () => {
 
     const input = 'aaaa';
 
@@ -227,27 +210,7 @@ describe('or', () => {
 
 describe('seq', () => {
 
-  describe('SeqTaker (2x CaseSensitiveCharTaker)', () => {
-
-    const input = 'aaa';
-
-    test('RegExp', (measure) => {
-      const re = /^aa/;
-      measure(() => re.exec(input));
-    });
-
-    test('latest', (measure) => {
-      const take = latest.seq(latest.char(97), latest.char(97));
-      measure(() => take(input, 0));
-    });
-
-    test('next', (measure) => {
-      const taker = next.seq(next.text('a'), next.text('a'));
-      measure(() => taker.take(input, 0));
-    });
-  });
-
-  describe('SeqTaker (3x CaseSensitiveCharTaker)', () => {
+  describe('SeqTaker', () => {
 
     const input = 'aaaa';
 
@@ -373,13 +336,17 @@ describe('until', () => {
     });
   });
 
-  describe('UntilCaseSensitiveTextTaker (length = 1)', () => {
+  describe('UntilCaseSensitiveTextTaker', () => {
 
-    const input = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaabaaaaa';
+    const input = 'a'.repeat(1000) + 'b';
 
     test('RegExp', (measure) => {
-      const re = /^.*b/;
+      const re = /b/;
       measure(() => re.exec(input));
+    });
+
+    test('indexOf', (measure) => {
+      measure(() => input.indexOf('b'));
     });
 
     test('latest', (measure) => {
@@ -393,12 +360,12 @@ describe('until', () => {
     });
   });
 
-  describe('UntilCaseSensitiveTextTaker (length = 1) {openEnded: true}', () => {
+  describe('UntilCaseSensitiveTextTaker {openEnded: true}', () => {
 
-    const input = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaabaaaaa';
+    const input = 'a'.repeat(1000) + 'b';
 
     test('RegExp', (measure) => {
-      const re = /^.*b/;
+      const re = /b/;
       measure(() => re.exec(input));
     });
 
@@ -413,27 +380,24 @@ describe('until', () => {
     });
   });
 
-  describe('UntilCaseSensitiveTextTaker (length = 2)', () => {
+  describe('UntilRegexTaker', () => {
 
-    const input = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaabaaaaa';
+    const input = 'a'.repeat(1000) + 'b';
 
     test('RegExp', (measure) => {
-      const re = /^.*ba/;
+      const re = /b/;
       measure(() => re.exec(input));
     });
 
-    test('indexOf', (measure) => {
-      measure(() => input.indexOf('ba'));
-    });
-
     test('latest', (measure) => {
-      const take = latest.untilText('ba', false, false);
+      const take = latest.untilCharBy((charCode) => charCode === 98, false, false);
       measure(() => take(input, 0));
     });
 
     test('next', (measure) => {
-      const taker = next.until(next.text('ba'));
+      const taker = next.until(next.regex(/b/));
       measure(() => taker.take(input, 0));
     });
   });
+
 });
