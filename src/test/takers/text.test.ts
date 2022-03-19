@@ -1,10 +1,11 @@
 import {none, ResultCode, text} from '../../main';
 import {
-  CaseInsensitiveCharTaker,
-  CaseInsensitiveTextTaker,
-  CaseSensitiveCharTaker,
-  CaseSensitiveTextTaker
+  createCaseInsensitiveCharTaker,
+  createCaseInsensitiveTextTaker,
+  createCaseSensitiveCharTaker,
+  createCaseSensitiveTextTaker
 } from '../../main/takers/text';
+import {TakerType} from '../../main/takers/TakerType';
 
 describe('text', () => {
 
@@ -13,60 +14,60 @@ describe('text', () => {
   });
 
   test('returns CaseSensitiveCharTaker', () => {
-    expect(text('a')).toBeInstanceOf(CaseSensitiveCharTaker);
-    expect(text('1', {caseInsensitive: true})).toBeInstanceOf(CaseSensitiveCharTaker);
+    expect(text('a').__type).toBe(TakerType.CaseSensitiveCharTaker);
+    expect(text('1', {caseInsensitive: true}).__type).toBe(TakerType.CaseSensitiveCharTaker);
   });
 
   test('returns CaseInsensitiveCharTaker', () => {
-    expect(text('a', {caseInsensitive: true})).toBeInstanceOf(CaseInsensitiveCharTaker);
+    expect(text('a', {caseInsensitive: true}).__type).toBe(TakerType.CaseInsensitiveCharTaker);
   });
 
   test('returns CaseSensitiveTextTaker', () => {
-    expect(text('aaa')).toBeInstanceOf(CaseSensitiveTextTaker);
-    expect(text('123', {caseInsensitive: true})).toBeInstanceOf(CaseSensitiveTextTaker);
+    expect(text('aaa').__type).toBe(TakerType.CaseSensitiveTextTaker);
+    expect(text('123', {caseInsensitive: true}).__type).toBe(TakerType.CaseSensitiveTextTaker);
   });
 
   test('returns CaseInsensitiveTextTaker', () => {
-    expect(text('aaa', {caseInsensitive: true})).toBeInstanceOf(CaseInsensitiveTextTaker);
+    expect(text('aaa', {caseInsensitive: true}).__type).toBe(TakerType.CaseInsensitiveTextTaker);
   });
 });
 
-describe('CaseSensitiveCharTaker', () => {
+describe('createCaseSensitiveCharTaker', () => {
 
   test('takes case sensitive char', () => {
-    expect(new CaseSensitiveCharTaker('a').take('bac', 1)).toBe(2);
-    expect(new CaseSensitiveCharTaker('A').take('bac', 1)).toBe(ResultCode.NO_MATCH);
+    expect(createCaseSensitiveCharTaker('a')('bac', 1)).toBe(2);
+    expect(createCaseSensitiveCharTaker('A')('bac', 1)).toBe(ResultCode.NO_MATCH);
   });
 });
 
-describe('CaseInsensitiveCharTaker', () => {
+describe('createCaseInsensitiveCharTaker', () => {
 
   test('takes case-insensitive char', () => {
-    expect(new CaseInsensitiveCharTaker('a', undefined).take('bac', 1)).toBe(2);
-    expect(new CaseInsensitiveCharTaker('A', undefined).take('bac', 1)).toBe(2);
-    expect(new CaseInsensitiveCharTaker('b', undefined).take('bac', 1)).toBe(ResultCode.NO_MATCH);
+    expect(createCaseInsensitiveCharTaker('a', undefined)('bac', 1)).toBe(2);
+    expect(createCaseInsensitiveCharTaker('A', undefined)('bac', 1)).toBe(2);
+    expect(createCaseInsensitiveCharTaker('b', undefined)('bac', 1)).toBe(ResultCode.NO_MATCH);
   });
 });
 
-describe('CaseSensitiveTextTaker', () => {
+describe('createCaseSensitiveTextTaker', () => {
 
   test('takes case-sensitive text', () => {
-    const taker = new CaseSensitiveTextTaker('abc');
+    const taker = createCaseSensitiveTextTaker('abc');
 
-    expect(taker.take('aaaabc', 3)).toBe(6);
-    expect(taker.take('aaaabcde', 3)).toBe(6);
-    expect(taker.take('aaaab', 3)).toBe(ResultCode.NO_MATCH);
-    expect(taker.take('aaaABC', 3)).toBe(ResultCode.NO_MATCH);
+    expect(taker('aaaabc', 3)).toBe(6);
+    expect(taker('aaaabcde', 3)).toBe(6);
+    expect(taker('aaaab', 3)).toBe(ResultCode.NO_MATCH);
+    expect(taker('aaaABC', 3)).toBe(ResultCode.NO_MATCH);
   });
 });
 
-describe('CaseInsensitiveTextTaker', () => {
+describe('createCaseInsensitiveTextTaker', () => {
 
   test('takes case-insensitive text', () => {
-    const taker = new CaseInsensitiveTextTaker('abc', undefined);
+    const taker = createCaseInsensitiveTextTaker('abc', undefined);
 
-    expect(taker.take('AAAABC', 3)).toBe(6);
-    expect(taker.take('AAAABCDE', 3)).toBe(6);
-    expect(taker.take('AAAAB', 3)).toBe(ResultCode.NO_MATCH);
+    expect(taker('AAAABC', 3)).toBe(6);
+    expect(taker('AAAABCDE', 3)).toBe(6);
+    expect(taker('AAAAB', 3)).toBe(ResultCode.NO_MATCH);
   });
 });

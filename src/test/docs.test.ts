@@ -4,49 +4,49 @@ describe('docs', () => {
 
   it('readme example', () => {
 
-    const zeroTaker = text('0');
+    const takeZero = text('0');
 
-    const leadingDigitTaker = char((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
+    const takeLeadingDigit = char((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
 
-    const digitsTaker = all(char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
+    const takeDigits = all(char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
 
-    const dotTaker = text('.');
+    const takeDot = text('.');
 
-    const signTaker = char((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
+    const takeSign = char((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
 
-    const numberTaker = seq(
+    const takeNumber = seq(
         // sign
-        maybe(signTaker),
+        maybe(takeSign),
 
         // integer
         or(
-            zeroTaker,
+            takeZero,
             seq(
-                leadingDigitTaker,
-                digitsTaker,
+                takeLeadingDigit,
+                takeDigits,
             ),
         ),
 
         // fraction
         maybe(
             seq(
-                dotTaker,
-                digitsTaker,
+                takeDot,
+                takeDigits,
             ),
         ),
     );
 
-    expect(numberTaker.take('', 0)).toBe(-1);
-    expect(numberTaker.take('0', 0)).toBe(1);
+    expect(takeNumber('', 0)).toBe(-1);
+    expect(takeNumber('0', 0)).toBe(1);
 
-    expect(numberTaker.take('00', 0)).toBe(1);
+    expect(takeNumber('00', 0)).toBe(1);
 
-    expect(numberTaker.take('123', 0)).toBe(3);
+    expect(takeNumber('123', 0)).toBe(3);
 
-    expect(numberTaker.take('0.', 0)).toBe(2);
-    expect(numberTaker.take('0.123', 0)).toBe(5);
+    expect(takeNumber('0.', 0)).toBe(2);
+    expect(takeNumber('0.123', 0)).toBe(5);
 
-    expect(numberTaker.take('-0.123', 0)).toBe(6);
-    expect(numberTaker.take('+0.123', 0)).toBe(6);
+    expect(takeNumber('-0.123', 0)).toBe(6);
+    expect(takeNumber('+0.123', 0)).toBe(6);
   });
 });

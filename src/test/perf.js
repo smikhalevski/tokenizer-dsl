@@ -48,39 +48,39 @@ describe('Docs', () => {
   });
 
   test('next', (measure) => {
-    const zeroTaker = next.text('0');
+    const takeZero = next.text('0');
 
-    const leadingDigitTaker = next.char((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
+    const takeLeadingDigit = next.char((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
 
-    const digitsTaker = next.all(next.char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
+    const takeDigits = next.all(next.char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
 
-    const dotTaker = next.text('.');
+    const takeDot = next.text('.');
 
-    const signTaker = next.char((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
+    const takeSign = next.char((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
 
-    const numberTaker = next.seq(
+    const takeNumber = next.seq(
         // sign
-        next.maybe(signTaker),
+        next.maybe(takeSign),
 
         // integer
         next.or(
-            zeroTaker,
+            takeZero,
             next.seq(
-                leadingDigitTaker,
-                digitsTaker,
+                takeLeadingDigit,
+                takeDigits,
             ),
         ),
 
         // fraction
         next.maybe(
             next.seq(
-                dotTaker,
-                digitsTaker,
+                takeDot,
+                takeDigits,
             ),
         ),
     );
 
-    measure(() => numberTaker.take(input, 0));
+    measure(() => takeNumber(input, 0));
   });
 });
 
@@ -101,8 +101,8 @@ describe('char', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.char((charCode) => charCode === 97);
-      measure(() => taker.take(input, 0));
+      const take = next.char((charCode) => charCode === 97);
+      measure(() => take(input, 0));
     });
   });
 });
@@ -124,8 +124,8 @@ describe('all', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.all(next.char((charCode) => charCode === 97));
-      measure(() => taker.take(input, 0));
+      const take = next.all(next.char((charCode) => charCode === 97));
+      measure(() => take(input, 0));
     });
   });
 
@@ -144,8 +144,8 @@ describe('all', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.all(next.char((charCode) => charCode === 97), {minimumCount: 1});
-      measure(() => taker.take(input, 0));
+      const take = next.all(next.char((charCode) => charCode === 97), {minimumCount: 1});
+      measure(() => take(input, 0));
     });
   });
 
@@ -164,8 +164,8 @@ describe('all', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.all(next.char((charCode) => charCode === 97), {maximumCount: 3});
-      measure(() => taker.take(input, 0));
+      const take = next.all(next.char((charCode) => charCode === 97), {maximumCount: 3});
+      measure(() => take(input, 0));
     });
   });
 
@@ -184,8 +184,8 @@ describe('all', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.all(next.text('ab'));
-      measure(() => taker.take(input, 0));
+      const take = next.all(next.text('ab'));
+      measure(() => take(input, 0));
     });
   });
 
@@ -204,8 +204,8 @@ describe('all', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.all(next.regex(/ab/));
-      measure(() => taker.take(input, 0));
+      const take = next.all(next.regex(/ab/));
+      measure(() => take(input, 0));
     });
   });
 });
@@ -227,8 +227,8 @@ describe('or', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.or(next.text('c'), next.text('b'), next.text('a'));
-      measure(() => taker.take(input, 0));
+      const take = next.or(next.text('c'), next.text('b'), next.text('a'));
+      measure(() => take(input, 0));
     });
   });
 });
@@ -250,8 +250,8 @@ describe('seq', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.seq(next.text('a'), next.text('a'), next.text('a'));
-      measure(() => taker.take(input, 0));
+      const take = next.seq(next.text('a'), next.text('a'), next.text('a'));
+      measure(() => take(input, 0));
     });
   });
 });
@@ -273,8 +273,8 @@ describe('text', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.text('a');
-      measure(() => taker.take(input, 0));
+      const take = next.text('a');
+      measure(() => take(input, 0));
     });
   });
 
@@ -293,8 +293,8 @@ describe('text', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.text('A', {caseInsensitive: true});
-      measure(() => taker.take(input, 0));
+      const take = next.text('A', {caseInsensitive: true});
+      measure(() => take(input, 0));
     });
   });
 
@@ -313,8 +313,8 @@ describe('text', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.text('ababa');
-      measure(() => taker.take(input, 0));
+      const take = next.text('ababa');
+      measure(() => take(input, 0));
     });
   });
 
@@ -333,8 +333,8 @@ describe('text', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.text('ABABA', {caseInsensitive: true});
-      measure(() => taker.take(input, 0));
+      const take = next.text('ABABA', {caseInsensitive: true});
+      measure(() => take(input, 0));
     });
   });
 });
@@ -356,8 +356,8 @@ describe('until', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.until(next.char((charCode) => charCode === 98));
-      measure(() => taker.take(input, 0));
+      const take = next.until(next.char((charCode) => charCode === 98));
+      measure(() => take(input, 0));
     });
   });
 
@@ -380,8 +380,8 @@ describe('until', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.until(next.text('b'));
-      measure(() => taker.take(input, 0));
+      const take = next.until(next.text('b'));
+      measure(() => take(input, 0));
     });
   });
 
@@ -400,8 +400,8 @@ describe('until', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.until(next.text('b'), {openEnded: true});
-      measure(() => taker.take(input, 0));
+      const take = next.until(next.text('b'), {openEnded: true});
+      measure(() => take(input, 0));
     });
   });
 
@@ -420,8 +420,8 @@ describe('until', () => {
     });
 
     test('next', (measure) => {
-      const taker = next.until(next.regex(/b/));
-      measure(() => taker.take(input, 0));
+      const take = next.until(next.regex(/b/));
+      measure(() => take(input, 0));
     });
   });
 

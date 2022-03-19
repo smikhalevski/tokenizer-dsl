@@ -1,11 +1,12 @@
-import {CharCodeChecker, ResultCode, Taker, TakerLike} from '../taker-types';
-import {toTaker} from '../toTaker';
+import {CharCodeChecker, ResultCode, Taker} from '../taker-types';
+import {isTaker} from '../taker-utils';
 import {CharTaker} from './char';
 import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
 import {none} from './none';
 import {never} from './never';
-import {MaybeTaker} from './maybe';
+import {createMaybeTaker} from './maybe';
 import {RegexTaker} from './regex';
+import {TakerType} from './TakerType';
 
 export interface AllOptions {
 
@@ -30,8 +31,7 @@ export interface AllOptions {
  * @param taker The taker that takes chars.
  * @param options Taker options.
  */
-export function all(taker: TakerLike, options: AllOptions = {}): Taker {
-  taker = toTaker(taker);
+export function all(taker: Taker, options: AllOptions = {}): Taker {
 
   let {
     minimumCount = 0,
@@ -48,168 +48,162 @@ export function all(taker: TakerLike, options: AllOptions = {}): Taker {
     return none;
   }
   if (maximumCount === 1 && minimumCount <= 0) {
-    return new MaybeTaker(taker);
+    return createMaybeTaker(taker);
   }
   if (maximumCount === 1 && minimumCount === 1) {
     return taker;
   }
-  if (taker === never || taker === none || taker instanceof AllCharTaker || taker instanceof AllCaseSensitiveTextTaker || taker instanceof AllTaker) {
+  if (
+      taker === never
+      || taker === none
+      || isTaker<AllCharTaker>(taker, TakerType.AllCharTaker)
+      || isTaker<AllCaseSensitiveTextTaker>(taker, TakerType.AllCaseSensitiveTextTaker)
+      || isTaker<AllTaker>(taker, TakerType.AllTaker)
+  ) {
     return taker;
   }
-  if (taker instanceof CharTaker) {
-    return new AllCharTaker(taker.__charCodeChecker, minimumCount, maximumCount);
+  if (isTaker<CharTaker>(taker, TakerType.CharTaker)) {
+    return createAllCharTaker(taker.__charCodeChecker, minimumCount, maximumCount);
   }
-  if (taker instanceof CaseSensitiveCharTaker) {
-    return new AllCaseSensitiveTextTaker(taker.__char, minimumCount, maximumCount);
+  if (isTaker<CaseSensitiveCharTaker>(taker, TakerType.CaseSensitiveCharTaker)) {
+    return createAllCaseSensitiveTextTaker(taker.__char, minimumCount, maximumCount);
   }
-  if (taker instanceof CaseSensitiveTextTaker) {
-    return new AllCaseSensitiveTextTaker(taker.__str, minimumCount, maximumCount);
+  if (isTaker<CaseSensitiveTextTaker>(taker, TakerType.CaseSensitiveTextTaker)) {
+    return createAllCaseSensitiveTextTaker(taker.__str, minimumCount, maximumCount);
   }
-  if (taker instanceof RegexTaker) {
-    return new AllRegexTaker(taker.__re, minimumCount, maximumCount);
+  if (isTaker<RegexTaker>(taker, TakerType.RegexTaker)) {
+    return createAllRegexTaker(taker.__re, minimumCount, maximumCount);
   }
-  return new AllTaker(taker, minimumCount, maximumCount);
+  return createAllTaker(taker, minimumCount, maximumCount);
 }
 
-export class AllCharTaker implements Taker {
+export interface AllCharTaker extends Taker {
+  __type: TakerType.AllCharTaker;
+  __minimumCount: number;
+  __maximumCount: number;
+}
 
-  public readonly __charCodeChecker;
-  public readonly __minimumCount;
-  public readonly __maximumCount;
+export function createAllCharTaker(charCodeChecker: CharCodeChecker, minimumCount: number, maximumCount: number): AllCharTaker {
 
-  public constructor(charCodeChecker: CharCodeChecker, minimumCount: number, maximumCount: number) {
-    this.__charCodeChecker = charCodeChecker;
-    this.__minimumCount = minimumCount;
-    this.__maximumCount = maximumCount;
-  }
-
-  public take(input: string, offset: number): number {
-
-    const {
-      __charCodeChecker,
-      __minimumCount,
-      __maximumCount,
-    } = this;
-
+  const take: AllCharTaker = (input, offset) => {
     const inputLength = input.length;
 
     let takeCount = 0;
     let i = offset;
 
-    while (i < inputLength && takeCount < __maximumCount && __charCodeChecker(input.charCodeAt(i))) {
+    while (i < inputLength && takeCount < maximumCount && charCodeChecker(input.charCodeAt(i))) {
       ++takeCount;
       ++i;
     }
-    if (takeCount < __minimumCount) {
+    if (takeCount < minimumCount) {
       return ResultCode.NO_MATCH;
     }
     return i;
-  }
+  };
+
+  take.__type = TakerType.AllCharTaker;
+  take.__minimumCount = minimumCount;
+  take.__maximumCount = maximumCount;
+
+
+  return take;
 }
 
-export class AllCaseSensitiveTextTaker implements Taker {
+export interface AllCaseSensitiveTextTaker extends Taker {
+  __type: TakerType.AllCaseSensitiveTextTaker;
+  __minimumCount: number;
+  __maximumCount: number;
+}
 
-  public readonly __str;
-  public readonly __minimumCount;
-  public readonly __maximumCount;
+export function createAllCaseSensitiveTextTaker(str: string, minimumCount: number, maximumCount: number): AllCaseSensitiveTextTaker {
 
-  public constructor(str: string, minimumCount: number, maximumCount: number) {
-    this.__str = str;
-    this.__minimumCount = minimumCount;
-    this.__maximumCount = maximumCount;
-  }
-
-  public take(input: string, offset: number): number {
-
-    const {
-      __str,
-      __minimumCount,
-      __maximumCount,
-    } = this;
-
-    const strLength = __str.length;
+  const take: AllCaseSensitiveTextTaker = (input, offset) => {
+    const strLength = str.length;
 
     let takeCount = 0;
     let i = offset;
 
-    while (takeCount < __maximumCount && input.startsWith(__str, i)) {
+    while (takeCount < maximumCount && input.startsWith(str, i)) {
       ++takeCount;
       i += strLength;
     }
-    if (takeCount < __minimumCount) {
+    if (takeCount < minimumCount) {
       return ResultCode.NO_MATCH;
     }
     return i;
-  }
+  };
+
+  take.__type = TakerType.AllCaseSensitiveTextTaker;
+  take.__minimumCount = minimumCount;
+  take.__maximumCount = maximumCount;
+
+  return take;
 }
 
-export class AllRegexTaker implements Taker {
-
-  public readonly __re;
-  public readonly __minimumCount;
-  public readonly __maximumCount;
-
-  public constructor(re: RegExp, minimumCount: number, maximumCount: number) {
-    this.__re = new RegExp(
-        '(?:'
-        + re.source
-        + '){'
-        + minimumCount
-        + ','
-        + (maximumCount === Infinity ? '' : maximumCount)
-        + '}',
-        re.flags.replace(/[yg]/, '') + (re.sticky !== undefined ? 'y' : 'g')
-    );
-    this.__minimumCount = minimumCount;
-    this.__maximumCount = maximumCount;
-  }
-
-  public take(input: string, offset: number): number {
-    const {__re} = this;
-
-    __re.lastIndex = offset;
-
-    const result = __re.exec(input);
-
-    return result === null || result.index !== offset ? ResultCode.NO_MATCH : __re.lastIndex;
-  }
+export interface AllRegexTaker extends Taker {
+  __type: TakerType.AllRegexTaker;
+  __minimumCount: number;
+  __maximumCount: number;
 }
 
-export class AllTaker implements Taker {
+export function createAllRegexTaker(re: RegExp, minimumCount: number, maximumCount: number): AllRegexTaker {
 
-  public readonly __taker;
-  public readonly __minimumCount;
-  public readonly __maximumCount;
+  re = new RegExp(
+      '(?:'
+      + re.source
+      + '){'
+      + minimumCount
+      + ','
+      + (maximumCount === Infinity ? '' : maximumCount)
+      + '}',
+      re.flags.replace(/[yg]/, '') + (re.sticky !== undefined ? 'y' : 'g')
+  );
 
-  public constructor(taker: Taker, minimumCount: number, maximumCount: number) {
-    this.__taker = taker;
-    this.__minimumCount = minimumCount;
-    this.__maximumCount = maximumCount;
-  }
+  const take: AllRegexTaker = (input, offset) => {
+    re.lastIndex = offset;
 
-  public take(input: string, offset: number): number {
+    const result = re.exec(input);
 
-    const {
-      __taker,
-      __maximumCount,
-      __minimumCount,
-    } = this;
+    return result === null || result.index !== offset ? ResultCode.NO_MATCH : re.lastIndex;
+  };
 
+  take.__type = TakerType.AllRegexTaker;
+  take.__minimumCount = minimumCount;
+  take.__maximumCount = maximumCount;
+
+  return take;
+}
+
+export interface AllTaker extends Taker {
+  __type: TakerType.AllTaker;
+  __minimumCount: number;
+  __maximumCount: number;
+}
+
+export function createAllTaker(taker: Taker, minimumCount: number, maximumCount: number): AllTaker {
+
+  const take: AllTaker = (input, offset) => {
     let takeCount = 0;
     let result = offset;
     let i;
 
     do {
       i = result;
-      result = __taker.take(input, i);
-    } while (result > i && ++takeCount < __maximumCount);
+      result = taker(input, i);
+    } while (result > i && ++takeCount < maximumCount);
 
-    if (takeCount < __minimumCount) {
+    if (takeCount < minimumCount) {
       return ResultCode.NO_MATCH;
     }
     if (result === ResultCode.NO_MATCH) {
       return i;
     }
     return result;
-  }
+  };
+
+  take.__type = TakerType.AllTaker;
+  take.__minimumCount = minimumCount;
+  take.__maximumCount = maximumCount;
+
+  return take;
 }

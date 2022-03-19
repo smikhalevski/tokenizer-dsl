@@ -1,32 +1,44 @@
-import {Taker, ResultCode, TakerLike} from '../taker-types';
-import {toTaker} from '../toTaker';
+import {ResultCode, Taker} from '../taker-types';
 import {never} from './never';
 import {none} from './none';
 import {AllCaseSensitiveTextTaker, AllCharTaker, AllTaker} from './all';
+import {TakerType} from './TakerType';
+import {isTaker} from '../taker-utils';
 
 /**
  * Creates taker that returns `taker` result or current offset if taker returned {@link ResultCode.NO_MATCH}.
  *
  * @param taker The taker which match must be considered optional.
  */
-export function maybe(taker: TakerLike): Taker {
-  if (taker === never || taker === none || (taker instanceof AllCharTaker || taker instanceof AllCaseSensitiveTextTaker || taker instanceof AllTaker) && taker.__minimumCount === 0) {
+export function maybe(taker: Taker): Taker {
+  if (
+      taker === never
+      || taker === none
+      || (
+          isTaker<AllCharTaker>(taker, TakerType.AllCharTaker)
+          || isTaker<AllCaseSensitiveTextTaker>(taker, TakerType.AllCaseSensitiveTextTaker)
+          || isTaker<AllTaker>(taker, TakerType.AllTaker)
+      ) && taker.__minimumCount === 0) {
     return taker;
   }
-  return new MaybeTaker(toTaker(taker));
+  return createMaybeTaker(taker);
 }
 
-export class MaybeTaker implements Taker {
+export interface MaybeTaker extends Taker {
+  __type: TakerType.MaybeTaker;
+  __taker: Taker;
+}
 
-  public readonly __taker;
+export function createMaybeTaker(taker: Taker): MaybeTaker {
 
-  public constructor(taker: Taker) {
-    this.__taker = taker;
-  }
-
-  public take(input: string, offset: number): number {
-    const result = this.__taker.take(input, offset);
+  const take: MaybeTaker = (input, offset) => {
+    const result = taker(input, offset);
 
     return result === ResultCode.NO_MATCH ? offset : result;
-  }
+  };
+
+  take.__type = TakerType.MaybeTaker;
+  take.__taker = taker;
+
+  return take;
 }

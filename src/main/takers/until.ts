@@ -1,10 +1,11 @@
-import {CharCodeChecker, ResultCode, Taker, TakerLike} from '../taker-types';
+import {CharCodeChecker, ResultCode, Taker} from '../taker-types';
 import {CharTaker} from './char';
 import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
-import {toTaker} from '../toTaker';
+import {isTaker} from '../taker-utils';
 import {never} from './never';
 import {none} from './none';
 import {RegexTaker} from './regex';
+import {TakerType} from './TakerType';
 
 export interface UntilOptions {
 
@@ -26,8 +27,7 @@ export interface UntilOptions {
  * @param taker The taker that takes chars.
  * @param options Taker options.
  */
-export function until(taker: TakerLike, options: UntilOptions = {}): Taker {
-  taker = toTaker(taker);
+export function until(taker: Taker, options: UntilOptions = {}): Taker {
 
   const {
     inclusive = false,
@@ -35,166 +35,131 @@ export function until(taker: TakerLike, options: UntilOptions = {}): Taker {
     endOffset = 0,
   } = options;
 
-  if (taker === never || taker === none || taker instanceof UntilRegexTaker || taker instanceof UntilCaseSensitiveTextTaker || taker instanceof UntilCharTaker || taker instanceof UntilTaker) {
+  if (
+      taker === never
+      || taker === none
+      || isTaker<UntilRegexTaker>(taker, TakerType.UntilRegexTaker)
+      || isTaker<UntilCaseSensitiveTextTaker>(taker, TakerType.UntilCaseSensitiveTextTaker)
+      || isTaker<UntilCharTaker>(taker, TakerType.UntilCharTaker)
+      || isTaker<UntilTaker>(taker, TakerType.UntilTaker)
+  ) {
     return taker;
   }
-  if (taker instanceof RegexTaker) {
-    return new UntilRegexTaker(taker.__re, inclusive, openEnded, endOffset);
+  if (isTaker<RegexTaker>(taker, TakerType.RegexTaker)) {
+    return createUntilRegexTaker(taker.__re, inclusive, openEnded, endOffset);
   }
-  if (taker instanceof CaseSensitiveCharTaker) {
-    return new UntilCaseSensitiveTextTaker(taker.__char, inclusive, openEnded, endOffset);
+  if (isTaker<CaseSensitiveCharTaker>(taker, TakerType.CaseSensitiveCharTaker)) {
+    return createUntilCaseSensitiveTextTaker(taker.__char, inclusive, openEnded, endOffset);
   }
-  if (taker instanceof CaseSensitiveTextTaker) {
-    return new UntilCaseSensitiveTextTaker(taker.__str, inclusive, openEnded, endOffset);
+  if (isTaker<CaseSensitiveTextTaker>(taker, TakerType.CaseSensitiveTextTaker)) {
+    return createUntilCaseSensitiveTextTaker(taker.__str, inclusive, openEnded, endOffset);
   }
-  if (taker instanceof CharTaker) {
-    return new UntilCharTaker(taker.__charCodeChecker, inclusive, openEnded, endOffset);
+  if (isTaker<CharTaker>(taker, TakerType.CharTaker)) {
+    return createUntilCharTaker(taker.__charCodeChecker, inclusive, openEnded, endOffset);
   }
-  return new UntilTaker(taker, inclusive, openEnded, endOffset);
+  return createUntilTaker(taker, inclusive, openEnded, endOffset);
 }
 
-export class UntilCaseSensitiveTextTaker implements Taker {
+export interface UntilCaseSensitiveTextTaker extends Taker {
+  __type: TakerType.UntilCaseSensitiveTextTaker;
+}
 
-  public readonly __str;
-  public readonly __openEnded;
-  public readonly __endOffset;
-  public readonly __takenOffset;
+export function createUntilCaseSensitiveTextTaker(str: string, inclusive: boolean, openEnded: boolean, endOffset: number): UntilCaseSensitiveTextTaker {
 
-  public constructor(str: string, inclusive: boolean, openEnded: boolean, endOffset: number) {
-    this.__str = str;
-    this.__openEnded = openEnded;
-    this.__endOffset = endOffset;
-    this.__takenOffset = inclusive ? str.length : 0;
-  }
+  const takenOffset = inclusive ? str.length : 0;
 
-  public take(input: string, offset: number): number {
-
-    const {
-      __str,
-      __openEnded,
-      __endOffset,
-      __takenOffset,
-    } = this;
-
-    const index = input.indexOf(__str, offset);
+  const take: UntilCaseSensitiveTextTaker = (input, offset) => {
+    const index = input.indexOf(str, offset);
 
     if (index === -1) {
-      return __openEnded ? input.length + __endOffset : ResultCode.NO_MATCH;
+      return openEnded ? input.length + endOffset : ResultCode.NO_MATCH;
     }
-    return index + __takenOffset;
-  }
+    return index + takenOffset;
+  };
+
+  take.__type = TakerType.UntilCaseSensitiveTextTaker;
+
+  return take;
 }
 
-export class UntilCharTaker implements Taker {
+export interface UntilCharTaker extends Taker {
+  __type: TakerType.UntilCharTaker;
+}
 
-  public readonly __charCodeChecker;
-  public readonly __openEnded;
-  public readonly __endOffset;
-  public readonly __takenOffset;
+export function createUntilCharTaker(charCodeChecker: CharCodeChecker, inclusive: boolean, openEnded: boolean, endOffset: number): UntilCharTaker {
 
-  public constructor(charCodeChecker: CharCodeChecker, inclusive: boolean, openEnded: boolean, endOffset: number) {
-    this.__charCodeChecker = charCodeChecker;
-    this.__openEnded = openEnded;
-    this.__endOffset = endOffset;
-    this.__takenOffset = inclusive ? 1 : 0;
-  }
+  const takenOffset = inclusive ? 1 : 0;
 
-  public take(input: string, offset: number): number {
-
-    const {
-      __charCodeChecker,
-      __openEnded,
-      __endOffset,
-      __takenOffset,
-    } = this;
-
+  const take: UntilCharTaker = (input, offset) => {
     const inputLength = input.length;
 
     let i = offset;
-    while (i < inputLength && !__charCodeChecker(input.charCodeAt(i))) {
+    while (i < inputLength && !charCodeChecker(input.charCodeAt(i))) {
       ++i;
     }
     if (i === inputLength) {
-      return __openEnded ? inputLength + __endOffset : ResultCode.NO_MATCH;
+      return openEnded ? inputLength + endOffset : ResultCode.NO_MATCH;
     }
-    return i + __takenOffset;
-  }
+    return i + takenOffset;
+  };
+
+  take.__type = TakerType.UntilCharTaker;
+
+  return take;
 }
 
-export class UntilRegexTaker implements Taker {
+export interface UntilRegexTaker extends Taker {
+  __type: TakerType.UntilRegexTaker;
+}
 
-  public readonly __re;
-  public readonly __inclusive;
-  public readonly __openEnded;
-  public readonly __endOffset;
+export function createUntilRegexTaker(re: RegExp, inclusive: boolean, openEnded: boolean, endOffset: number): UntilRegexTaker {
 
-  public constructor(re: RegExp, inclusive: boolean, openEnded: boolean, endOffset: number) {
-    this.__re = new RegExp(re.source, re.flags.replace(/[yg]/, '') + 'g');
-    this.__inclusive = inclusive;
-    this.__openEnded = openEnded;
-    this.__endOffset = endOffset;
-  }
+  re = new RegExp(re.source, re.flags.replace(/[yg]/, '') + 'g');
 
-  public take(input: string, offset: number): number {
+  const take: UntilRegexTaker = (input, offset) => {
+    re.lastIndex = offset;
 
-    const {
-      __re,
-      __openEnded,
-      __endOffset,
-      __inclusive,
-    } = this;
-
-    __re.lastIndex = offset;
-
-    const result = __re.exec(input);
+    const result = re.exec(input);
 
     if (result === null) {
-      return __openEnded ? input.length + __endOffset : ResultCode.NO_MATCH;
+      return openEnded ? input.length + endOffset : ResultCode.NO_MATCH;
     }
 
-    return __inclusive ? __re.lastIndex : result.index;
-  }
+    return inclusive ? re.lastIndex : result.index;
+  };
+
+  take.__type = TakerType.UntilRegexTaker;
+
+  return take;
 }
 
-export class UntilTaker implements Taker {
+export interface UntilTaker extends Taker {
+  __type: TakerType.UntilTaker;
+}
 
-  public readonly __taker;
-  public readonly __inclusive;
-  public readonly __openEnded;
-  public readonly __endOffset;
+export function createUntilTaker(taker: Taker, inclusive: boolean, openEnded: boolean, endOffset: number): UntilTaker {
 
-  public constructor(taker: Taker, inclusive: boolean, openEnded: boolean, endOffset: number) {
-    this.__taker = taker;
-    this.__inclusive = inclusive;
-    this.__openEnded = openEnded;
-    this.__endOffset = endOffset;
-  }
-
-  public take(input: string, offset: number): number {
-
-    const {
-      __taker,
-      __inclusive,
-      __openEnded,
-      __endOffset,
-    } = this;
-
+  const take: UntilTaker = (input, offset) => {
     const inputLength = input.length;
 
     let result = ResultCode.NO_MATCH;
     let i = offset;
 
     while (i < inputLength && result === ResultCode.NO_MATCH) {
-      result = __taker.take(input, i);
+      result = taker(input, i);
       ++i;
     }
 
     if (result === ResultCode.NO_MATCH) {
-      return __openEnded ? inputLength + __endOffset : result;
+      return openEnded ? inputLength + endOffset : result;
     }
     if (result < 0) {
       return result;
     }
-    return __inclusive ? result : i - 1;
-  }
+    return inclusive ? result : i - 1;
+  };
+
+  take.__type = TakerType.UntilTaker;
+
+  return take;
 }

@@ -1,56 +1,60 @@
-import {ResultCode, Taker, TakerLike} from '../taker-types';
-import {toTaker} from '../toTaker';
+import {ResultCode, Taker} from '../taker-types';
+import {isTaker} from '../taker-utils';
 import {none} from './none';
 import {never} from './never';
+import {TakerType} from './TakerType';
 
 /**
  * Returns the result of the first matched taker.
  *
  * @param takers Takers that are called.
  */
-export function or(...takers: TakerLike[]): Taker {
+export function or(...takers: Taker[]): Taker {
 
-  const t = takers.reduce<Taker[]>((t, taker) => {
-    if (t.length !== 0 && t[t.length - 1] === none) {
-      return t;
+  takers = takers.reduce<Taker[]>((takers, taker) => {
+    if (takers.length !== 0 && takers[takers.length - 1] === none) {
+      return takers;
     }
-    if (taker instanceof OrTaker) {
-      t.push(...taker.__takers);
-      return t;
+    if (isTaker<OrTaker>(taker, TakerType.OrTaker)) {
+      takers.push(...taker.__takers);
+      return takers;
     }
     if (taker !== never) {
-      t.push(toTaker(taker));
+      takers.push(taker);
     }
-    return t;
+    return takers;
   }, []);
 
-  if (t.length === 0) {
+  if (takers.length === 0) {
     return none;
   }
-  if (t.length === 1) {
-    return t[0];
+  if (takers.length === 1) {
+    return takers[0];
   }
 
-  return new OrTaker(t);
+  return createOrTaker(takers);
 }
 
-export class OrTaker implements Taker {
+export interface OrTaker extends Taker {
+  __type: TakerType.OrTaker;
+  __takers: Taker[];
+}
 
-  public readonly __takers;
+export function createOrTaker(takers: Taker[]): OrTaker {
 
-  public constructor(takers: Taker[]) {
-    this.__takers = takers;
-  }
-
-  public take(input: string, offset: number): number {
-    const {__takers} = this;
-    const takerCount = __takers.length;
+  const take: OrTaker = (input, offset) => {
+    const takerCount = takers.length;
 
     let result = ResultCode.NO_MATCH;
 
     for (let i = 0; i < takerCount && result === ResultCode.NO_MATCH; ++i) {
-      result = __takers[i].take(input, offset);
+      result = takers[i](input, offset);
     }
     return result;
-  }
+  };
+
+  take.__type = TakerType.OrTaker;
+  take.__takers = takers;
+
+  return take;
 }

@@ -1,4 +1,5 @@
 import {CharCodeChecker, Taker, ResultCode} from '../taker-types';
+import {TakerType} from './TakerType';
 
 /**
  * Creates a taker that matches a single char by its code.
@@ -7,18 +8,22 @@ import {CharCodeChecker, Taker, ResultCode} from '../taker-types';
  * @see {@link text}
  */
 export function char(charCodeChecker: CharCodeChecker): Taker {
-  return new CharTaker(charCodeChecker);
+  return createCharTaker(charCodeChecker);
 }
 
-export class CharTaker implements Taker {
+export interface CharTaker extends Taker {
+  __type: TakerType.CharTaker;
+  __charCodeChecker: CharCodeChecker;
+}
 
-  public readonly __charCodeChecker;
+export function createCharTaker(charCodeChecker: CharCodeChecker): CharTaker {
 
-  public constructor(charCodeChecker: CharCodeChecker) {
-    this.__charCodeChecker = charCodeChecker;
-  }
+  const take: CharTaker = (input, offset) => {
+    return charCodeChecker(input.charCodeAt(offset)) ? offset + 1 : ResultCode.NO_MATCH;
+  };
 
-  public take(input: string, offset: number): number {
-    return this.__charCodeChecker(input.charCodeAt(offset)) ? offset + 1 : ResultCode.NO_MATCH;
-  }
+  take.__type = TakerType.CharTaker;
+  take.__charCodeChecker = charCodeChecker;
+
+  return take;
 }

@@ -1,18 +1,23 @@
 import {Taker} from '../taker-types';
+import {TakerType} from './TakerType';
 
-export function end(offset = 0): Taker {
-  return new EndTaker(offset);
+export function end(endOffset = 0): Taker {
+  return createEndTaker(endOffset);
 }
 
-export class EndTaker implements Taker {
+export interface EndTaker extends Taker {
+  __type: TakerType.EndTaker;
+  __endOffset: number;
+}
 
-  public readonly __offset;
+export function createEndTaker(endOffset: number): EndTaker {
 
-  public constructor(offset: number) {
-    this.__offset = offset;
-  }
+  const take: EndTaker = (input) => {
+    return input.length + endOffset;
+  };
 
-  public take(input: string, offset: number): number {
-    return input.length + this.__offset;
-  }
+  take.__type = TakerType.EndTaker;
+  take.__endOffset = endOffset;
+
+  return take;
 }

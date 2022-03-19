@@ -1,54 +1,58 @@
-import {Taker, TakerLike} from '../taker-types';
-import {toTaker} from '../toTaker';
+import {Taker} from '../taker-types';
+import {isTaker} from '../taker-utils';
 import {none} from './none';
 import {never} from './never';
+import {TakerType} from './TakerType';
 
 /**
  * Creates a taker that applies takers one after another.
  *
  * @param takers Takers that are called.
  */
-export function seq(...takers: TakerLike[]): Taker {
+export function seq(...takers: Taker[]): Taker {
   if (takers.includes(never)) {
     return never;
   }
 
-  const t = takers.reduce<Taker[]>((t, taker) => {
-    if (taker instanceof SeqTaker) {
-      t.push(...taker.__takers);
-      return t;
+  takers = takers.reduce<Taker[]>((takers, taker) => {
+    if (isTaker<SeqTaker>(taker, TakerType.SeqTaker)) {
+      takers.push(...taker.__takers);
+      return takers;
     }
     if (taker !== none) {
-      t.push(toTaker(taker));
+      takers.push(taker);
     }
-    return t;
+    return takers;
   }, []);
 
-  if (t.length === 0) {
+  if (takers.length === 0) {
     return none;
   }
-  if (t.length === 1) {
-    return t[0];
+  if (takers.length === 1) {
+    return takers[0];
   }
 
-  return new SeqTaker(t);
+  return createSeqTaker(takers);
 }
 
-export class SeqTaker implements Taker {
+export interface SeqTaker extends Taker {
+  __type: TakerType.SeqTaker;
+  __takers: Taker[];
+}
 
-  public readonly __takers;
+export function createSeqTaker(takers: Taker[]): SeqTaker {
 
-  public constructor(takers: Taker[]) {
-    this.__takers = takers;
-  }
-
-  public take(input: string, offset: number): number {
-    const {__takers} = this;
-    const takerCount = __takers.length;
+  const take: SeqTaker = (input, offset) => {
+    const takerCount = takers.length;
 
     for (let i = 0; i < takerCount && offset >= 0; ++i) {
-      offset = __takers[i].take(input, offset);
+      offset = takers[i](input, offset);
     }
     return offset;
-  }
+  };
+
+  take.__type = TakerType.SeqTaker;
+  take.__takers = takers;
+
+  return take;
 }

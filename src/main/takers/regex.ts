@@ -1,24 +1,29 @@
-import {Taker, ResultCode} from '../taker-types';
+import {ResultCode, Taker} from '../taker-types';
+import {TakerType} from './TakerType';
 
 export function regex(re: RegExp): Taker {
-  return new RegexTaker(re);
+  return createRegexTaker(re);
 }
 
-export class RegexTaker implements Taker {
+export interface RegexTaker extends Taker {
+  __type: TakerType.RegexTaker;
+  __re: RegExp;
+}
 
-  public readonly __re;
+export function createRegexTaker(re: RegExp): RegexTaker {
 
-  public constructor(re: RegExp) {
-    this.__re = new RegExp(re.source, re.flags.replace(/[yg]/, '') + (re.sticky !== undefined ? 'y' : 'g'));
-  }
+  re = new RegExp(re.source, re.flags.replace(/[yg]/, '') + (re.sticky !== undefined ? 'y' : 'g'));
 
-  public take(input: string, offset: number): number {
-    const {__re} = this;
+  const take: RegexTaker = (input, offset) => {
+    re.lastIndex = offset;
 
-    __re.lastIndex = offset;
+    const result = re.exec(input);
 
-    const result = __re.exec(input);
+    return result === null || result.index !== offset ? ResultCode.NO_MATCH : re.lastIndex;
+  };
 
-    return result === null || result.index !== offset ? ResultCode.NO_MATCH : __re.lastIndex;
-  }
+  take.__type = TakerType.RegexTaker;
+  take.__re = re;
+
+  return take;
 }

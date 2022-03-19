@@ -1,5 +1,6 @@
 import {maybe, never, none, ResultCode} from '../../main';
-import {MaybeTaker} from '../../main/takers/maybe';
+import {createMaybeTaker} from '../../main/takers/maybe';
+import {TakerType} from '../../main/takers/TakerType';
 
 describe('maybe', () => {
 
@@ -12,25 +13,25 @@ describe('maybe', () => {
   });
 
   test('returns MaybeTaker', () => {
-    expect(maybe(() => 0)).toBeInstanceOf(MaybeTaker);
+    expect(maybe(() => 0).__type).toBe(TakerType.MaybeTaker);
   });
 });
 
-describe('MaybeTaker', () => {
+describe('createMaybeTaker', () => {
 
   test('returns result of taker', () => {
-    const takeMock = jest.fn();
-    takeMock.mockReturnValueOnce(4);
+    const takerMock = jest.fn();
+    takerMock.mockReturnValueOnce(4);
 
-    expect(new MaybeTaker({take: takeMock}).take('aabbcc', 2)).toBe(4);
-    expect(takeMock).toHaveBeenCalledTimes(1);
+    expect(createMaybeTaker(takerMock)('aabbcc', 2)).toBe(4);
+    expect(takerMock).toHaveBeenCalledTimes(1);
   });
 
   test('returns offset if taker did not match', () => {
-    const takeMock = jest.fn();
-    takeMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+    const takerMock = jest.fn();
+    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
-    expect(new MaybeTaker({take: takeMock}).take('aabbcc', 2)).toBe(2);
-    expect(takeMock).toHaveBeenCalledTimes(1);
+    expect(createMaybeTaker(takerMock)('aabbcc', 2)).toBe(2);
+    expect(takerMock).toHaveBeenCalledTimes(1);
   });
 });
