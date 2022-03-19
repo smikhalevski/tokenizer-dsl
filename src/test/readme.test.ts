@@ -1,6 +1,6 @@
 import {all, char, maybe, or, seq, text} from '../main';
 
-describe('docs', () => {
+describe('readme', () => {
 
   it('readme example', () => {
 

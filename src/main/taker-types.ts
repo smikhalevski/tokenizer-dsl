@@ -1,5 +1,3 @@
-import {TakerType} from './takers/TakerType';
-
 export type CharCodeChecker = (charCode: number) => boolean;
 
 export const enum ResultCode {
@@ -10,8 +8,34 @@ export const enum ResultCode {
   NO_MATCH = -1,
 }
 
+export const enum TakerType {
+  ALL_CHAR,
+  ALL_CASE_SENSITIVE_TEXT,
+  ALL_REGEX,
+  ALL_GENERIC,
+  CHAR,
+  END,
+  MAYBE,
+  OR,
+  REGEX,
+  SEQ,
+  CASE_SENSITIVE_CHAR,
+  CASE_INSENSITIVE_CHAR,
+  CASE_SENSITIVE_TEXT,
+  CASE_INSENSITIVE_TEXT,
+  UNTIL_CASE_SENSITIVE_TEXT,
+  UNTIL_CHAR,
+  UNTIL_REGEX,
+  UNTIL_GENERIC,
+}
+
 export interface Taker {
 
+  /**
+   * The type of the taker function, used for internal taker optimizations.
+   *
+   * @internal
+   */
   __type?: TakerType;
 
   /**

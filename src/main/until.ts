@@ -1,11 +1,10 @@
-import {CharCodeChecker, ResultCode, Taker} from '../taker-types';
+import {CharCodeChecker, ResultCode, Taker, TakerType} from './taker-types';
 import {CharTaker} from './char';
 import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
-import {isTaker} from '../taker-utils';
+import {isTaker} from './taker-utils';
 import {never} from './never';
 import {none} from './none';
 import {RegexTaker} from './regex';
-import {TakerType} from './TakerType';
 
 export interface UntilOptions {
 
@@ -35,33 +34,39 @@ export function until(taker: Taker, options: UntilOptions = {}): Taker {
     endOffset = 0,
   } = options;
 
-  if (
-      taker === never
-      || taker === none
-      || isTaker<UntilRegexTaker>(taker, TakerType.UntilRegexTaker)
-      || isTaker<UntilCaseSensitiveTextTaker>(taker, TakerType.UntilCaseSensitiveTextTaker)
-      || isTaker<UntilCharTaker>(taker, TakerType.UntilCharTaker)
-      || isTaker<UntilTaker>(taker, TakerType.UntilTaker)
-  ) {
+  if (taker === never || taker === none || isUntilTaker(taker)) {
     return taker;
   }
-  if (isTaker<RegexTaker>(taker, TakerType.RegexTaker)) {
+  if (isTaker<RegexTaker>(taker, TakerType.REGEX)) {
     return createUntilRegexTaker(taker.__re, inclusive, openEnded, endOffset);
   }
-  if (isTaker<CaseSensitiveCharTaker>(taker, TakerType.CaseSensitiveCharTaker)) {
+  if (isTaker<CaseSensitiveCharTaker>(taker, TakerType.CASE_SENSITIVE_CHAR)) {
     return createUntilCaseSensitiveTextTaker(taker.__char, inclusive, openEnded, endOffset);
   }
-  if (isTaker<CaseSensitiveTextTaker>(taker, TakerType.CaseSensitiveTextTaker)) {
+  if (isTaker<CaseSensitiveTextTaker>(taker, TakerType.CASE_SENSITIVE_TEXT)) {
     return createUntilCaseSensitiveTextTaker(taker.__str, inclusive, openEnded, endOffset);
   }
-  if (isTaker<CharTaker>(taker, TakerType.CharTaker)) {
+  if (isTaker<CharTaker>(taker, TakerType.CHAR)) {
     return createUntilCharTaker(taker.__charCodeChecker, inclusive, openEnded, endOffset);
   }
-  return createUntilTaker(taker, inclusive, openEnded, endOffset);
+  return createUntilGenericTaker(taker, inclusive, openEnded, endOffset);
+}
+
+export type UntilTaker =
+    | UntilRegexTaker
+    | UntilCaseSensitiveTextTaker
+    | UntilCharTaker
+    | UntilGenericTaker;
+
+export function isUntilTaker(taker: Taker): taker is UntilTaker {
+  return isTaker<UntilRegexTaker>(taker, TakerType.UNTIL_REGEX)
+      || isTaker<UntilCaseSensitiveTextTaker>(taker, TakerType.UNTIL_CASE_SENSITIVE_TEXT)
+      || isTaker<UntilCharTaker>(taker, TakerType.UNTIL_CHAR)
+      || isTaker<UntilGenericTaker>(taker, TakerType.UNTIL_GENERIC);
 }
 
 export interface UntilCaseSensitiveTextTaker extends Taker {
-  __type: TakerType.UntilCaseSensitiveTextTaker;
+  __type: TakerType.UNTIL_CASE_SENSITIVE_TEXT;
 }
 
 export function createUntilCaseSensitiveTextTaker(str: string, inclusive: boolean, openEnded: boolean, endOffset: number): UntilCaseSensitiveTextTaker {
@@ -77,13 +82,13 @@ export function createUntilCaseSensitiveTextTaker(str: string, inclusive: boolea
     return index + takenOffset;
   };
 
-  take.__type = TakerType.UntilCaseSensitiveTextTaker;
+  take.__type = TakerType.UNTIL_CASE_SENSITIVE_TEXT;
 
   return take;
 }
 
 export interface UntilCharTaker extends Taker {
-  __type: TakerType.UntilCharTaker;
+  __type: TakerType.UNTIL_CHAR;
 }
 
 export function createUntilCharTaker(charCodeChecker: CharCodeChecker, inclusive: boolean, openEnded: boolean, endOffset: number): UntilCharTaker {
@@ -103,13 +108,13 @@ export function createUntilCharTaker(charCodeChecker: CharCodeChecker, inclusive
     return i + takenOffset;
   };
 
-  take.__type = TakerType.UntilCharTaker;
+  take.__type = TakerType.UNTIL_CHAR;
 
   return take;
 }
 
 export interface UntilRegexTaker extends Taker {
-  __type: TakerType.UntilRegexTaker;
+  __type: TakerType.UNTIL_REGEX;
 }
 
 export function createUntilRegexTaker(re: RegExp, inclusive: boolean, openEnded: boolean, endOffset: number): UntilRegexTaker {
@@ -128,18 +133,18 @@ export function createUntilRegexTaker(re: RegExp, inclusive: boolean, openEnded:
     return inclusive ? re.lastIndex : result.index;
   };
 
-  take.__type = TakerType.UntilRegexTaker;
+  take.__type = TakerType.UNTIL_REGEX;
 
   return take;
 }
 
-export interface UntilTaker extends Taker {
-  __type: TakerType.UntilTaker;
+export interface UntilGenericTaker extends Taker {
+  __type: TakerType.UNTIL_GENERIC;
 }
 
-export function createUntilTaker(taker: Taker, inclusive: boolean, openEnded: boolean, endOffset: number): UntilTaker {
+export function createUntilGenericTaker(taker: Taker, inclusive: boolean, openEnded: boolean, endOffset: number): UntilGenericTaker {
 
-  const take: UntilTaker = (input, offset) => {
+  const take: UntilGenericTaker = (input, offset) => {
     const inputLength = input.length;
 
     let result = ResultCode.NO_MATCH;
@@ -159,7 +164,7 @@ export function createUntilTaker(taker: Taker, inclusive: boolean, openEnded: bo
     return inclusive ? result : i - 1;
   };
 
-  take.__type = TakerType.UntilTaker;
+  take.__type = TakerType.UNTIL_GENERIC;
 
   return take;
 }

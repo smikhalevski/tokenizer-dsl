@@ -1,12 +1,11 @@
-import {CharCodeChecker, ResultCode, Taker} from '../taker-types';
-import {isTaker} from '../taker-utils';
+import {CharCodeChecker, ResultCode, Taker, TakerType} from './taker-types';
+import {isTaker} from './taker-utils';
 import {CharTaker} from './char';
 import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
 import {none} from './none';
 import {never} from './never';
 import {createMaybeTaker} from './maybe';
 import {RegexTaker} from './regex';
-import {TakerType} from './TakerType';
 
 export interface AllOptions {
 
@@ -53,32 +52,39 @@ export function all(taker: Taker, options: AllOptions = {}): Taker {
   if (maximumCount === 1 && minimumCount === 1) {
     return taker;
   }
-  if (
-      taker === never
-      || taker === none
-      || isTaker<AllCharTaker>(taker, TakerType.AllCharTaker)
-      || isTaker<AllCaseSensitiveTextTaker>(taker, TakerType.AllCaseSensitiveTextTaker)
-      || isTaker<AllTaker>(taker, TakerType.AllTaker)
-  ) {
+  if (taker === never || taker === none || isAllTaker(taker)) {
     return taker;
   }
-  if (isTaker<CharTaker>(taker, TakerType.CharTaker)) {
+  if (isTaker<CharTaker>(taker, TakerType.CHAR)) {
     return createAllCharTaker(taker.__charCodeChecker, minimumCount, maximumCount);
   }
-  if (isTaker<CaseSensitiveCharTaker>(taker, TakerType.CaseSensitiveCharTaker)) {
+  if (isTaker<CaseSensitiveCharTaker>(taker, TakerType.CASE_SENSITIVE_CHAR)) {
     return createAllCaseSensitiveTextTaker(taker.__char, minimumCount, maximumCount);
   }
-  if (isTaker<CaseSensitiveTextTaker>(taker, TakerType.CaseSensitiveTextTaker)) {
+  if (isTaker<CaseSensitiveTextTaker>(taker, TakerType.CASE_SENSITIVE_TEXT)) {
     return createAllCaseSensitiveTextTaker(taker.__str, minimumCount, maximumCount);
   }
-  if (isTaker<RegexTaker>(taker, TakerType.RegexTaker)) {
+  if (isTaker<RegexTaker>(taker, TakerType.REGEX)) {
     return createAllRegexTaker(taker.__re, minimumCount, maximumCount);
   }
-  return createAllTaker(taker, minimumCount, maximumCount);
+  return createAllGenericTaker(taker, minimumCount, maximumCount);
+}
+
+export type AllTaker =
+    | AllCharTaker
+    | AllCaseSensitiveTextTaker
+    | AllRegexTaker
+    | AllGenericTaker;
+
+export function isAllTaker(taker: Taker): taker is AllTaker {
+  return isTaker<AllCharTaker>(taker, TakerType.ALL_CHAR)
+      || isTaker<AllCaseSensitiveTextTaker>(taker, TakerType.ALL_CASE_SENSITIVE_TEXT)
+      || isTaker<AllRegexTaker>(taker, TakerType.ALL_REGEX)
+      || isTaker<AllGenericTaker>(taker, TakerType.ALL_GENERIC);
 }
 
 export interface AllCharTaker extends Taker {
-  __type: TakerType.AllCharTaker;
+  __type: TakerType.ALL_CHAR;
   __minimumCount: number;
   __maximumCount: number;
 }
@@ -101,25 +107,24 @@ export function createAllCharTaker(charCodeChecker: CharCodeChecker, minimumCoun
     return i;
   };
 
-  take.__type = TakerType.AllCharTaker;
+  take.__type = TakerType.ALL_CHAR;
   take.__minimumCount = minimumCount;
   take.__maximumCount = maximumCount;
-
 
   return take;
 }
 
 export interface AllCaseSensitiveTextTaker extends Taker {
-  __type: TakerType.AllCaseSensitiveTextTaker;
+  __type: TakerType.ALL_CASE_SENSITIVE_TEXT;
   __minimumCount: number;
   __maximumCount: number;
 }
 
 export function createAllCaseSensitiveTextTaker(str: string, minimumCount: number, maximumCount: number): AllCaseSensitiveTextTaker {
 
-  const take: AllCaseSensitiveTextTaker = (input, offset) => {
-    const strLength = str.length;
+  const strLength = str.length;
 
+  const take: AllCaseSensitiveTextTaker = (input, offset) => {
     let takeCount = 0;
     let i = offset;
 
@@ -133,7 +138,7 @@ export function createAllCaseSensitiveTextTaker(str: string, minimumCount: numbe
     return i;
   };
 
-  take.__type = TakerType.AllCaseSensitiveTextTaker;
+  take.__type = TakerType.ALL_CASE_SENSITIVE_TEXT;
   take.__minimumCount = minimumCount;
   take.__maximumCount = maximumCount;
 
@@ -141,7 +146,7 @@ export function createAllCaseSensitiveTextTaker(str: string, minimumCount: numbe
 }
 
 export interface AllRegexTaker extends Taker {
-  __type: TakerType.AllRegexTaker;
+  __type: TakerType.ALL_REGEX;
   __minimumCount: number;
   __maximumCount: number;
 }
@@ -167,22 +172,22 @@ export function createAllRegexTaker(re: RegExp, minimumCount: number, maximumCou
     return result === null || result.index !== offset ? ResultCode.NO_MATCH : re.lastIndex;
   };
 
-  take.__type = TakerType.AllRegexTaker;
+  take.__type = TakerType.ALL_REGEX;
   take.__minimumCount = minimumCount;
   take.__maximumCount = maximumCount;
 
   return take;
 }
 
-export interface AllTaker extends Taker {
-  __type: TakerType.AllTaker;
+export interface AllGenericTaker extends Taker {
+  __type: TakerType.ALL_GENERIC;
   __minimumCount: number;
   __maximumCount: number;
 }
 
-export function createAllTaker(taker: Taker, minimumCount: number, maximumCount: number): AllTaker {
+export function createAllGenericTaker(taker: Taker, minimumCount: number, maximumCount: number): AllGenericTaker {
 
-  const take: AllTaker = (input, offset) => {
+  const take: AllGenericTaker = (input, offset) => {
     let takeCount = 0;
     let result = offset;
     let i;
@@ -201,7 +206,7 @@ export function createAllTaker(taker: Taker, minimumCount: number, maximumCount:
     return result;
   };
 
-  take.__type = TakerType.AllTaker;
+  take.__type = TakerType.ALL_GENERIC;
   take.__minimumCount = minimumCount;
   take.__maximumCount = maximumCount;
 

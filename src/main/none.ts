@@ -1,4 +1,4 @@
-import {ResultCode, Taker} from '../taker-types';
+import {ResultCode, Taker} from './taker-types';
 
 /**
  * Taker that always returns `NO_MATCH`.

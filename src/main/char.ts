@@ -1,5 +1,4 @@
-import {CharCodeChecker, Taker, ResultCode} from '../taker-types';
-import {TakerType} from './TakerType';
+import {CharCodeChecker, Taker, ResultCode, TakerType} from './taker-types';
 
 /**
  * Creates a taker that matches a single char by its code.
@@ -12,7 +11,7 @@ export function char(charCodeChecker: CharCodeChecker): Taker {
 }
 
 export interface CharTaker extends Taker {
-  __type: TakerType.CharTaker;
+  __type: TakerType.CHAR;
   __charCodeChecker: CharCodeChecker;
 }
 
@@ -22,7 +21,7 @@ export function createCharTaker(charCodeChecker: CharCodeChecker): CharTaker {
     return charCodeChecker(input.charCodeAt(offset)) ? offset + 1 : ResultCode.NO_MATCH;
   };
 
-  take.__type = TakerType.CharTaker;
+  take.__type = TakerType.CHAR;
   take.__charCodeChecker = charCodeChecker;
 
   return take;

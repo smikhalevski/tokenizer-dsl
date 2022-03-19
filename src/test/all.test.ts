@@ -1,11 +1,10 @@
-import {all, char, never, none, ResultCode, Taker, text} from '../../main';
+import {all, char, never, none, ResultCode, Taker, TakerType, text} from '../main';
 import {
   createAllCaseSensitiveTextTaker,
   createAllCharTaker,
   createAllRegexTaker,
-  createAllTaker
-} from '../../main/takers/all';
-import {TakerType} from '../../main/takers/TakerType';
+  createAllGenericTaker
+} from '../main/all';
 
 describe('all', () => {
 
@@ -20,7 +19,7 @@ describe('all', () => {
   });
 
   test('returns MaybeTaker', () => {
-    expect(all(() => 0, {maximumCount: 1}).__type).toBe(TakerType.MaybeTaker);
+    expect(all(() => 0, {maximumCount: 1}).__type).toBe(TakerType.MAYBE);
   });
 
   test('returns taker', () => {
@@ -29,16 +28,16 @@ describe('all', () => {
   });
 
   test('returns AllCharTaker', () => {
-    expect(all(char(() => false)).__type).toBe(TakerType.AllCharTaker);
+    expect(all(char(() => false)).__type).toBe(TakerType.ALL_CHAR);
   });
 
   test('returns AllCaseSensitiveTextTaker', () => {
-    expect(all(text('a')).__type).toBe(TakerType.AllCaseSensitiveTextTaker);
-    expect(all(text('aaa')).__type).toBe(TakerType.AllCaseSensitiveTextTaker);
+    expect(all(text('a')).__type).toBe(TakerType.ALL_CASE_SENSITIVE_TEXT);
+    expect(all(text('aaa')).__type).toBe(TakerType.ALL_CASE_SENSITIVE_TEXT);
   });
 
   test('returns AllTaker', () => {
-    expect(all(() => 0).__type).toBe(TakerType.AllTaker);
+    expect(all(() => 0).__type).toBe(TakerType.ALL_GENERIC);
   });
 });
 
@@ -67,7 +66,7 @@ describe('createAllRegexTaker', () => {
   });
 });
 
-describe('createAllTaker', () => {
+describe('createAllTakerTaker', () => {
 
   test('takes until taker returns ResultCode.NO_MATCH', () => {
     const takerMock = jest.fn();
@@ -75,7 +74,7 @@ describe('createAllTaker', () => {
     takerMock.mockReturnValueOnce(4);
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
-    expect(createAllTaker(takerMock, 0, Infinity)('aabbcc', 2)).toBe(4);
+    expect(createAllGenericTaker(takerMock, 0, Infinity)('aabbcc', 2)).toBe(4);
     expect(takerMock).toHaveBeenCalledTimes(3);
   });
 
@@ -84,7 +83,7 @@ describe('createAllTaker', () => {
     takerMock.mockReturnValueOnce(3);
     takerMock.mockReturnValueOnce(3);
 
-    expect(createAllTaker(takerMock, 0, Infinity)('aabbcc', 2)).toBe(3);
+    expect(createAllGenericTaker(takerMock, 0, Infinity)('aabbcc', 2)).toBe(3);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -94,7 +93,7 @@ describe('createAllTaker', () => {
     takerMock.mockReturnValueOnce(-2);
     takerMock.mockReturnValueOnce(3);
 
-    expect(createAllTaker(takerMock, 0, Infinity)('aabbcc', 2)).toBe(-2);
+    expect(createAllGenericTaker(takerMock, 0, Infinity)('aabbcc', 2)).toBe(-2);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -103,7 +102,7 @@ describe('createAllTaker', () => {
     takerMock.mockReturnValueOnce(1);
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
-    expect(createAllTaker(takerMock, 2, Infinity)('a', 0)).toBe(ResultCode.NO_MATCH);
+    expect(createAllGenericTaker(takerMock, 2, Infinity)('a', 0)).toBe(ResultCode.NO_MATCH);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -114,7 +113,7 @@ describe('createAllTaker', () => {
     takerMock.mockReturnValueOnce(3);
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
-    expect(createAllTaker(takerMock, 2, Infinity)('aaa', 0)).toBe(3);
+    expect(createAllGenericTaker(takerMock, 2, Infinity)('aaa', 0)).toBe(3);
     expect(takerMock).toHaveBeenCalledTimes(4);
   });
 
@@ -124,7 +123,7 @@ describe('createAllTaker', () => {
     takerMock.mockReturnValueOnce(2);
     takerMock.mockReturnValueOnce(3);
 
-    expect(createAllTaker(takerMock, 0, 2)('aaa', 0)).toBe(2);
+    expect(createAllGenericTaker(takerMock, 0, 2)('aaa', 0)).toBe(2);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -133,7 +132,7 @@ describe('createAllTaker', () => {
     takerMock.mockReturnValueOnce(1);
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
-    expect(createAllTaker(takerMock, 0, 2)('a', 0)).toBe(1);
+    expect(createAllGenericTaker(takerMock, 0, 2)('a', 0)).toBe(1);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 });

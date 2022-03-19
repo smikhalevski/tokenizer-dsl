@@ -1,6 +1,5 @@
-import {ResultCode, Taker} from '../taker-types';
+import {ResultCode, Taker, TakerType} from './taker-types';
 import {none} from './none';
-import {TakerType} from './TakerType';
 
 export interface TextOptions {
 
@@ -48,7 +47,7 @@ export function text(str: string, options: TextOptions = {}): Taker {
 }
 
 export interface CaseSensitiveCharTaker extends Taker {
-  __type: TakerType.CaseSensitiveCharTaker;
+  __type: TakerType.CASE_SENSITIVE_CHAR;
   __char: string;
 }
 
@@ -60,14 +59,14 @@ export function createCaseSensitiveCharTaker(char: string): CaseSensitiveCharTak
     return input.charCodeAt(offset) === charCode ? offset + 1 : ResultCode.NO_MATCH;
   };
 
-  take.__type = TakerType.CaseSensitiveCharTaker;
+  take.__type = TakerType.CASE_SENSITIVE_CHAR;
   take.__char = char;
 
   return take;
 }
 
 export interface CaseInsensitiveCharTaker extends Taker {
-  __type: TakerType.CaseInsensitiveCharTaker;
+  __type: TakerType.CASE_INSENSITIVE_CHAR;
   __char: string;
   __locales: string | string[] | undefined;
 }
@@ -82,7 +81,7 @@ export function createCaseInsensitiveCharTaker(char: string, locales: string | s
     return charCode === lowerCharCode || charCode === upperCharCode ? offset + 1 : ResultCode.NO_MATCH;
   };
 
-  take.__type = TakerType.CaseInsensitiveCharTaker;
+  take.__type = TakerType.CASE_INSENSITIVE_CHAR;
   take.__char = char;
   take.__locales = locales;
 
@@ -90,7 +89,7 @@ export function createCaseInsensitiveCharTaker(char: string, locales: string | s
 }
 
 export interface CaseSensitiveTextTaker extends Taker {
-  __type: TakerType.CaseSensitiveTextTaker;
+  __type: TakerType.CASE_SENSITIVE_TEXT;
   __str: string;
 }
 
@@ -100,26 +99,25 @@ export function createCaseSensitiveTextTaker(str: string): CaseSensitiveTextTake
     return input.startsWith(str, offset) ? offset + str.length : ResultCode.NO_MATCH;
   };
 
-  take.__type = TakerType.CaseSensitiveTextTaker;
+  take.__type = TakerType.CASE_SENSITIVE_TEXT;
   take.__str = str;
 
   return take;
 }
 
 export interface CaseInsensitiveTextTaker extends Taker {
-  __type: TakerType.CaseInsensitiveTextTaker;
+  __type: TakerType.CASE_INSENSITIVE_TEXT;
   __str: string;
   __locales: string | string[] | undefined;
 }
 
 export function createCaseInsensitiveTextTaker(str: string, locales: string | string[] | undefined): CaseInsensitiveTextTaker {
 
+  const strLength = str.length;
   const lowerCharCodes = toCharCodes(toLowerCase(str, locales));
   const upperCharCodes = toCharCodes(toUpperCase(str, locales));
 
   const take: CaseInsensitiveTextTaker = (input, offset) => {
-    const strLength = str.length;
-
     for (let i = 0; i < strLength; ++i) {
       const charCode = input.charCodeAt(i + offset);
 
@@ -131,22 +129,22 @@ export function createCaseInsensitiveTextTaker(str: string, locales: string | st
     return offset + strLength;
   };
 
-  take.__type = TakerType.CaseInsensitiveTextTaker;
+  take.__type = TakerType.CASE_INSENSITIVE_TEXT;
   take.__str = str;
   take.__locales = locales;
 
   return take;
 }
 
-function toLowerCase(str: string, locales: string | string[] | undefined): string {
+export function toLowerCase(str: string, locales: string | string[] | undefined): string {
   return locales ? str.toLocaleLowerCase(locales) : str.toLowerCase();
 }
 
-function toUpperCase(str: string, locales: string | string[] | undefined): string {
+export function toUpperCase(str: string, locales: string | string[] | undefined): string {
   return locales ? str.toLocaleUpperCase(locales) : str.toUpperCase();
 }
 
-function toCharCodes(str: string): number[] {
+export function toCharCodes(str: string): number[] {
   const charCodes: number[] = [];
 
   for (let i = 0; i < str.length; ++i) {

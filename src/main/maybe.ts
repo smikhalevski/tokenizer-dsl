@@ -1,9 +1,7 @@
-import {ResultCode, Taker} from '../taker-types';
+import {ResultCode, Taker, TakerType} from './taker-types';
 import {never} from './never';
 import {none} from './none';
-import {AllCaseSensitiveTextTaker, AllCharTaker, AllTaker} from './all';
-import {TakerType} from './TakerType';
-import {isTaker} from '../taker-utils';
+import {isAllTaker} from './all';
 
 /**
  * Creates taker that returns `taker` result or current offset if taker returned {@link ResultCode.NO_MATCH}.
@@ -11,21 +9,14 @@ import {isTaker} from '../taker-utils';
  * @param taker The taker which match must be considered optional.
  */
 export function maybe(taker: Taker): Taker {
-  if (
-      taker === never
-      || taker === none
-      || (
-          isTaker<AllCharTaker>(taker, TakerType.AllCharTaker)
-          || isTaker<AllCaseSensitiveTextTaker>(taker, TakerType.AllCaseSensitiveTextTaker)
-          || isTaker<AllTaker>(taker, TakerType.AllTaker)
-      ) && taker.__minimumCount === 0) {
+  if (taker === never || taker === none || isAllTaker(taker) && taker.__minimumCount === 0) {
     return taker;
   }
   return createMaybeTaker(taker);
 }
 
 export interface MaybeTaker extends Taker {
-  __type: TakerType.MaybeTaker;
+  __type: TakerType.MAYBE;
   __taker: Taker;
 }
 
@@ -37,7 +28,7 @@ export function createMaybeTaker(taker: Taker): MaybeTaker {
     return result === ResultCode.NO_MATCH ? offset : result;
   };
 
-  take.__type = TakerType.MaybeTaker;
+  take.__type = TakerType.MAYBE;
   take.__taker = taker;
 
   return take;

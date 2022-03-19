@@ -1,11 +1,10 @@
-import {createRegexTaker, regex} from '../../main/takers/regex';
-import {ResultCode} from '../../main';
-import {TakerType} from '../../main/takers/TakerType';
+import {createRegexTaker, regex} from '../main/regex';
+import {ResultCode, TakerType} from '../main';
 
 describe('regex', () => {
 
   test('returns RegexTaker', () => {
-    expect(regex(/abc/).__type).toBe(TakerType.RegexTaker);
+    expect(regex(/abc/).__type).toBe(TakerType.REGEX);
   });
 });
 

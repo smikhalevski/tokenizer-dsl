@@ -1,6 +1,5 @@
-import {none, or, ResultCode, Taker} from '../../main';
-import {createOrTaker} from '../../main/takers/or';
-import {TakerType} from '../../main/takers/TakerType';
+import {none, or, ResultCode, Taker, TakerType} from '../main';
+import {createOrTaker} from '../main/or';
 
 describe('or', () => {
 
@@ -15,7 +14,7 @@ describe('or', () => {
 
   test('returns OrTaker', () => {
     const takerMock = jest.fn();
-    expect(or(takerMock, takerMock).__type).toBe(TakerType.OrTaker);
+    expect(or(takerMock, takerMock).__type).toBe(TakerType.OR);
   });
 });
 

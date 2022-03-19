@@ -1,11 +1,10 @@
-import {none, ResultCode, text} from '../../main';
+import {none, ResultCode, TakerType, text} from '../main';
 import {
   createCaseInsensitiveCharTaker,
   createCaseInsensitiveTextTaker,
   createCaseSensitiveCharTaker,
   createCaseSensitiveTextTaker
-} from '../../main/takers/text';
-import {TakerType} from '../../main/takers/TakerType';
+} from '../main/text';
 
 describe('text', () => {
 
@@ -14,21 +13,21 @@ describe('text', () => {
   });
 
   test('returns CaseSensitiveCharTaker', () => {
-    expect(text('a').__type).toBe(TakerType.CaseSensitiveCharTaker);
-    expect(text('1', {caseInsensitive: true}).__type).toBe(TakerType.CaseSensitiveCharTaker);
+    expect(text('a').__type).toBe(TakerType.CASE_SENSITIVE_CHAR);
+    expect(text('1', {caseInsensitive: true}).__type).toBe(TakerType.CASE_SENSITIVE_CHAR);
   });
 
   test('returns CaseInsensitiveCharTaker', () => {
-    expect(text('a', {caseInsensitive: true}).__type).toBe(TakerType.CaseInsensitiveCharTaker);
+    expect(text('a', {caseInsensitive: true}).__type).toBe(TakerType.CASE_INSENSITIVE_CHAR);
   });
 
   test('returns CaseSensitiveTextTaker', () => {
-    expect(text('aaa').__type).toBe(TakerType.CaseSensitiveTextTaker);
-    expect(text('123', {caseInsensitive: true}).__type).toBe(TakerType.CaseSensitiveTextTaker);
+    expect(text('aaa').__type).toBe(TakerType.CASE_SENSITIVE_TEXT);
+    expect(text('123', {caseInsensitive: true}).__type).toBe(TakerType.CASE_SENSITIVE_TEXT);
   });
 
   test('returns CaseInsensitiveTextTaker', () => {
-    expect(text('aaa', {caseInsensitive: true}).__type).toBe(TakerType.CaseInsensitiveTextTaker);
+    expect(text('aaa', {caseInsensitive: true}).__type).toBe(TakerType.CASE_INSENSITIVE_TEXT);
   });
 });
 

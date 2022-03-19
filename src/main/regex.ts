@@ -1,12 +1,11 @@
-import {ResultCode, Taker} from '../taker-types';
-import {TakerType} from './TakerType';
+import {ResultCode, Taker, TakerType} from './taker-types';
 
 export function regex(re: RegExp): Taker {
   return createRegexTaker(re);
 }
 
 export interface RegexTaker extends Taker {
-  __type: TakerType.RegexTaker;
+  __type: TakerType.REGEX;
   __re: RegExp;
 }
 
@@ -22,7 +21,7 @@ export function createRegexTaker(re: RegExp): RegexTaker {
     return result === null || result.index !== offset ? ResultCode.NO_MATCH : re.lastIndex;
   };
 
-  take.__type = TakerType.RegexTaker;
+  take.__type = TakerType.REGEX;
   take.__re = re;
 
   return take;

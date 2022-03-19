@@ -1,6 +1,5 @@
-import {createSeqTaker, seq} from '../../main/takers/seq';
-import {never, none, ResultCode, Taker, text} from '../../main';
-import {TakerType} from '../../main/takers/TakerType';
+import {createSeqTaker, seq} from '../main/seq';
+import {never, none, ResultCode, Taker, TakerType, text} from '../main';
 
 describe('seq', () => {
 
@@ -19,7 +18,7 @@ describe('seq', () => {
   });
 
   test('returns SeqTaker', () => {
-    expect(seq(text('aaa'), text('bbb')).__type).toBe(TakerType.SeqTaker);
+    expect(seq(text('aaa'), text('bbb')).__type).toBe(TakerType.SEQ);
   });
 });
 

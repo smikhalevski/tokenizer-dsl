@@ -1,4 +1,4 @@
-import {Taker} from '../taker-types';
+import {Taker} from './taker-types';
 
 /**
  * Taker that returns the current offset.

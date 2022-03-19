@@ -1,6 +1,5 @@
-import {char, ResultCode} from '../../main';
-import {createCharTaker} from '../../main/takers/char';
-import {TakerType} from '../../main/takers/TakerType';
+import {char, ResultCode, TakerType} from '../main';
+import {createCharTaker} from '../main/char';
 
 const A = 'a'.charCodeAt(0);
 const B = 'b'.charCodeAt(0);
@@ -8,7 +7,7 @@ const B = 'b'.charCodeAt(0);
 describe('char', () => {
 
   test('returns CharTaker', () => {
-    expect(char(() => false).__type).toBe(TakerType.CharTaker);
+    expect(char(() => false).__type).toBe(TakerType.CHAR);
   });
 });
 
