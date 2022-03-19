@@ -5,6 +5,7 @@ import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
 import {none} from './none';
 import {never} from './never';
 import {MaybeTaker} from './maybe';
+import {RegexTaker} from './regex';
 
 export interface AllOptions {
 
@@ -32,12 +33,15 @@ export interface AllOptions {
 export function all(taker: TakerLike, options: AllOptions = {}): Taker {
   taker = toTaker(taker);
 
-  const {
+  let {
     minimumCount = 0,
     maximumCount = Infinity,
   } = options;
 
-  if (minimumCount > maximumCount || maximumCount < 0) {
+  minimumCount = isFinite(minimumCount) ? Math.max(minimumCount | 0, 0) : Infinity;
+  maximumCount = isFinite(maximumCount) ? Math.max(maximumCount | 0, 0) : Infinity;
+
+  if (minimumCount > maximumCount || minimumCount === Infinity) {
     return never;
   }
   if (maximumCount === 0) {
@@ -60,6 +64,9 @@ export function all(taker: TakerLike, options: AllOptions = {}): Taker {
   }
   if (taker instanceof CaseSensitiveTextTaker) {
     return new AllCaseSensitiveTextTaker(taker.__str, minimumCount, maximumCount);
+  }
+  if (taker instanceof RegexTaker) {
+    return new AllRegexTaker(taker.__re, minimumCount, maximumCount);
   }
   return new AllTaker(taker, minimumCount, maximumCount);
 }
@@ -133,6 +140,38 @@ export class AllCaseSensitiveTextTaker implements Taker {
       return ResultCode.NO_MATCH;
     }
     return i;
+  }
+}
+
+export class AllRegexTaker implements Taker {
+
+  public readonly __re;
+  public readonly __minimumCount;
+  public readonly __maximumCount;
+
+  public constructor(re: RegExp, minimumCount: number, maximumCount: number) {
+    this.__re = new RegExp(
+        '(?:'
+        + re.source
+        + '){'
+        + minimumCount
+        + ','
+        + (maximumCount === Infinity ? '' : maximumCount)
+        + '}',
+        re.flags.replace(/[yg]/, '') + (re.sticky !== undefined ? 'y' : 'g')
+    );
+    this.__minimumCount = minimumCount;
+    this.__maximumCount = maximumCount;
+  }
+
+  public take(input: string, offset: number): number {
+    const {__re} = this;
+
+    __re.lastIndex = offset;
+
+    const result = __re.exec(input);
+
+    return result === null || result.index !== offset ? ResultCode.NO_MATCH : __re.lastIndex;
   }
 }
 

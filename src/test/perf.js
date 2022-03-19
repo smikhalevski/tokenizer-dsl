@@ -5,6 +5,11 @@ describe('Docs', () => {
 
   const input = '-123.123aaaaa';
 
+  test('RegExp', (measure) => {
+    const re = /^[+-]?(?:0|[1-9])\d*(?:\.\d+)?/;
+    measure(() => re.exec(input));
+  });
+
   test('latest', (measure) => {
 
     const takeZero = latest.char('0'.charCodeAt(0));
@@ -43,39 +48,39 @@ describe('Docs', () => {
   });
 
   test('next', (measure) => {
-    const takeZero = next.text('0');
+    const zeroTaker = next.text('0');
 
-    const takeLeadingDigit = next.char((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
+    const leadingDigitTaker = next.char((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
 
-    const takeDigits = next.all(next.char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
+    const digitsTaker = next.all(next.char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
 
-    const takeDot = next.text('.');
+    const dotTaker = next.text('.');
 
-    const takeSign = next.char((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
+    const signTaker = next.char((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
 
-    const takeNumber = next.seq(
+    const numberTaker = next.seq(
         // sign
-        next.maybe(takeSign),
+        next.maybe(signTaker),
 
         // integer
         next.or(
-            takeZero,
+            zeroTaker,
             next.seq(
-                takeLeadingDigit,
-                takeDigits,
+                leadingDigitTaker,
+                digitsTaker,
             ),
         ),
 
         // fraction
         next.maybe(
             next.seq(
-                takeDot,
-                takeDigits,
+                dotTaker,
+                digitsTaker,
             ),
         ),
     );
 
-    measure(() => takeNumber.take(input, 0));
+    measure(() => numberTaker.take(input, 0));
   });
 });
 
@@ -106,10 +111,10 @@ describe('all', () => {
 
   describe('AllCharTaker', () => {
 
-    const input = 'aaaaaag';
+    const input = 'a'.repeat(10_000) + 'b';
 
     test('RegExp', (measure) => {
-      const re = /^a*!/;
+      const re = /^a*/;
       measure(() => re.exec(input));
     });
 
@@ -126,7 +131,7 @@ describe('all', () => {
 
   describe('AllCharTaker {minimumCount: 1}', () => {
 
-    const input = 'aaaaaab';
+    const input = 'a'.repeat(10_000) + 'b';
 
     test('RegExp', (measure) => {
       const re = /^a+/;
@@ -146,7 +151,7 @@ describe('all', () => {
 
   describe('AllCharTaker {maximumCount: 3}', () => {
 
-    const input = 'aaaaaab';
+    const input = 'a'.repeat(10_000) + 'b';
 
     test('RegExp', (measure) => {
       const re = /^a{0,3}/;
@@ -166,20 +171,40 @@ describe('all', () => {
 
   describe('AllCaseSensitiveTextTaker', () => {
 
-    const input = 'abcabcabcabcabcabcabcabcabcabcabcabcabc';
+    const input = 'ab'.repeat(100) + 'd';
 
     test('RegExp', (measure) => {
-      const re = /^(abcabcabcabca)*!/;
+      const re = /^(?:ab)*/;
       measure(() => re.exec(input));
     });
 
     test('latest', (measure) => {
-      const take = latest.all(latest.text('abcabcabcabca'));
+      const take = latest.all(latest.text('ab'));
       measure(() => take(input, 0));
     });
 
     test('next', (measure) => {
-      const taker = next.all(next.text('abcabcabcabca'));
+      const taker = next.all(next.text('ab'));
+      measure(() => taker.take(input, 0));
+    });
+  });
+
+  describe('AllRegexTaker', () => {
+
+    const input = 'ab'.repeat(5_000) + 'd';
+
+    test('RegExp', (measure) => {
+      const re = /^(?:ab)*/;
+      measure(() => re.exec(input));
+    });
+
+    test('latest', (measure) => {
+      const take = latest.all(latest.text('ab'));
+      measure(() => take(input, 0));
+    });
+
+    test('next', (measure) => {
+      const taker = next.all(next.regex(/ab/));
       measure(() => taker.take(input, 0));
     });
   });

@@ -1,15 +1,15 @@
 import {all, char, never, none, ResultCode, Taker, text} from '../../main';
-import {AllCaseSensitiveTextTaker, AllCharTaker, AllTaker} from '../../main/takers/all';
+import {AllCaseSensitiveTextTaker, AllCharTaker, AllRegexTaker, AllTaker} from '../../main/takers/all';
 import {MaybeTaker} from '../../main/takers/maybe';
 
 describe('all', () => {
 
   test('returns never', () => {
-    expect(all(() => 0, {maximumCount: -1})).toBe(never);
     expect(all(never)).toBe(never);
   });
 
   test('returns none', () => {
+    expect(all(() => 0, {maximumCount: -1})).toBe(none);
     expect(all(() => 0, {maximumCount: 0})).toBe(none);
     expect(all(none)).toBe(none);
   });
@@ -50,6 +50,15 @@ describe('AllCaseSensitiveTextTaker', () => {
   test('takes sequential case-insensitive substrings', () => {
     expect(new AllCaseSensitiveTextTaker('abc', 0, Infinity).take('abcabcabcd', 3)).toBe(9);
     expect(new AllCaseSensitiveTextTaker('abc', 3, Infinity).take('abcabcabcd', 3)).toBe(ResultCode.NO_MATCH);
+  });
+});
+
+describe('AllRegexTaker', () => {
+
+  test('takes sequential regex matches', () => {
+    expect(new AllRegexTaker(/a/, 0, Infinity).take('aaaaabaaa', 3)).toBe(5);
+    expect(new AllRegexTaker(/a/, 3, Infinity).take('aaaaabaaa', 3)).toBe(ResultCode.NO_MATCH);
+    expect(new AllRegexTaker(/a/, 0, 3).take('aaaaa', 0)).toBe(3);
   });
 });
 
