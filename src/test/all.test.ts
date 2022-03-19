@@ -66,7 +66,7 @@ describe('createAllRegexTaker', () => {
   });
 });
 
-describe('createAllTakerTaker', () => {
+describe('createAllGenericTaker', () => {
 
   test('takes until taker returns ResultCode.NO_MATCH', () => {
     const takerMock = jest.fn();

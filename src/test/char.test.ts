@@ -13,7 +13,7 @@ describe('char', () => {
 
 describe('createCharTaker', () => {
 
-  test('reads char at offset', () => {
+  test('takes char at offset', () => {
     expect(createCharTaker((charCode) => charCode === A)('aaabbb', 2)).toBe(3);
     expect(createCharTaker((charCode) => charCode === B)('aaabbb', 4)).toBe(5);
   });
