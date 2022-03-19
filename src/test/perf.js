@@ -1,7 +1,7 @@
 const latest = require('tokenizer-dsl');
 const next = require('../../lib/index-cjs');
 
-describe('Docs', () => {
+describe('readme', () => {
 
   const input = '-123.123aaaaa';
 

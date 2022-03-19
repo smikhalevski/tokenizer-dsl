@@ -25,10 +25,12 @@ export function or(...takers: Taker[]): Taker {
     return takers;
   }, []);
 
-  if (takers.length === 0) {
+  const takersLength = takers.length;
+
+  if (takersLength === 0) {
     return none;
   }
-  if (takers.length === 1) {
+  if (takersLength === 1) {
     return takers[0];
   }
 
@@ -42,12 +44,12 @@ export interface OrTaker extends Taker {
 
 export function createOrTaker(takers: Taker[]): OrTaker {
 
-  const takerCount = takers.length;
+  const takersLength = takers.length;
 
   const take: OrTaker = (input, offset) => {
     let result = ResultCode.NO_MATCH;
 
-    for (let i = 0; i < takerCount && result === ResultCode.NO_MATCH; ++i) {
+    for (let i = 0; i < takersLength && result === ResultCode.NO_MATCH; ++i) {
       result = takers[i](input, offset);
     }
     return result;
