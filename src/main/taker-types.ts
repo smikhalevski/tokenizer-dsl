@@ -8,6 +8,11 @@ export const enum ResultCode {
   NO_MATCH = -1,
 }
 
+/**
+ * The type of the taker function, used for internal taker optimizations.
+ *
+ * @internal
+ */
 export const enum TakerType {
   ALL_CHAR,
   ALL_CASE_SENSITIVE_TEXT,
