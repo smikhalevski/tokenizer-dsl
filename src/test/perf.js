@@ -52,7 +52,7 @@ describe('readme', () => {
 
     const takeLeadingDigit = next.char([[49 /*1*/, 57 /*9*/]]);
 
-    const takeDigits = next.all(next.char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
+    const takeDigits = next.all(next.char([[48 /*0*/, 57 /*9*/]]));
 
     const takeDot = next.text('.');
 

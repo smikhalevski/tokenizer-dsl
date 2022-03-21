@@ -20,6 +20,7 @@ export const enum ResultCode {
  */
 export const enum TakerType {
   ALL_CHAR_CODE_CHECKER,
+  ALL_CHAR_CODE_RANGE,
   ALL_CASE_SENSITIVE_TEXT,
   ALL_REGEX,
   ALL_GENERIC,

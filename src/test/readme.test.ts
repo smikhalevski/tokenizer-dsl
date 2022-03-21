@@ -6,7 +6,8 @@ test('readme example', () => {
 
   const takeLeadingDigit = char([[49 /*1*/, 57 /*9*/]]);
 
-  const takeDigits = all(char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
+  const takeDigits = all(char([[48 /*0*/, 57 /*9*/]]));
+  // const takeDigits = all(char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
 
   const takeDot = text('.');
 

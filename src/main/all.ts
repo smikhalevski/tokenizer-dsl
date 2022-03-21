@@ -1,9 +1,9 @@
-import {CharCodeCheckerTaker} from './char';
+import {CharCodeCheckerTaker, CharCodeRangeTaker, createCharCodeRangeConditionSource} from './char';
 import {createMaybeTaker} from './maybe';
 import {never} from './never';
 import {none} from './none';
 import {RegexTaker} from './regex';
-import {CharCodeChecker, ResultCode, Taker, TakerType} from './taker-types';
+import {CharCodeChecker, CharCodeRange, ResultCode, Taker, TakerType} from './taker-types';
 import {isTaker} from './taker-utils';
 import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
 
@@ -58,6 +58,9 @@ export function all(taker: Taker, options: AllOptions = {}): Taker {
   if (isTaker<CharCodeCheckerTaker>(taker, TakerType.CHAR_CODE_CHECKER)) {
     return createAllCharCodeCheckerTaker(taker.__charCodeChecker, minimumCount, maximumCount);
   }
+  if (isTaker<CharCodeRangeTaker>(taker, TakerType.CHAR_CODE_RANGE)) {
+    return createAllCharCodeRangeTaker(taker.__charCodeRanges, minimumCount, maximumCount);
+  }
   if (isTaker<CaseSensitiveCharTaker>(taker, TakerType.CASE_SENSITIVE_CHAR)) {
     return createAllCaseSensitiveTextTaker(taker.__char, minimumCount, maximumCount);
   }
@@ -78,9 +81,36 @@ export type AllTaker =
 
 export function isAllTaker(taker: Taker): taker is AllTaker {
   return isTaker<AllCharCodeCheckerTaker>(taker, TakerType.ALL_CHAR_CODE_CHECKER)
+      || isTaker<AllCharCodeRangeTaker>(taker, TakerType.ALL_CHAR_CODE_RANGE)
       || isTaker<AllCaseSensitiveTextTaker>(taker, TakerType.ALL_CASE_SENSITIVE_TEXT)
       || isTaker<AllRegexTaker>(taker, TakerType.ALL_REGEX)
       || isTaker<AllGenericTaker>(taker, TakerType.ALL_GENERIC);
+}
+
+export interface AllCharCodeRangeTaker extends Taker {
+  __type: TakerType.ALL_CHAR_CODE_RANGE;
+  __minimumCount: number;
+  __maximumCount: number;
+}
+
+export function createAllCharCodeRangeTaker(charCodeRanges: CharCodeRange[], minimumCount: number, maximumCount: number): AllCharCodeRangeTaker {
+
+  const js = 'var l=i.length,n=0,j=o;'
+      + 'while(j<l' + (maximumCount === Infinity ? '' : '&&n<' + maximumCount) + '){'
+      + 'var c=i.charCodeAt(j);'
+      + 'if(!(' + createCharCodeRangeConditionSource('c', charCodeRanges) + '))break;'
+      + '++n;++j'
+      + '}'
+      + (minimumCount === 0 ? '' : 'if(n<' + minimumCount + '){return ' + ResultCode.NO_MATCH + '}')
+      + 'return j';
+
+  const take = Function('i', 'o', js) as AllCharCodeRangeTaker;
+
+  take.__type = TakerType.ALL_CHAR_CODE_RANGE;
+  take.__minimumCount = minimumCount;
+  take.__maximumCount = maximumCount;
+
+  return take;
 }
 
 export interface AllCharCodeCheckerTaker extends Taker {

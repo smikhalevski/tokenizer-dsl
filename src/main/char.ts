@@ -40,18 +40,10 @@ export interface CharCodeRangeTaker extends Taker {
 }
 
 export function createCharCodeRangeTaker(charCodeRanges: CharCodeRange[]): CharCodeRangeTaker {
-
-  let js = 'var c=i.charCodeAt(o);return ';
-
-  for (let i = 0; i < charCodeRanges.length; ++i) {
-    const range = charCodeRanges[i];
-    if (i !== 0) {
-      js += '||';
-    }
-    js += typeof range === 'number' ? 'c===' + range : 'c>=' + range[0] + '&&c<=' + range[1];
-  }
-
-  js += '?o+1:' + ResultCode.NO_MATCH;
+  const js = 'var c=i.charCodeAt(o);return '
+      + createCharCodeRangeConditionSource('c', charCodeRanges)
+      + '?o+1:'
+      + ResultCode.NO_MATCH;
 
   const take = Function('i', 'o', js) as CharCodeRangeTaker;
 
@@ -59,4 +51,8 @@ export function createCharCodeRangeTaker(charCodeRanges: CharCodeRange[]): CharC
   take.__charCodeRanges = charCodeRanges;
 
   return take;
+}
+
+export function createCharCodeRangeConditionSource(charCodeVar: string, charCodeRanges: CharCodeRange[]): string {
+  return charCodeRanges.map((range) => typeof range === 'number' ? charCodeVar + '===' + range : charCodeVar + '>=' + range[0] + '&&' + charCodeVar + '<=' + range[1]).join('||');
 }

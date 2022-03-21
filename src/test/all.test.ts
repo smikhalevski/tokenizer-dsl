@@ -1,7 +1,7 @@
 import {all, char, never, none, ResultCode, Taker, TakerType, text} from '../main';
 import {
   createAllCaseSensitiveTextTaker,
-  createAllCharCodeCheckerTaker,
+  createAllCharCodeCheckerTaker, createAllCharCodeRangeTaker,
   createAllGenericTaker,
   createAllRegexTaker
 } from '../main/all';
@@ -46,6 +46,14 @@ describe('createAllCharCodeCheckerTaker', () => {
   test('takes sequential chars', () => {
     expect(createAllCharCodeCheckerTaker(() => true, 0, Infinity)('aaabbbccc', 2)).toBe(9);
     expect(createAllCharCodeCheckerTaker(() => false, 1, Infinity)('aaabbbccc', 2)).toBe(ResultCode.NO_MATCH);
+  });
+});
+
+describe('createAllCharCodeRangeTaker', () => {
+
+  test('takes sequential chars', () => {
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0), 'b'.charCodeAt(0)], 0, Infinity)('aaabbbccc', 2)).toBe(6);
+    expect(createAllCharCodeRangeTaker([['a'.charCodeAt(0), 'c'.charCodeAt(0)]], 0, Infinity)('aaabbbccc', 2)).toBe(9);
   });
 });
 
