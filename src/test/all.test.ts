@@ -1,7 +1,7 @@
 import {all, char, never, none, ResultCode, Taker, TakerType, text} from '../main';
 import {
   createAllCaseSensitiveTextTaker,
-  createAllCharTaker,
+  createAllCharCodeCheckerTaker,
   createAllGenericTaker,
   createAllRegexTaker
 } from '../main/all';
@@ -27,8 +27,8 @@ describe('all', () => {
     expect(all(takerMock, {minimumCount: 1, maximumCount: 1})).toBe(takerMock);
   });
 
-  test('returns AllCharTaker', () => {
-    expect(all(char(() => false)).__type).toBe(TakerType.ALL_CHAR);
+  test('returns AllCharCodeCheckerTaker', () => {
+    expect(all(char(() => false)).__type).toBe(TakerType.ALL_CHAR_CODE_CHECKER);
   });
 
   test('returns AllCaseSensitiveTextTaker', () => {
@@ -41,11 +41,11 @@ describe('all', () => {
   });
 });
 
-describe('createAllCharTaker', () => {
+describe('createAllCharCodeCheckerTaker', () => {
 
   test('takes sequential chars', () => {
-    expect(createAllCharTaker(() => true, 0, Infinity)('aaabbbccc', 2)).toBe(9);
-    expect(createAllCharTaker(() => false, 1, Infinity)('aaabbbccc', 2)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeCheckerTaker(() => true, 0, Infinity)('aaabbbccc', 2)).toBe(9);
+    expect(createAllCharCodeCheckerTaker(() => false, 1, Infinity)('aaabbbccc', 2)).toBe(ResultCode.NO_MATCH);
   });
 });
 

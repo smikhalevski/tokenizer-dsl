@@ -4,13 +4,13 @@ test('readme example', () => {
 
   const takeZero = text('0');
 
-  const takeLeadingDigit = char((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
+  const takeLeadingDigit = char([[49 /*1*/, 57 /*9*/]]);
 
   const takeDigits = all(char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
 
   const takeDot = text('.');
 
-  const takeSign = char((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
+  const takeSign = char([43 /*+*/, 45 /*-*/]);
 
   const takeNumber = seq(
       // sign

@@ -1,7 +1,7 @@
 import {char, never, none, regex, ResultCode, TakerType, text} from '../main';
 import {
   createUntilCaseSensitiveTextTaker,
-  createUntilCharTaker,
+  createUntilCharCodeCheckerTaker,
   createUntilGenericTaker,
   createUntilRegexTaker,
   until
@@ -22,15 +22,15 @@ describe('until', () => {
     expect(until(text('aaa')).__type).toBe(TakerType.UNTIL_CASE_SENSITIVE_TEXT);
   });
 
-  test('returns UntilCharTaker', () => {
-    expect(until(char(() => false)).__type).toBe(TakerType.UNTIL_CHAR);
+  test('returns UntilCharCodeCheckerTaker', () => {
+    expect(until(char(() => false)).__type).toBe(TakerType.UNTIL_CHAR_CODE_CHECKER);
   });
 
   test('returns UntilRegexTaker', () => {
     expect(until(regex(/a/)).__type).toBe(TakerType.UNTIL_REGEX);
   });
 
-  test('returns UntilCharTaker', () => {
+  test('returns UntilCharCodeCheckerTaker', () => {
     expect(until(() => 0).__type).toBe(TakerType.UNTIL_GENERIC);
   });
 });
@@ -46,10 +46,10 @@ describe('createUntilCaseSensitiveTextTaker', () => {
   });
 });
 
-describe('createUntilCharTaker', () => {
+describe('createUntilCharCodeCheckerTaker', () => {
 
   test('takes chars until char is met', () => {
-    expect(createUntilCharTaker((charCode) => charCode === 'b'.charCodeAt(0), false, false, 0)('aaabbb', 0)).toBe(3);
+    expect(createUntilCharCodeCheckerTaker((charCode) => charCode === 'b'.charCodeAt(0), false, false, 0)('aaabbb', 0)).toBe(3);
   });
 });
 

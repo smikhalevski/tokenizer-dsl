@@ -1,4 +1,4 @@
-import {CharTaker} from './char';
+import {CharCodeCheckerTaker} from './char';
 import {never} from './never';
 import {none} from './none';
 import {RegexTaker} from './regex';
@@ -57,8 +57,8 @@ export function until(taker: Taker, options: UntilOptions = {}): Taker {
   if (isTaker<CaseSensitiveTextTaker>(taker, TakerType.CASE_SENSITIVE_TEXT)) {
     return createUntilCaseSensitiveTextTaker(taker.__str, inclusive, openEnded, endOffset);
   }
-  if (isTaker<CharTaker>(taker, TakerType.CHAR)) {
-    return createUntilCharTaker(taker.__charCodeChecker, inclusive, openEnded, endOffset);
+  if (isTaker<CharCodeCheckerTaker>(taker, TakerType.CHAR_CODE_CHECKER)) {
+    return createUntilCharCodeCheckerTaker(taker.__charCodeChecker, inclusive, openEnded, endOffset);
   }
   return createUntilGenericTaker(taker, inclusive, openEnded, endOffset);
 }
@@ -66,13 +66,13 @@ export function until(taker: Taker, options: UntilOptions = {}): Taker {
 export type UntilTaker =
     | UntilRegexTaker
     | UntilCaseSensitiveTextTaker
-    | UntilCharTaker
+    | UntilCharCodeCheckerTaker
     | UntilGenericTaker;
 
 export function isUntilTaker(taker: Taker): taker is UntilTaker {
   return isTaker<UntilRegexTaker>(taker, TakerType.UNTIL_REGEX)
       || isTaker<UntilCaseSensitiveTextTaker>(taker, TakerType.UNTIL_CASE_SENSITIVE_TEXT)
-      || isTaker<UntilCharTaker>(taker, TakerType.UNTIL_CHAR)
+      || isTaker<UntilCharCodeCheckerTaker>(taker, TakerType.UNTIL_CHAR_CODE_CHECKER)
       || isTaker<UntilGenericTaker>(taker, TakerType.UNTIL_GENERIC);
 }
 
@@ -98,15 +98,15 @@ export function createUntilCaseSensitiveTextTaker(str: string, inclusive: boolea
   return take;
 }
 
-export interface UntilCharTaker extends Taker {
-  __type: TakerType.UNTIL_CHAR;
+export interface UntilCharCodeCheckerTaker extends Taker {
+  __type: TakerType.UNTIL_CHAR_CODE_CHECKER;
 }
 
-export function createUntilCharTaker(charCodeChecker: CharCodeChecker, inclusive: boolean, openEnded: boolean, endOffset: number): UntilCharTaker {
+export function createUntilCharCodeCheckerTaker(charCodeChecker: CharCodeChecker, inclusive: boolean, openEnded: boolean, endOffset: number): UntilCharCodeCheckerTaker {
 
   const takenOffset = inclusive ? 1 : 0;
 
-  const take: UntilCharTaker = (input, offset) => {
+  const take: UntilCharCodeCheckerTaker = (input, offset) => {
     const inputLength = input.length;
 
     let i = offset;
@@ -119,7 +119,7 @@ export function createUntilCharTaker(charCodeChecker: CharCodeChecker, inclusive
     return i + takenOffset;
   };
 
-  take.__type = TakerType.UNTIL_CHAR;
+  take.__type = TakerType.UNTIL_CHAR_CODE_CHECKER;
 
   return take;
 }

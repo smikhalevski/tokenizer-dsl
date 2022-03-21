@@ -1,4 +1,4 @@
-import {CharTaker} from './char';
+import {CharCodeCheckerTaker} from './char';
 import {createMaybeTaker} from './maybe';
 import {never} from './never';
 import {none} from './none';
@@ -55,8 +55,8 @@ export function all(taker: Taker, options: AllOptions = {}): Taker {
   if (taker === never || taker === none || isAllTaker(taker)) {
     return taker;
   }
-  if (isTaker<CharTaker>(taker, TakerType.CHAR)) {
-    return createAllCharTaker(taker.__charCodeChecker, minimumCount, maximumCount);
+  if (isTaker<CharCodeCheckerTaker>(taker, TakerType.CHAR_CODE_CHECKER)) {
+    return createAllCharCodeCheckerTaker(taker.__charCodeChecker, minimumCount, maximumCount);
   }
   if (isTaker<CaseSensitiveCharTaker>(taker, TakerType.CASE_SENSITIVE_CHAR)) {
     return createAllCaseSensitiveTextTaker(taker.__char, minimumCount, maximumCount);
@@ -71,27 +71,27 @@ export function all(taker: Taker, options: AllOptions = {}): Taker {
 }
 
 export type AllTaker =
-    | AllCharTaker
+    | AllCharCodeCheckerTaker
     | AllCaseSensitiveTextTaker
     | AllRegexTaker
     | AllGenericTaker;
 
 export function isAllTaker(taker: Taker): taker is AllTaker {
-  return isTaker<AllCharTaker>(taker, TakerType.ALL_CHAR)
+  return isTaker<AllCharCodeCheckerTaker>(taker, TakerType.ALL_CHAR_CODE_CHECKER)
       || isTaker<AllCaseSensitiveTextTaker>(taker, TakerType.ALL_CASE_SENSITIVE_TEXT)
       || isTaker<AllRegexTaker>(taker, TakerType.ALL_REGEX)
       || isTaker<AllGenericTaker>(taker, TakerType.ALL_GENERIC);
 }
 
-export interface AllCharTaker extends Taker {
-  __type: TakerType.ALL_CHAR;
+export interface AllCharCodeCheckerTaker extends Taker {
+  __type: TakerType.ALL_CHAR_CODE_CHECKER;
   __minimumCount: number;
   __maximumCount: number;
 }
 
-export function createAllCharTaker(charCodeChecker: CharCodeChecker, minimumCount: number, maximumCount: number): AllCharTaker {
+export function createAllCharCodeCheckerTaker(charCodeChecker: CharCodeChecker, minimumCount: number, maximumCount: number): AllCharCodeCheckerTaker {
 
-  const take: AllCharTaker = (input, offset) => {
+  const take: AllCharCodeCheckerTaker = (input, offset) => {
     const inputLength = input.length;
 
     let takeCount = 0;
@@ -107,7 +107,7 @@ export function createAllCharTaker(charCodeChecker: CharCodeChecker, minimumCoun
     return i;
   };
 
-  take.__type = TakerType.ALL_CHAR;
+  take.__type = TakerType.ALL_CHAR_CODE_CHECKER;
   take.__minimumCount = minimumCount;
   take.__maximumCount = maximumCount;
 
