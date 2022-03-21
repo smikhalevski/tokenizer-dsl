@@ -105,6 +105,26 @@ describe('char', () => {
       measure(() => take(input, 0));
     });
   });
+
+  describe('CharCodeRangeTaker', () => {
+
+    const input = 'ababab';
+
+    test('RegExp', (measure) => {
+      const re = /^[ab]/;
+      measure(() => re.exec(input));
+    });
+
+    test('latest', (measure) => {
+      const take = latest.charBy((charCode) => charCode === 97 || charCode === 98);
+      measure(() => take(input, 0));
+    });
+
+    test('next', (measure) => {
+      const take = next.char([97, 98]);
+      measure(() => take(input, 0));
+    });
+  });
 });
 
 describe('all', () => {
@@ -125,6 +145,26 @@ describe('all', () => {
 
     test('next', (measure) => {
       const take = next.all(next.char((charCode) => charCode === 97));
+      measure(() => take(input, 0));
+    });
+  });
+
+  describe('AllCharCodeRangeTaker', () => {
+
+    const input = 'ab'.repeat(5_000) + 'b';
+
+    test('RegExp', (measure) => {
+      const re = /^ab*/;
+      measure(() => re.exec(input));
+    });
+
+    test('latest', (measure) => {
+      const take = latest.allCharBy((charCode) => charCode === 97 || charCode === 98);
+      measure(() => take(input, 0));
+    });
+
+    test('next', (measure) => {
+      const take = next.all(next.char([97, 98]));
       measure(() => take(input, 0));
     });
   });
