@@ -33,7 +33,6 @@ export function or(...takers: Taker[]): Taker {
   if (takersLength === 1) {
     return takers[0];
   }
-
   return createOrTaker(takers);
 }
 
@@ -46,14 +45,26 @@ export function createOrTaker(takers: Taker[]): OrTaker {
 
   const takersLength = takers.length;
 
-  const take: OrTaker = (input, offset) => {
-    let result = ResultCode.NO_MATCH;
+  const k1 = takersLength - 2;
+  const k2 = takersLength - 1;
 
-    for (let i = 0; i < takersLength && result === ResultCode.NO_MATCH; ++i) {
-      result = takers[i](input, offset);
-    }
-    return result;
-  };
+  let js = 'var ';
+
+  for (let i = 0; i < takersLength; ++i) {
+    js += 't' + i + '=q[' + i + ']' + (i < k2 ? ',' : ';');
+  }
+
+  js += 'return function(i,o){';
+
+  for (let i = 0; i < k1; ++i) {
+    js += 'var r' + i + '=t' + i + '(i,o);'
+        + 'if(r' + i + '!==' + ResultCode.NO_MATCH + '){return r' + i + '}';
+  }
+
+  js += 'var r' + k1 + '=t' + k1 + '(i,o);'
+      + 'return r' + k1 + '!==' + ResultCode.NO_MATCH + '?r' + k1 + ':' + 't' + k2 + '(i,o)}';
+
+  const take: OrTaker = Function('q', js)(takers);
 
   take.__type = TakerType.OR;
   take.__takers = takers;

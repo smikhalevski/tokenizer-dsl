@@ -3,6 +3,8 @@
  */
 export type CharCodeChecker = (charCode: number) => boolean;
 
+export type CharCodeRange = number | number[];
+
 export const enum ResultCode {
 
   /**
@@ -17,11 +19,13 @@ export const enum ResultCode {
  * @internal
  */
 export const enum TakerType {
-  ALL_CHAR,
+  ALL_CHAR_CODE_CHECKER,
+  ALL_CHAR_CODE_RANGE,
   ALL_CASE_SENSITIVE_TEXT,
   ALL_REGEX,
   ALL_GENERIC,
-  CHAR,
+  CHAR_CODE_CHECKER,
+  CHAR_CODE_RANGE,
   END,
   MAYBE,
   OR,
@@ -32,7 +36,7 @@ export const enum TakerType {
   CASE_SENSITIVE_TEXT,
   CASE_INSENSITIVE_TEXT,
   UNTIL_CASE_SENSITIVE_TEXT,
-  UNTIL_CHAR,
+  UNTIL_CHAR_CODE_CHECKER,
   UNTIL_REGEX,
   UNTIL_GENERIC,
 }

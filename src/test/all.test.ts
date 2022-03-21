@@ -1,7 +1,7 @@
 import {all, char, never, none, ResultCode, Taker, TakerType, text} from '../main';
 import {
   createAllCaseSensitiveTextTaker,
-  createAllCharTaker,
+  createAllCharCodeCheckerTaker, createAllCharCodeRangeTaker,
   createAllGenericTaker,
   createAllRegexTaker
 } from '../main/all';
@@ -27,8 +27,8 @@ describe('all', () => {
     expect(all(takerMock, {minimumCount: 1, maximumCount: 1})).toBe(takerMock);
   });
 
-  test('returns AllCharTaker', () => {
-    expect(all(char(() => false)).__type).toBe(TakerType.ALL_CHAR);
+  test('returns AllCharCodeCheckerTaker', () => {
+    expect(all(char(() => false)).__type).toBe(TakerType.ALL_CHAR_CODE_CHECKER);
   });
 
   test('returns AllCaseSensitiveTextTaker', () => {
@@ -41,11 +41,19 @@ describe('all', () => {
   });
 });
 
-describe('createAllCharTaker', () => {
+describe('createAllCharCodeCheckerTaker', () => {
 
   test('takes sequential chars', () => {
-    expect(createAllCharTaker(() => true, 0, Infinity)('aaabbbccc', 2)).toBe(9);
-    expect(createAllCharTaker(() => false, 1, Infinity)('aaabbbccc', 2)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeCheckerTaker(() => true, 0, Infinity)('aaabbbccc', 2)).toBe(9);
+    expect(createAllCharCodeCheckerTaker(() => false, 1, Infinity)('aaabbbccc', 2)).toBe(ResultCode.NO_MATCH);
+  });
+});
+
+describe('createAllCharCodeRangeTaker', () => {
+
+  test('takes sequential chars', () => {
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0), 'b'.charCodeAt(0)], 0, Infinity)('aaabbbccc', 2)).toBe(6);
+    expect(createAllCharCodeRangeTaker([['a'.charCodeAt(0), 'c'.charCodeAt(0)]], 0, Infinity)('aaabbbccc', 2)).toBe(9);
   });
 });
 

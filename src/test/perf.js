@@ -50,13 +50,13 @@ describe('readme', () => {
   test('next', (measure) => {
     const takeZero = next.text('0');
 
-    const takeLeadingDigit = next.char((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
+    const takeLeadingDigit = next.char([[49 /*1*/, 57 /*9*/]]);
 
-    const takeDigits = next.all(next.char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
+    const takeDigits = next.all(next.char([[48 /*0*/, 57 /*9*/]]));
 
     const takeDot = next.text('.');
 
-    const takeSign = next.char((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
+    const takeSign = next.char([43 /*+*/, 45 /*-*/]);
 
     const takeNumber = next.seq(
         // sign
@@ -86,7 +86,7 @@ describe('readme', () => {
 
 describe('char', () => {
 
-  describe('CharTaker', () => {
+  describe('CharCodeCheckerTaker', () => {
 
     const input = 'ababab';
 
@@ -105,11 +105,31 @@ describe('char', () => {
       measure(() => take(input, 0));
     });
   });
+
+  describe('CharCodeRangeTaker', () => {
+
+    const input = 'ababab';
+
+    test('RegExp', (measure) => {
+      const re = /^[ab]/;
+      measure(() => re.exec(input));
+    });
+
+    test('latest', (measure) => {
+      const take = latest.charBy((charCode) => charCode === 97 || charCode === 98);
+      measure(() => take(input, 0));
+    });
+
+    test('next', (measure) => {
+      const take = next.char([97, 98]);
+      measure(() => take(input, 0));
+    });
+  });
 });
 
 describe('all', () => {
 
-  describe('AllCharTaker', () => {
+  describe('AllCharCodeCheckerTaker', () => {
 
     const input = 'a'.repeat(10_000) + 'b';
 
@@ -129,7 +149,27 @@ describe('all', () => {
     });
   });
 
-  describe('AllCharTaker {minimumCount: 1}', () => {
+  describe('AllCharCodeRangeTaker', () => {
+
+    const input = 'ab'.repeat(5_000) + 'b';
+
+    test('RegExp', (measure) => {
+      const re = /^ab*/;
+      measure(() => re.exec(input));
+    });
+
+    test('latest', (measure) => {
+      const take = latest.allCharBy((charCode) => charCode === 97 || charCode === 98);
+      measure(() => take(input, 0));
+    });
+
+    test('next', (measure) => {
+      const take = next.all(next.char([97, 98]));
+      measure(() => take(input, 0));
+    });
+  });
+
+  describe('AllCharCodeCheckerTaker {minimumCount: 1}', () => {
 
     const input = 'a'.repeat(10_000) + 'b';
 
@@ -149,7 +189,7 @@ describe('all', () => {
     });
   });
 
-  describe('AllCharTaker {maximumCount: 3}', () => {
+  describe('AllCharCodeCheckerTaker {maximumCount: 3}', () => {
 
     const input = 'a'.repeat(10_000) + 'b';
 
@@ -341,7 +381,7 @@ describe('text', () => {
 
 describe('until', () => {
 
-  describe('UntilCharTaker', () => {
+  describe('UntilCharCodeCheckerTaker', () => {
 
     const input = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaabaaaaa';
 
