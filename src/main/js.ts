@@ -110,7 +110,7 @@ export function createTaker<T extends InternalTaker>(type: T['__type'], factory:
   const node = js();
 
   for (let i = 0; i < values.length; ++i) {
-    node.push('var ', values[i][0], '=', valuesVar, '[', i, ']');
+    node.push('var ', values[i][0], '=', valuesVar, '[', i, '];');
   }
 
   const inputVar = createVar();

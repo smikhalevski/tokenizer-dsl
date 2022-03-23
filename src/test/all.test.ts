@@ -1,7 +1,8 @@
 import {all, char, never, none, ResultCode, Taker, TakerType, text} from '../main';
 import {
   createAllCaseSensitiveTextTaker,
-  createAllCharCodeCheckerTaker, createAllCharCodeRangeTaker,
+  createAllCharCodeCheckerTaker,
+  createAllCharCodeRangeTaker,
   createAllGenericTaker,
   createAllRegexTaker
 } from '../main/all';
@@ -32,7 +33,7 @@ describe('all', () => {
   });
 
   test('returns AllCaseSensitiveTextTaker', () => {
-    expect(all(text('a')).__type).toBe(TakerType.ALL_CASE_SENSITIVE_TEXT);
+    expect(all(text('a')).__type).toBe(TakerType.ALL_CHAR_CODE_RANGE);
     expect(all(text('aaa')).__type).toBe(TakerType.ALL_CASE_SENSITIVE_TEXT);
   });
 

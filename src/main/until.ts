@@ -1,10 +1,19 @@
-import {CharCodeCheckerTaker} from './char';
+import {CharCodeCheckerTaker, CharCodeRangeTaker, createCharCodeRangeCondition} from './char';
+import {createTaker, createVar, js} from './js';
 import {never} from './never';
 import {none} from './none';
 import {RegexTaker} from './regex';
-import {CharCodeChecker, ResultCode, Taker, TakerType} from './taker-types';
+import {
+  CharCodeChecker,
+  CharCodeRange,
+  InternalTaker,
+  ResultCode,
+  Taker,
+  TakerCodeFactory,
+  TakerType
+} from './taker-types';
 import {isTaker} from './taker-utils';
-import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
+import {CaseSensitiveTextTaker} from './text';
 
 export interface UntilOptions {
 
@@ -51,8 +60,8 @@ export function until(taker: Taker, options: UntilOptions = {}): Taker {
   if (isTaker<RegexTaker>(taker, TakerType.REGEX)) {
     return createUntilRegexTaker(taker.__re, inclusive, openEnded, endOffset);
   }
-  if (isTaker<CaseSensitiveCharTaker>(taker, TakerType.CASE_SENSITIVE_CHAR)) {
-    return createUntilCaseSensitiveTextTaker(taker.__char, inclusive, openEnded, endOffset);
+  if (isTaker<CharCodeRangeTaker>(taker, TakerType.CHAR_CODE_RANGE)) {
+    return createUntilCharCodeRangeTaker(taker.__charCodeRanges, inclusive, openEnded, endOffset);
   }
   if (isTaker<CaseSensitiveTextTaker>(taker, TakerType.CASE_SENSITIVE_TEXT)) {
     return createUntilCaseSensitiveTextTaker(taker.__str, inclusive, openEnded, endOffset);
@@ -74,6 +83,40 @@ export function isUntilTaker(taker: Taker): taker is UntilTaker {
       || isTaker<UntilCaseSensitiveTextTaker>(taker, TakerType.UNTIL_CASE_SENSITIVE_TEXT)
       || isTaker<UntilCharCodeCheckerTaker>(taker, TakerType.UNTIL_CHAR_CODE_CHECKER)
       || isTaker<UntilGenericTaker>(taker, TakerType.UNTIL_GENERIC);
+}
+
+export interface UntilCharCodeRangeTaker extends InternalTaker {
+  __type: TakerType.UNTIL_CHAR_CODE_RANGE;
+  __charCodeRanges: CharCodeRange[];
+}
+
+export function createUntilCharCodeRangeTaker(charCodeRanges: CharCodeRange[], inclusive: boolean, openEnded: boolean, endOffset: number): UntilCharCodeRangeTaker {
+
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+
+    const inputLengthVar = createVar();
+    const indexVar = createVar();
+    const charCodeVar = createVar();
+
+    return js(
+        'var ', inputLengthVar, '=', inputVar, '.length,', indexVar, '=', offsetVar, ';',
+        'while(', indexVar, '<', inputLengthVar, '){',
+        'var ', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
+        'if(', createCharCodeRangeCondition(charCodeVar, charCodeRanges), ')break;',
+        '++', indexVar,
+        '}',
+        resultVar, '=', indexVar, '===', inputLengthVar,
+        '?', openEnded ? [inputLengthVar, '+' + endOffset] : ResultCode.NO_MATCH,
+        ':', inclusive ? [indexVar, '+1'] : indexVar,
+        ';'
+    );
+  };
+
+  const taker = createTaker<UntilCharCodeRangeTaker>(TakerType.UNTIL_CHAR_CODE_RANGE, factory);
+
+  taker.__charCodeRanges = charCodeRanges;
+
+  return taker;
 }
 
 export interface UntilCaseSensitiveTextTaker extends Taker {

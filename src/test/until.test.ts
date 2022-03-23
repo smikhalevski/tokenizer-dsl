@@ -18,7 +18,7 @@ describe('until', () => {
   });
 
   test('returns UntilCaseSensitiveTextTaker', () => {
-    expect(until(text('a')).__type).toBe(TakerType.UNTIL_CASE_SENSITIVE_TEXT);
+    expect(until(text('a')).__type).toBe(TakerType.UNTIL_CHAR_CODE_RANGE);
     expect(until(text('aaa')).__type).toBe(TakerType.UNTIL_CASE_SENSITIVE_TEXT);
   });
 

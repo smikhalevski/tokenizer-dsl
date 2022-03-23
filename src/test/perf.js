@@ -318,26 +318,6 @@ describe('text', () => {
     });
   });
 
-  describe('CaseInsensitiveCharTaker', () => {
-
-    const input = 'ababab';
-
-    test('RegExp', (measure) => {
-      const re = /^A/i;
-      measure(() => re.exec(input));
-    });
-
-    test('latest', (measure) => {
-      const take = latest.charBy((charCode) => charCode === 65 || charCode === 97);
-      measure(() => take(input, 0));
-    });
-
-    test('next', (measure) => {
-      const take = next.text('A', {caseInsensitive: true});
-      measure(() => take(input, 0));
-    });
-  });
-
   describe('CaseSensitiveTextTaker', () => {
 
     const input = 'ababab';

@@ -14,7 +14,7 @@ import {
   TakerType
 } from './taker-types';
 import {isTaker} from './taker-utils';
-import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
+import {CaseSensitiveTextTaker} from './text';
 
 export interface AllOptions {
 
@@ -70,9 +70,6 @@ export function all(taker: Taker, options: AllOptions = {}): Taker {
   if (isTaker<CharCodeRangeTaker>(taker, TakerType.CHAR_CODE_RANGE)) {
     return createAllCharCodeRangeTaker(taker.__charCodeRanges, minimumCount, maximumCount);
   }
-  if (isTaker<CaseSensitiveCharTaker>(taker, TakerType.CASE_SENSITIVE_CHAR)) {
-    return createAllCaseSensitiveTextTaker(taker.__char, minimumCount, maximumCount);
-  }
   if (isTaker<CaseSensitiveTextTaker>(taker, TakerType.CASE_SENSITIVE_TEXT)) {
     return createAllCaseSensitiveTextTaker(taker.__str, minimumCount, maximumCount);
   }
@@ -94,43 +91,6 @@ export function isAllTaker(taker: Taker): taker is AllTaker {
       || isTaker<AllCaseSensitiveTextTaker>(taker, TakerType.ALL_CASE_SENSITIVE_TEXT)
       || isTaker<AllRegexTaker>(taker, TakerType.ALL_REGEX)
       || isTaker<AllGenericTaker>(taker, TakerType.ALL_GENERIC);
-}
-
-export interface AllCharCodeRangeTaker extends InternalTaker {
-  __type: TakerType.ALL_CHAR_CODE_RANGE;
-  __minimumCount: number;
-  __maximumCount: number;
-}
-
-export function createAllCharCodeRangeTaker(charCodeRanges: CharCodeRange[], minimumCount: number, maximumCount: number): AllCharCodeRangeTaker {
-
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
-    const inputLengthVar = createVar();
-    const takeCountVar = createVar();
-    const indexVar = createVar();
-    const charCodeVar = createVar();
-
-    return js(
-        'var ', inputLengthVar, '=', inputVar, '.length,', takeCountVar, '=0,', indexVar, '=', offsetVar, ';',
-        'while(', indexVar, '<', inputLengthVar,
-        maximumCount === Infinity ? '' : ['&&', takeCountVar, '<', maximumCount],
-        '){var ', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
-        'if(!(', createCharCodeRangeCondition(charCodeVar, charCodeRanges), '))break;',
-        '++', takeCountVar, ';',
-        '++', indexVar,
-        '}',
-        minimumCount === 0 ? [resultVar, '=', indexVar] : [resultVar, '=', takeCountVar, '<', minimumCount, '?' + ResultCode.NO_MATCH + ':', indexVar],
-        ';'
-    );
-  };
-
-  const take = createTaker<AllCharCodeRangeTaker>(TakerType.ALL_CHAR_CODE_RANGE, factory);
-
-  take.__type = TakerType.ALL_CHAR_CODE_RANGE;
-  take.__minimumCount = minimumCount;
-  take.__maximumCount = maximumCount;
-
-  return take;
 }
 
 export interface AllCharCodeCheckerTaker extends Taker {
@@ -158,6 +118,44 @@ export function createAllCharCodeCheckerTaker(charCodeChecker: CharCodeChecker, 
   };
 
   take.__type = TakerType.ALL_CHAR_CODE_CHECKER;
+  take.__minimumCount = minimumCount;
+  take.__maximumCount = maximumCount;
+
+  return take;
+}
+
+export interface AllCharCodeRangeTaker extends InternalTaker {
+  __type: TakerType.ALL_CHAR_CODE_RANGE;
+  __minimumCount: number;
+  __maximumCount: number;
+}
+
+export function createAllCharCodeRangeTaker(charCodeRanges: CharCodeRange[], minimumCount: number, maximumCount: number): AllCharCodeRangeTaker {
+
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+
+    const inputLengthVar = createVar();
+    const takeCountVar = createVar();
+    const indexVar = createVar();
+    const charCodeVar = createVar();
+
+    return js(
+        'var ', inputLengthVar, '=', inputVar, '.length,', takeCountVar, '=0,', indexVar, '=', offsetVar, ';',
+        'while(', indexVar, '<', inputLengthVar,
+        maximumCount === Infinity ? '' : ['&&', takeCountVar, '<', maximumCount],
+        '){',
+        'var ', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
+        'if(!(', createCharCodeRangeCondition(charCodeVar, charCodeRanges), '))break;',
+        '++', takeCountVar, ';',
+        '++', indexVar,
+        '}',
+        minimumCount === 0 ? [resultVar, '=', indexVar] : [resultVar, '=', takeCountVar, '<', minimumCount, '?' + ResultCode.NO_MATCH + ':', indexVar],
+        ';'
+    );
+  };
+
+  const take = createTaker<AllCharCodeRangeTaker>(TakerType.ALL_CHAR_CODE_RANGE, factory);
+
   take.__minimumCount = minimumCount;
   take.__maximumCount = maximumCount;
 

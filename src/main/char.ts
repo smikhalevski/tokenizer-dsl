@@ -60,7 +60,6 @@ export function createCharCodeRangeTaker(charCodeRanges: CharCodeRange[]): CharC
 
   const take = createTaker<CharCodeRangeTaker>(TakerType.CHAR_CODE_RANGE, factory);
 
-  take.__type = TakerType.CHAR_CODE_RANGE;
   take.__charCodeRanges = charCodeRanges;
 
   return take;
