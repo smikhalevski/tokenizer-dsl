@@ -144,4 +144,8 @@ describe('createAllGenericTaker', () => {
     expect(createAllGenericTaker(takerMock, 0, 2)('a', 0)).toBe(1);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
+
+  test('can use inline takers', () => {
+    expect(createAllGenericTaker(text('a'), 0, Infinity)('aabbcc', 0)).toBe(2);
+  });
 });

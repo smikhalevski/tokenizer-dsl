@@ -13,7 +13,7 @@ import {
   TakerCodeFactory,
   TakerType
 } from './taker-types';
-import {isTaker} from './taker-utils';
+import {isInternalTaker, isTaker} from './taker-utils';
 import {CaseSensitiveTextTaker} from './text';
 
 export interface AllOptions {
@@ -132,37 +132,35 @@ export interface AllCharCodeRangeTaker extends InternalTaker {
 
 export function createAllCharCodeRangeTaker(charCodeRanges: CharCodeRange[], minimumCount: number, maximumCount: number): AllCharCodeRangeTaker {
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+  const inputLengthVar = createVar();
+  const takeCountVar = createVar();
+  const indexVar = createVar();
+  const charCodeVar = createVar();
 
-    const inputLengthVar = createVar();
-    const takeCountVar = createVar();
-    const indexVar = createVar();
-    const charCodeVar = createVar();
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => js(
+      'var ', inputLengthVar, '=', inputVar, '.length,', takeCountVar, '=0,', indexVar, '=', offsetVar, ';',
+      'while(', indexVar, '<', inputLengthVar,
+      maximumCount === Infinity ? '' : ['&&', takeCountVar, '<', maximumCount],
+      '){',
+      'var ', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
+      'if(!(', createCharCodeRangeCondition(charCodeVar, charCodeRanges), '))break;',
+      '++', takeCountVar, ';',
+      '++', indexVar,
+      '}',
+      resultVar, '=',
+      minimumCount === 0 ? indexVar : [takeCountVar, '<', minimumCount, '?' + ResultCode.NO_MATCH + ':', indexVar],
+      ';'
+  );
 
-    return js(
-        'var ', inputLengthVar, '=', inputVar, '.length,', takeCountVar, '=0,', indexVar, '=', offsetVar, ';',
-        'while(', indexVar, '<', inputLengthVar,
-        maximumCount === Infinity ? '' : ['&&', takeCountVar, '<', maximumCount],
-        '){',
-        'var ', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
-        'if(!(', createCharCodeRangeCondition(charCodeVar, charCodeRanges), '))break;',
-        '++', takeCountVar, ';',
-        '++', indexVar,
-        '}',
-        minimumCount === 0 ? [resultVar, '=', indexVar] : [resultVar, '=', takeCountVar, '<', minimumCount, '?' + ResultCode.NO_MATCH + ':', indexVar],
-        ';'
-    );
-  };
+  const taker = createTaker<AllCharCodeRangeTaker>(TakerType.ALL_CHAR_CODE_RANGE, factory);
 
-  const take = createTaker<AllCharCodeRangeTaker>(TakerType.ALL_CHAR_CODE_RANGE, factory);
+  taker.__minimumCount = minimumCount;
+  taker.__maximumCount = maximumCount;
 
-  take.__minimumCount = minimumCount;
-  take.__maximumCount = maximumCount;
-
-  return take;
+  return taker;
 }
 
-export interface AllCaseSensitiveTextTaker extends Taker {
+export interface AllCaseSensitiveTextTaker extends InternalTaker {
   __type: TakerType.ALL_CASE_SENSITIVE_TEXT;
   __minimumCount: number;
   __maximumCount: number;
@@ -170,27 +168,31 @@ export interface AllCaseSensitiveTextTaker extends Taker {
 
 export function createAllCaseSensitiveTextTaker(str: string, minimumCount: number, maximumCount: number): AllCaseSensitiveTextTaker {
 
-  const strLength = str.length;
+  const inputLengthVar = createVar();
+  const takeCountVar = createVar();
+  const indexVar = createVar();
+  const strVar = createVar();
 
-  const take: AllCaseSensitiveTextTaker = (input, offset) => {
-    let takeCount = 0;
-    let i = offset;
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => js(
+      'var ', inputLengthVar, '=', inputVar, '.length,', takeCountVar, '=0,', indexVar, '=', offsetVar, ';',
+      'while(', indexVar, '<', inputLengthVar,
+      maximumCount === Infinity ? '' : ['&&', takeCountVar, '<', maximumCount],
+      '&&', inputVar, '.startsWith(', strVar, ',', indexVar, ')',
+      '){',
+      '++', takeCountVar, ';',
+      indexVar, '+=' + str.length,
+      '}',
+      resultVar, '=',
+      minimumCount === 0 ? indexVar : [takeCountVar, '<', minimumCount, '?' + ResultCode.NO_MATCH + ':', indexVar],
+      ';'
+  );
 
-    while (takeCount < maximumCount && input.startsWith(str, i)) {
-      ++takeCount;
-      i += strLength;
-    }
-    if (takeCount < minimumCount) {
-      return ResultCode.NO_MATCH;
-    }
-    return i;
-  };
+  const taker = createTaker<AllCaseSensitiveTextTaker>(TakerType.ALL_CASE_SENSITIVE_TEXT, factory, [[strVar, str]]);
 
-  take.__type = TakerType.ALL_CASE_SENSITIVE_TEXT;
-  take.__minimumCount = minimumCount;
-  take.__maximumCount = maximumCount;
+  taker.__minimumCount = minimumCount;
+  taker.__maximumCount = maximumCount;
 
-  return take;
+  return taker;
 }
 
 export interface AllRegexTaker extends Taker {
@@ -227,36 +229,41 @@ export function createAllRegexTaker(re: RegExp, minimumCount: number, maximumCou
   return take;
 }
 
-export interface AllGenericTaker extends Taker {
+export interface AllGenericTaker extends InternalTaker {
   __type: TakerType.ALL_GENERIC;
   __minimumCount: number;
   __maximumCount: number;
 }
 
-export function createAllGenericTaker(taker: Taker, minimumCount: number, maximumCount: number): AllGenericTaker {
+export function createAllGenericTaker(baseTaker: Taker, minimumCount: number, maximumCount: number): AllGenericTaker {
 
-  const take: AllGenericTaker = (input, offset) => {
-    let takeCount = 0;
-    let result = offset;
-    let i;
+  const inputLengthVar = createVar();
+  const takeCountVar = createVar();
+  const indexVar = createVar();
+  const baseTakerVar = createVar();
 
-    do {
-      i = result;
-      result = taker(input, i);
-    } while (result > i && ++takeCount < maximumCount);
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => js(
+      'var ', inputLengthVar, '=', inputVar, '.length,', takeCountVar, '=0,', indexVar, ';',
+      resultVar, '=', offsetVar, ';',
 
-    if (takeCount < minimumCount) {
-      return ResultCode.NO_MATCH;
-    }
-    if (result === ResultCode.NO_MATCH) {
-      return i;
-    }
-    return result;
-  };
+      'do{',
+      indexVar, '=', resultVar, ';',
+      isInternalTaker(baseTaker) ? baseTaker.__factory(inputVar, indexVar, resultVar) : [resultVar, '=', baseTakerVar, '(', inputVar, ',', indexVar, ')'],
+      '}while(',
+      resultVar, '>', indexVar,
+      maximumCount === Infinity ? ['&&++', takeCountVar, '<Infinity'] : ['&&++', takeCountVar, '<', maximumCount],
+      // maximumCount === Infinity ? '' : ['&&++', takeCountVar, '<', maximumCount],
+      ')',
+      resultVar, '=',
+      minimumCount === 0 ? '' : [takeCountVar, '<', minimumCount, '?' + ResultCode.NO_MATCH + ':'],
+      resultVar, '===' + ResultCode.NO_MATCH + '?', indexVar, ':', resultVar,
+      ';',
+  );
 
-  take.__type = TakerType.ALL_GENERIC;
-  take.__minimumCount = minimumCount;
-  take.__maximumCount = maximumCount;
+  const taker = createTaker<AllGenericTaker>(TakerType.ALL_GENERIC, factory, isInternalTaker(baseTaker) ? baseTaker.__values : [[baseTakerVar, baseTaker]]);
 
-  return take;
+  taker.__minimumCount = minimumCount;
+  taker.__maximumCount = maximumCount;
+
+  return taker;
 }
