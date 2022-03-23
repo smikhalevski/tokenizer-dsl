@@ -1,4 +1,4 @@
-import {none, or, ResultCode, Taker, TakerType} from '../main';
+import {none, or, ResultCode, Taker, TakerType, text} from '../main';
 import {createOrTaker} from '../main/or';
 
 describe('or', () => {
@@ -46,5 +46,9 @@ describe('createOrTaker', () => {
 
     expect(createOrTaker([takerMock, takerMock])('aabbcc', 2)).toBe(-2);
     expect(takerMock).toHaveBeenCalledTimes(2);
+  });
+
+  test('can use inline takers', () => {
+    expect(createOrTaker([text('bb'), text('aa')])('aabbcc', 0)).toBe(2);
   });
 });

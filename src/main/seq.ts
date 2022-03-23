@@ -64,12 +64,13 @@ export function createSeqTaker(takers: Taker[]): SeqTaker {
     for (let i = 0; i < takersLength; ++i) {
       const taker = takers[i];
 
-      node.push(isInternalTaker(taker) ? taker.__factory(inputVar, offsetVar, offsetVar) : [offsetVar, '=', takerVars[i], '(', inputVar, ',', offsetVar, ');']);
-
       if (i === takersLength - 1) {
-        node.push(resultVar, '=', offsetVar, ';');
+        node.push(isInternalTaker(taker) ? taker.__factory(inputVar, offsetVar, resultVar) : [resultVar, '=', takerVars[i], '(', inputVar, ',', offsetVar, ');']);
       } else {
-        node.push('if(', offsetVar, '<0){', resultVar, '=', offsetVar, '}else{');
+        node.push(
+            isInternalTaker(taker) ? taker.__factory(inputVar, offsetVar, offsetVar) : [offsetVar, '=', takerVars[i], '(', inputVar, ',', offsetVar, ');'],
+            'if(', offsetVar, '<0){', resultVar, '=', offsetVar, '}else{'
+        );
         lastNode.push('}');
       }
     }

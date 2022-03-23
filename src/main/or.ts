@@ -1,7 +1,8 @@
+import {createTaker, createVar, js, VarNode} from './js';
 import {never} from './never';
 import {none} from './none';
-import {ResultCode, Taker, TakerType} from './taker-types';
-import {isTaker} from './taker-utils';
+import {InternalTaker, ResultCode, Taker, TakerCodeFactory, TakerType} from './taker-types';
+import {isInternalTaker, isTaker} from './taker-utils';
 
 /**
  * Returns the result of the first matched taker.
@@ -36,7 +37,7 @@ export function or(...takers: Taker[]): Taker {
   return createOrTaker(takers);
 }
 
-export interface OrTaker extends Taker {
+export interface OrTaker extends InternalTaker {
   __type: TakerType.OR;
   __takers: Taker[];
 }
@@ -45,29 +46,37 @@ export function createOrTaker(takers: Taker[]): OrTaker {
 
   const takersLength = takers.length;
 
-  const k1 = takersLength - 2;
-  const k2 = takersLength - 1;
+  const takerVars: VarNode[] = [];
 
-  let js = 'var ';
+  const values = takers.reduce<[VarNode, unknown][]>((values, taker, i) => {
+    if (isInternalTaker(taker)) {
+      values.push(...taker.__values);
+    } else {
+      values.push([takerVars[i] = createVar(), taker]);
+    }
+    return values;
+  }, []);
 
-  for (let i = 0; i < takersLength; ++i) {
-    js += 't' + i + '=q[' + i + ']' + (i < k2 ? ',' : ';');
-  }
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
 
-  js += 'return function(i,o){';
+    const node = js();
+    const lastNode = js();
 
-  for (let i = 0; i < k1; ++i) {
-    js += 'var r' + i + '=t' + i + '(i,o);'
-        + 'if(r' + i + '!==' + ResultCode.NO_MATCH + '){return r' + i + '}';
-  }
+    for (let i = 0; i < takersLength; ++i) {
+      const taker = takers[i];
 
-  js += 'var r' + k1 + '=t' + k1 + '(i,o);'
-      + 'return r' + k1 + '!==' + ResultCode.NO_MATCH + '?r' + k1 + ':' + 't' + k2 + '(i,o)}';
+      node.push(isInternalTaker(taker) ? taker.__factory(inputVar, offsetVar, resultVar) : [resultVar, '=', takerVars[i], '(', inputVar, ',', offsetVar, ');']);
 
-  const take: OrTaker = Function('q', js)(takers);
+      if (i !== takersLength - 1) {
+        node.push('if(', resultVar, '===' + ResultCode.NO_MATCH + '){');
+        lastNode.push('}');
+      }
+    }
+    return node.push(lastNode);
+  };
+  const taker = createTaker<OrTaker>(TakerType.OR, factory, values);
 
-  take.__type = TakerType.OR;
-  take.__takers = takers;
+  taker.__takers = takers;
 
-  return take;
+  return taker;
 }
