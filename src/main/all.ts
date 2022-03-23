@@ -1,9 +1,18 @@
-import {CharCodeCheckerTaker, CharCodeRangeTaker, createCharCodeRangeConditionSource} from './char';
+import {CharCodeCheckerTaker, CharCodeRangeTaker, createCharCodeRangeCondition} from './char';
+import {createTaker, createVar, js} from './js';
 import {createMaybeTaker} from './maybe';
 import {never} from './never';
 import {none} from './none';
 import {RegexTaker} from './regex';
-import {CharCodeChecker, CharCodeRange, ResultCode, Taker, TakerType} from './taker-types';
+import {
+  CharCodeChecker,
+  CharCodeRange,
+  InternalTaker,
+  ResultCode,
+  Taker,
+  TakerCodeFactory,
+  TakerType
+} from './taker-types';
 import {isTaker} from './taker-utils';
 import {CaseSensitiveCharTaker, CaseSensitiveTextTaker} from './text';
 
@@ -87,7 +96,7 @@ export function isAllTaker(taker: Taker): taker is AllTaker {
       || isTaker<AllGenericTaker>(taker, TakerType.ALL_GENERIC);
 }
 
-export interface AllCharCodeRangeTaker extends Taker {
+export interface AllCharCodeRangeTaker extends InternalTaker {
   __type: TakerType.ALL_CHAR_CODE_RANGE;
   __minimumCount: number;
   __maximumCount: number;
@@ -95,16 +104,27 @@ export interface AllCharCodeRangeTaker extends Taker {
 
 export function createAllCharCodeRangeTaker(charCodeRanges: CharCodeRange[], minimumCount: number, maximumCount: number): AllCharCodeRangeTaker {
 
-  const js = 'var l=i.length,n=0,j=o;'
-      + 'while(j<l' + (maximumCount === Infinity ? '' : '&&n<' + maximumCount) + '){'
-      + 'var c=i.charCodeAt(j);'
-      + 'if(!(' + createCharCodeRangeConditionSource('c', charCodeRanges) + '))break;'
-      + '++n;++j'
-      + '}'
-      + (minimumCount === 0 ? '' : 'if(n<' + minimumCount + '){return ' + ResultCode.NO_MATCH + '}')
-      + 'return j';
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+    const inputLengthVar = createVar();
+    const takeCountVar = createVar();
+    const indexVar = createVar();
+    const charCodeVar = createVar();
 
-  const take = Function('i', 'o', js) as AllCharCodeRangeTaker;
+    return js(
+        'var ', inputLengthVar, '=', inputVar, '.length,', takeCountVar, '=0,', indexVar, '=', offsetVar, ';',
+        'while(', indexVar, '<', inputLengthVar,
+        maximumCount === Infinity ? '' : ['&&', takeCountVar, '<', maximumCount],
+        '){var ', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
+        'if(!(', createCharCodeRangeCondition(charCodeVar, charCodeRanges), '))break;',
+        '++', takeCountVar, ';',
+        '++', indexVar,
+        '}',
+        minimumCount === 0 ? [resultVar, '=', indexVar] : [resultVar, '=', takeCountVar, '<', minimumCount, '?' + ResultCode.NO_MATCH + ':', indexVar],
+        ';'
+    );
+  };
+
+  const take = createTaker<AllCharCodeRangeTaker>(TakerType.ALL_CHAR_CODE_RANGE, factory);
 
   take.__type = TakerType.ALL_CHAR_CODE_RANGE;
   take.__minimumCount = minimumCount;

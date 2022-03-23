@@ -1,3 +1,5 @@
+import {CodeChild, VarNode} from './js';
+
 /**
  * The callback that must return `true` is given char code is appropriate, and must return `false` otherwise.
  */
@@ -55,4 +57,11 @@ export interface Taker {
    * matched or a result code if taker didn't match. The taker may return offsets that exceed the `input` length.
    */
   (input: string, offset: number): number;
+}
+
+export type TakerCodeFactory = (inputVar: VarNode, offsetVar: VarNode, resultVar: VarNode) => CodeChild;
+
+export interface InternalTaker extends Taker {
+  __values: [VarNode, unknown][];
+  __factory: TakerCodeFactory;
 }

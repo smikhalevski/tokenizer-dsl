@@ -1,5 +1,14 @@
+import {CodeNode, createTaker, createVar, js, VarNode} from './js';
 import {none} from './none';
-import {CharCodeChecker, CharCodeRange, ResultCode, Taker, TakerType} from './taker-types';
+import {
+  CharCodeChecker,
+  CharCodeRange,
+  InternalTaker,
+  ResultCode,
+  Taker,
+  TakerCodeFactory,
+  TakerType
+} from './taker-types';
 
 /**
  * Creates a taker that matches a single char by its code.
@@ -34,18 +43,22 @@ export function createCharCodeCheckerTaker(charCodeChecker: CharCodeChecker): Ch
   return take;
 }
 
-export interface CharCodeRangeTaker extends Taker {
+export interface CharCodeRangeTaker extends InternalTaker {
   __type: TakerType.CHAR_CODE_RANGE;
   __charCodeRanges: CharCodeRange[];
 }
 
 export function createCharCodeRangeTaker(charCodeRanges: CharCodeRange[]): CharCodeRangeTaker {
-  const js = 'var c=i.charCodeAt(o);return '
-      + createCharCodeRangeConditionSource('c', charCodeRanges)
-      + '?o+1:'
-      + ResultCode.NO_MATCH;
 
-  const take = Function('i', 'o', js) as CharCodeRangeTaker;
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+    const charCodeVar = createVar();
+    return js(
+        'var ', charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, ');',
+        resultVar, '=', createCharCodeRangeCondition(charCodeVar, charCodeRanges), '?', offsetVar, '+1:' + ResultCode.NO_MATCH + ';'
+    );
+  };
+
+  const take = createTaker<CharCodeRangeTaker>(TakerType.CHAR_CODE_RANGE, factory);
 
   take.__type = TakerType.CHAR_CODE_RANGE;
   take.__charCodeRanges = charCodeRanges;
@@ -53,6 +66,20 @@ export function createCharCodeRangeTaker(charCodeRanges: CharCodeRange[]): CharC
   return take;
 }
 
-export function createCharCodeRangeConditionSource(charCodeVar: string, charCodeRanges: CharCodeRange[]): string {
-  return charCodeRanges.map((range) => typeof range === 'number' ? charCodeVar + '===' + range : charCodeVar + '>=' + range[0] + '&&' + charCodeVar + '<=' + range[1]).join('||');
+export function createCharCodeRangeCondition(charCodeVar: VarNode, charCodeRanges: CharCodeRange[]): CodeNode {
+  const node = js();
+
+  for (let i = 0; i < charCodeRanges.length; ++i) {
+    if (i !== 0) {
+      node.push('||');
+    }
+    const range = charCodeRanges[i];
+    if (typeof range === 'number') {
+      node.push(charCodeVar, '===', range);
+    } else {
+      node.push(charCodeVar, '>=', range[0], '&&', charCodeVar, '<=', range[1]);
+    }
+  }
+
+  return node;
 }
