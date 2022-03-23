@@ -61,16 +61,21 @@ export function createSeqTaker(takers: Taker[]): SeqTaker {
     const node = js();
     const lastNode = js();
 
+    let prevIndexVar = offsetVar;
+
     for (let i = 0; i < takersLength; ++i) {
       const taker = takers[i];
 
       if (i === takersLength - 1) {
-        node.push(isInternalTaker(taker) ? taker.__factory(inputVar, offsetVar, resultVar) : [resultVar, '=', takerVars[i], '(', inputVar, ',', offsetVar, ');']);
+        node.push(isInternalTaker(taker) ? taker.__factory(inputVar, prevIndexVar, resultVar) : [resultVar, '=', takerVars[i], '(', inputVar, ',', prevIndexVar, ');']);
       } else {
+        const indexVar = createVar();
         node.push(
-            isInternalTaker(taker) ? taker.__factory(inputVar, offsetVar, offsetVar) : [offsetVar, '=', takerVars[i], '(', inputVar, ',', offsetVar, ');'],
-            'if(', offsetVar, '<0){', resultVar, '=', offsetVar, '}else{'
+            'var ', indexVar, '=', prevIndexVar, ';',
+            isInternalTaker(taker) ? taker.__factory(inputVar, prevIndexVar, indexVar) : [indexVar, '=', takerVars[i], '(', inputVar, ',', prevIndexVar, ');'],
+            'if(', indexVar, '<0){', resultVar, '=', indexVar, '}else{'
         );
+        prevIndexVar = indexVar;
         lastNode.push('}');
       }
     }

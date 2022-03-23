@@ -1,4 +1,4 @@
-import {maybe, never, none, ResultCode, TakerType} from '../main';
+import {maybe, never, none, ResultCode, TakerType, text} from '../main';
 import {createMaybeTaker} from '../main/maybe';
 
 describe('maybe', () => {
@@ -33,4 +33,10 @@ describe('createMaybeTaker', () => {
     expect(createMaybeTaker(takerMock)('aabbcc', 2)).toBe(2);
     expect(takerMock).toHaveBeenCalledTimes(1);
   });
+
+  test('can use inline takers', () => {
+    expect(createMaybeTaker(text('aa'))('aabbcc', 0)).toBe(2);
+    expect(createMaybeTaker(text('bb'))('aabbcc', 0)).toBe(0);
+  });
+
 });

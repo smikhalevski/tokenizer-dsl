@@ -25,13 +25,15 @@ export interface MaybeTaker extends InternalTaker {
 export function createMaybeTaker(baseTaker: Taker): MaybeTaker {
 
   const baseTakerVar = createVar();
+  const indexVar = createVar();
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => js(
-      isInternalTaker(baseTaker) ? taker.__factory(inputVar, offsetVar, resultVar) : [resultVar, '=', baseTakerVar, '(', inputVar, ',', offsetVar, ')', ';'],
-      resultVar, '=', resultVar, '===' + ResultCode.NO_MATCH, '?', offsetVar, ':', resultVar, ';',
+      'var ',indexVar,';',
+      isInternalTaker(baseTaker) ? baseTaker.__factory(inputVar, offsetVar, indexVar) : [indexVar, '=', baseTakerVar, '(', inputVar, ',', offsetVar, ')', ';'],
+      resultVar, '=', indexVar, '===' + ResultCode.NO_MATCH, '?', offsetVar, ':', indexVar, ';',
   );
 
-  const taker = createTaker<MaybeTaker>(TakerType.MAYBE, factory, [[baseTakerVar, baseTaker]]);
+  const taker = createTaker<MaybeTaker>(TakerType.MAYBE, factory, isInternalTaker(baseTaker) ? baseTaker.__values : [[baseTakerVar, baseTaker]]);
 
   taker.__baseTaker = baseTaker;
 
