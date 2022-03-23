@@ -61,6 +61,9 @@ export function until(taker: Taker, options: UntilOptions = {}): Taker {
     return createUntilRegexTaker(taker.__re, inclusive, openEnded, endOffset);
   }
   if (isTaker<CharCodeRangeTaker>(taker, TakerType.CHAR_CODE_RANGE)) {
+    if (taker.__charCodeRanges.length === 1 && typeof taker.__charCodeRanges[0] === 'number') {
+      return createUntilCaseSensitiveTextTaker(String.fromCharCode(taker.__charCodeRanges[0]), inclusive, openEnded, endOffset);
+    }
     return createUntilCharCodeRangeTaker(taker.__charCodeRanges, inclusive, openEnded, endOffset);
   }
   if (isTaker<CaseSensitiveTextTaker>(taker, TakerType.CASE_SENSITIVE_TEXT)) {

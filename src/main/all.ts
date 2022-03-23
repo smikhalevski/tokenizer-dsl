@@ -168,16 +168,15 @@ export interface AllCaseSensitiveTextTaker extends InternalTaker {
 
 export function createAllCaseSensitiveTextTaker(str: string, minimumCount: number, maximumCount: number): AllCaseSensitiveTextTaker {
 
-  const inputLengthVar = createVar();
   const takeCountVar = createVar();
   const indexVar = createVar();
   const strVar = createVar();
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => js(
-      'var ', inputLengthVar, '=', inputVar, '.length,', takeCountVar, '=0,', indexVar, '=', offsetVar, ';',
-      'while(', indexVar, '<', inputLengthVar,
-      maximumCount === Infinity ? '' : ['&&', takeCountVar, '<', maximumCount],
-      '&&', inputVar, '.startsWith(', strVar, ',', indexVar, ')',
+      'var ', takeCountVar, '=0,', indexVar, '=', offsetVar, ';',
+      'while(',
+      maximumCount === Infinity ? '' : [takeCountVar, '<', maximumCount, '&&'],
+      inputVar, '.startsWith(', strVar, ',', indexVar, ')',
       '){',
       '++', takeCountVar, ';',
       indexVar, '+=' + str.length,
