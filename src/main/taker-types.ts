@@ -40,6 +40,8 @@ export const enum TakerType {
   UNTIL_CHAR_CODE_CHECKER,
   UNTIL_REGEX,
   UNTIL_GENERIC,
+  NONE,
+  NEVER,
 }
 
 export interface Taker {
