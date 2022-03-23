@@ -1,7 +1,9 @@
 import {isAllTaker} from './all';
+import {createTaker, createVar, js} from './js';
 import {never} from './never';
 import {none} from './none';
-import {ResultCode, Taker, TakerType} from './taker-types';
+import {InternalTaker, ResultCode, Taker, TakerCodeFactory, TakerType} from './taker-types';
+import {isInternalTaker} from './taker-utils';
 
 /**
  * Creates taker that returns `taker` result or current offset if taker returned {@link ResultCode.NO_MATCH}.
@@ -15,21 +17,23 @@ export function maybe(taker: Taker): Taker {
   return createMaybeTaker(taker);
 }
 
-export interface MaybeTaker extends Taker {
+export interface MaybeTaker extends InternalTaker {
   __type: TakerType.MAYBE;
-  __taker: Taker;
+  __baseTaker: Taker;
 }
 
-export function createMaybeTaker(taker: Taker): MaybeTaker {
+export function createMaybeTaker(baseTaker: Taker): MaybeTaker {
 
-  const take: MaybeTaker = (input, offset) => {
-    const result = taker(input, offset);
+  const baseTakerVar = createVar();
 
-    return result === ResultCode.NO_MATCH ? offset : result;
-  };
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => js(
+      isInternalTaker(baseTaker) ? taker.__factory(inputVar, offsetVar, resultVar) : [resultVar, '=', baseTakerVar, '(', inputVar, ',', offsetVar, ')', ';'],
+      resultVar, '=', resultVar, '===' + ResultCode.NO_MATCH, '?', offsetVar, ':', resultVar, ';',
+  );
 
-  take.__type = TakerType.MAYBE;
-  take.__taker = taker;
+  const taker = createTaker<MaybeTaker>(TakerType.MAYBE, factory, [[baseTakerVar, baseTaker]]);
 
-  return take;
+  taker.__baseTaker = baseTaker;
+
+  return taker;
 }
