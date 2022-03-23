@@ -12,7 +12,7 @@ import {
   TakerCodeFactory,
   TakerType
 } from './taker-types';
-import {isTaker} from './taker-utils';
+import {isInternalTaker, isTaker} from './taker-utils';
 import {CaseSensitiveTextTaker} from './text';
 
 export interface UntilOptions {
@@ -92,25 +92,22 @@ export interface UntilCharCodeRangeTaker extends InternalTaker {
 
 export function createUntilCharCodeRangeTaker(charCodeRanges: CharCodeRange[], inclusive: boolean, openEnded: boolean, endOffset: number): UntilCharCodeRangeTaker {
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+  const inputLengthVar = createVar();
+  const indexVar = createVar();
+  const charCodeVar = createVar();
 
-    const inputLengthVar = createVar();
-    const indexVar = createVar();
-    const charCodeVar = createVar();
-
-    return js(
-        'var ', inputLengthVar, '=', inputVar, '.length,', indexVar, '=', offsetVar, ';',
-        'while(', indexVar, '<', inputLengthVar, '){',
-        'var ', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
-        'if(', createCharCodeRangeCondition(charCodeVar, charCodeRanges), ')break;',
-        '++', indexVar,
-        '}',
-        resultVar, '=', indexVar, '===', inputLengthVar,
-        '?', openEnded ? [inputLengthVar, '+' + endOffset] : ResultCode.NO_MATCH,
-        ':', inclusive ? [indexVar, '+1'] : indexVar,
-        ';'
-    );
-  };
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => js(
+      'var ', inputLengthVar, '=', inputVar, '.length,', indexVar, '=', offsetVar, ';',
+      'while(', indexVar, '<', inputLengthVar, '){',
+      'var ', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
+      'if(', createCharCodeRangeCondition(charCodeVar, charCodeRanges), ')break;',
+      '++', indexVar,
+      '}',
+      resultVar, '=', indexVar, '===', inputLengthVar,
+      '?', openEnded ? [inputLengthVar, '+' + endOffset] : ResultCode.NO_MATCH,
+      ':', inclusive ? [indexVar, '+1'] : indexVar,
+      ';'
+  );
 
   const taker = createTaker<UntilCharCodeRangeTaker>(TakerType.UNTIL_CHAR_CODE_RANGE, factory);
 
@@ -119,26 +116,24 @@ export function createUntilCharCodeRangeTaker(charCodeRanges: CharCodeRange[], i
   return taker;
 }
 
-export interface UntilCaseSensitiveTextTaker extends Taker {
+
+export interface UntilCaseSensitiveTextTaker extends InternalTaker {
   __type: TakerType.UNTIL_CASE_SENSITIVE_TEXT;
 }
 
 export function createUntilCaseSensitiveTextTaker(str: string, inclusive: boolean, openEnded: boolean, endOffset: number): UntilCaseSensitiveTextTaker {
 
-  const takenOffset = inclusive ? str.length : 0;
+  const indexVar = createVar();
+  const strVar = createVar();
 
-  const take: UntilCaseSensitiveTextTaker = (input, offset) => {
-    const index = input.indexOf(str, offset);
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => js(
+      'var ', indexVar, '=', inputVar, '.indexOf(', strVar, ',', offsetVar, ');',
+      resultVar, '=', indexVar, '===-1',
+      '?', openEnded ? [inputVar, '.length+', endOffset] : ResultCode.NO_MATCH,
+      ':', indexVar, [inclusive ? '+' + str.length : ''], ';'
+  );
 
-    if (index === -1) {
-      return openEnded ? input.length + endOffset : ResultCode.NO_MATCH;
-    }
-    return index + takenOffset;
-  };
-
-  take.__type = TakerType.UNTIL_CASE_SENSITIVE_TEXT;
-
-  return take;
+  return createTaker<UntilCaseSensitiveTextTaker>(TakerType.UNTIL_CASE_SENSITIVE_TEXT, factory, [[strVar, str]]);
 }
 
 export interface UntilCharCodeCheckerTaker extends Taker {
@@ -167,7 +162,7 @@ export function createUntilCharCodeCheckerTaker(charCodeChecker: CharCodeChecker
   return take;
 }
 
-export interface UntilRegexTaker extends Taker {
+export interface UntilRegexTaker extends InternalTaker {
   __type: TakerType.UNTIL_REGEX;
 }
 
@@ -175,50 +170,49 @@ export function createUntilRegexTaker(re: RegExp, inclusive: boolean, openEnded:
 
   re = new RegExp(re.source, re.flags.replace(/[yg]/, '') + 'g');
 
-  const take: UntilRegexTaker = (input, offset) => {
-    re.lastIndex = offset;
+  const reVar = createVar();
+  const arrVar = createVar();
 
-    const result = re.exec(input);
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => js(
+      reVar, '.lastIndex=', offsetVar, ';',
+      'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
+      resultVar, '=', arrVar, '===null',
+      '?', openEnded ? [inputVar, '.length+', endOffset] : ResultCode.NO_MATCH,
+      ':', inclusive ? [reVar, '.lastIndex'] : [arrVar, '.index'],
+      ';',
+  );
 
-    if (result === null) {
-      return openEnded ? input.length + endOffset : ResultCode.NO_MATCH;
-    }
+  const taker = createTaker<UntilRegexTaker>(TakerType.UNTIL_REGEX, factory, [[reVar, re]]);
 
-    return inclusive ? re.lastIndex : result.index;
-  };
+  taker.__type = TakerType.UNTIL_REGEX;
 
-  take.__type = TakerType.UNTIL_REGEX;
-
-  return take;
+  return taker;
 }
 
-export interface UntilGenericTaker extends Taker {
+export interface UntilGenericTaker extends InternalTaker {
   __type: TakerType.UNTIL_GENERIC;
 }
 
-export function createUntilGenericTaker(taker: Taker, inclusive: boolean, openEnded: boolean, endOffset: number): UntilGenericTaker {
+export function createUntilGenericTaker(baseTaker: Taker, inclusive: boolean, openEnded: boolean, endOffset: number): UntilGenericTaker {
 
-  const take: UntilGenericTaker = (input, offset) => {
-    const inputLength = input.length;
+  const inputLengthVar = createVar();
+  const indexVar = createVar();
+  const baseTakerVar = createVar();
 
-    let result = ResultCode.NO_MATCH;
-    let i = offset;
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => js(
+      'var ', inputLengthVar, '=', inputVar, '.length,', indexVar, '=', offsetVar, ';',
+      resultVar, '=' + ResultCode.NO_MATCH + ';',
+      'while(', indexVar, '<', inputLengthVar, '&&', resultVar, '===' + ResultCode.NO_MATCH + '){',
 
-    while (i < inputLength && result === ResultCode.NO_MATCH) {
-      result = taker(input, i);
-      ++i;
-    }
+      isInternalTaker(baseTaker) ? baseTaker.__factory(inputVar, indexVar, resultVar) : [resultVar, '=', baseTakerVar, '(', inputVar, ',', indexVar, ');'],
+      '++', indexVar,
+      '}',
+      resultVar, '=', resultVar, '===' + ResultCode.NO_MATCH,
+      '?', openEnded ? [inputLengthVar, '+' + endOffset] : resultVar,
+      ':', resultVar, '<', 0, '?', resultVar,
+      ':', inclusive ? resultVar : [indexVar, '-1'],
+      ';',
+  );
 
-    if (result === ResultCode.NO_MATCH) {
-      return openEnded ? inputLength + endOffset : result;
-    }
-    if (result < 0) {
-      return result;
-    }
-    return inclusive ? result : i - 1;
-  };
-
-  take.__type = TakerType.UNTIL_GENERIC;
-
-  return take;
+  return createTaker<UntilGenericTaker>(TakerType.UNTIL_GENERIC, factory, isInternalTaker(baseTaker) ? baseTaker.__values : [[baseTakerVar, baseTaker]]);
 }

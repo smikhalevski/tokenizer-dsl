@@ -94,4 +94,8 @@ describe('createUntilGenericTaker', () => {
     expect(takerMock).toHaveBeenCalledTimes(3);
     expect(takerMock).toHaveBeenNthCalledWith(3, 'aaaa', 2);
   });
+
+  test('can use inline takers', () => {
+    expect(createUntilGenericTaker(text('bb'), false, false, 0)('aabbcc', 0)).toBe(2);
+  });
 });
