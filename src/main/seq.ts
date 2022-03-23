@@ -1,7 +1,8 @@
+import {createTaker, createVar, js, VarNode} from './js';
 import {never} from './never';
 import {none} from './none';
-import {Taker, TakerType} from './taker-types';
-import {isTaker} from './taker-utils';
+import {InternalTaker, Taker, TakerCodeFactory, TakerType} from './taker-types';
+import {isInternalTaker, isTaker} from './taker-utils';
 
 /**
  * Creates a taker that applies takers one after another.
@@ -35,7 +36,7 @@ export function seq(...takers: Taker[]): Taker {
   return createSeqTaker(takers);
 }
 
-export interface SeqTaker extends Taker {
+export interface SeqTaker extends InternalTaker {
   __type: TakerType.SEQ;
   __takers: Taker[];
 }
@@ -44,33 +45,40 @@ export function createSeqTaker(takers: Taker[]): SeqTaker {
 
   const takersLength = takers.length;
 
-  const k1 = takersLength - 2;
-  const k2 = takersLength - 1;
+  const takerVars: VarNode[] = [];
 
-  let js = 'var ';
+  const values = takers.reduce<[VarNode, unknown][]>((values, taker, i) => {
+    if (isInternalTaker(taker)) {
+      values.push(...taker.__values);
+    } else {
+      values.push([takerVars[i] = createVar(), taker]);
+    }
+    return values;
+  }, []);
 
-  for (let i = 0; i < takersLength; ++i) {
-    js += 't' + i + '=q[' + i + ']' + (i < k2 ? ',' : ';');
-  }
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
 
-  js += 'return function(i,o){';
+    const node = js();
+    const lastNode = js();
 
-  let offsetVar = 'o';
+    for (let i = 0; i < takersLength; ++i) {
+      const taker = takers[i];
 
-  for (let i = 0; i < k1; ++i) {
-    js += 'var r' + i + '=t' + i + '(i,' + offsetVar + ');'
-        + 'if(r' + i + '<0){return r' + i + '}';
+      node.push(isInternalTaker(taker) ? taker.__factory(inputVar, offsetVar, offsetVar) : [offsetVar, '=', takerVars[i], '(', inputVar, ',', offsetVar, ');']);
 
-    offsetVar = 'r' + i;
-  }
+      if (i === takersLength - 1) {
+        node.push(resultVar, '=', offsetVar, ';');
+      } else {
+        node.push('if(', offsetVar, '<0){', resultVar, '=', offsetVar, '}else{');
+        lastNode.push('}');
+      }
+    }
+    return node.push(lastNode);
+  };
 
-  js += 'var r' + k1 + '=t' + k1 + '(i,' + offsetVar + ');'
-      + 'return r' + k1 + '<0?r' + k1 + ':' + 't' + k2 + '(i,r' + k1 + ')}';
+  const taker = createTaker<SeqTaker>(TakerType.SEQ, factory, values);
 
-  const take: SeqTaker = Function('q', js)(takers);
+  taker.__takers = takers;
 
-  take.__type = TakerType.SEQ;
-  take.__takers = takers;
-
-  return take;
+  return taker;
 }

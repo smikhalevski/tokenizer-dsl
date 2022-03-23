@@ -47,4 +47,8 @@ describe('createSeqTaker', () => {
     expect(createSeqTaker([takerMock, takerMock, takerMock])('aabbcc', 2)).toBe(-2);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
+
+  test('can use inline takers', () => {
+    expect(createSeqTaker([text('aa'), text('bb')])('aabbcc', 0)).toBe(4);
+  });
 });
