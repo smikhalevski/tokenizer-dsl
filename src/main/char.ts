@@ -1,13 +1,14 @@
-import {CodeNode, createTaker, createVar, js, VarNode} from './js';
+import {Code, createInternalTaker, createVar, VarNode} from './js';
 import {none} from './none';
 import {
   CharCodeChecker,
   CharCodeRange,
   InternalTaker,
+  InternalTakerType,
   ResultCode,
   Taker,
   TakerCodeFactory,
-  TakerType
+  TakerCodegen
 } from './taker-types';
 
 /**
@@ -26,59 +27,50 @@ export function char(charCode: CharCodeChecker | CharCodeRange[]): Taker {
   return createCharCodeRangeTaker(charCode);
 }
 
-export interface CharCodeCheckerTaker extends Taker {
-  __type: TakerType.CHAR_CODE_CHECKER;
-  __charCodeChecker: CharCodeChecker;
+export interface CharCodeCheckerTaker extends InternalTaker, TakerCodegen {
+  type: InternalTakerType.CHAR_CODE_CHECKER;
+  charCodeChecker: CharCodeChecker;
 }
 
 export function createCharCodeCheckerTaker(charCodeChecker: CharCodeChecker): CharCodeCheckerTaker {
 
-  const take: CharCodeCheckerTaker = (input, offset) => {
-    return charCodeChecker(input.charCodeAt(offset)) ? offset + 1 : ResultCode.NO_MATCH;
-  };
+  const charCodeCheckerVar = createVar();
 
-  take.__type = TakerType.CHAR_CODE_CHECKER;
-  take.__charCodeChecker = charCodeChecker;
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
+    resultVar, '=', charCodeCheckerVar, '(', inputVar, '.charCodeAt(', offsetVar, '))?', offsetVar, '+1:' + ResultCode.NO_MATCH + ';',
+  ];
 
-  return take;
+  const taker = createInternalTaker<CharCodeCheckerTaker>(InternalTakerType.CHAR_CODE_CHECKER, factory, [[charCodeCheckerVar, charCodeChecker]]);
+
+  taker.charCodeChecker = charCodeChecker;
+
+  return taker;
 }
 
-export interface CharCodeRangeTaker extends InternalTaker {
-  __type: TakerType.CHAR_CODE_RANGE;
-  __charCodeRanges: CharCodeRange[];
+export interface CharCodeRangeTaker extends InternalTaker, TakerCodegen {
+  type: InternalTakerType.CHAR_CODE_RANGE;
+  charCodeRanges: CharCodeRange[];
 }
 
 export function createCharCodeRangeTaker(charCodeRanges: CharCodeRange[]): CharCodeRangeTaker {
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
-    const charCodeVar = createVar();
-    return js(
-        'var ', charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, ');',
-        resultVar, '=', createCharCodeRangeCondition(charCodeVar, charCodeRanges), '?', offsetVar, '+1:' + ResultCode.NO_MATCH + ';'
-    );
-  };
+  const charCodeVar = createVar();
 
-  const take = createTaker<CharCodeRangeTaker>(TakerType.CHAR_CODE_RANGE, factory);
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
+    'var ', charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, ');',
+    resultVar, '=', createCharPredicate(charCodeVar, charCodeRanges), '?', offsetVar, '+1:' + ResultCode.NO_MATCH + ';',
+  ];
 
-  take.__charCodeRanges = charCodeRanges;
+  const taker = createInternalTaker<CharCodeRangeTaker>(InternalTakerType.CHAR_CODE_RANGE, factory);
 
-  return take;
+  taker.charCodeRanges = charCodeRanges;
+
+  return taker;
 }
 
-export function createCharCodeRangeCondition(charCodeVar: VarNode, charCodeRanges: CharCodeRange[]): CodeNode {
-  const node = js();
-
-  for (let i = 0; i < charCodeRanges.length; ++i) {
-    if (i !== 0) {
-      node.push('||');
-    }
-    const range = charCodeRanges[i];
-    if (typeof range === 'number') {
-      node.push(charCodeVar, '===', range);
-    } else {
-      node.push(charCodeVar, '>=', range[0], '&&', charCodeVar, '<=', range[1]);
-    }
-  }
-
-  return node;
+export function createCharPredicate(charCodeVar: VarNode, charCodeRanges: CharCodeRange[]): Code {
+  return charCodeRanges.map((value, i) => [
+    i === 0 ? '' : '||',
+    typeof value === 'number' ? [charCodeVar, '===', value] : [charCodeVar, '>=', value[0], '&&', charCodeVar, '<=', value[1]],
+  ]);
 }

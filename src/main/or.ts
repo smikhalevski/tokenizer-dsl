@@ -1,23 +1,31 @@
-import {createTaker, createVar, js, VarNode} from './js';
+import {Code, createInternalTaker, createVar, toTaker, VarNode} from './js';
 import {never} from './never';
 import {none} from './none';
-import {InternalTaker, ResultCode, Taker, TakerCodeFactory, TakerType} from './taker-types';
-import {isInternalTaker, isTaker} from './taker-utils';
+import {
+  InternalTaker,
+  InternalTakerType,
+  ResultCode,
+  Taker,
+  TakerCodeFactory,
+  TakerCodegen,
+  TakerLike
+} from './taker-types';
+import {isInternalTaker, isTakerCodegen} from './taker-utils';
 
 /**
  * Returns the result of the first matched taker.
  *
  * @param takers Takers that are called.
  */
-export function or(...takers: Taker[]): Taker {
+export function or(...takers: TakerLike[]): Taker {
 
-  takers = takers.reduce<Taker[]>((takers, taker) => {
+  takers = takers.reduce<TakerLike[]>((takers, taker) => {
 
     if (takers.length !== 0 && takers[takers.length - 1] === none) {
       return takers;
     }
-    if (isTaker<OrTaker>(taker, TakerType.OR)) {
-      takers.push(...taker.__takers);
+    if (isInternalTaker<OrTaker>(taker, InternalTakerType.OR)) {
+      takers.push(...taker.takers);
       return takers;
     }
     if (taker !== never) {
@@ -32,51 +40,56 @@ export function or(...takers: Taker[]): Taker {
     return none;
   }
   if (takersLength === 1) {
-    return takers[0];
+    return toTaker(takers[0]);
   }
   return createOrTaker(takers);
 }
 
-export interface OrTaker extends InternalTaker {
-  __type: TakerType.OR;
-  __takers: Taker[];
+export interface OrTaker extends InternalTaker, TakerCodegen {
+  type: InternalTakerType.OR;
+  takers: TakerLike[];
 }
 
-export function createOrTaker(takers: Taker[]): OrTaker {
+export function createOrTaker(takers: TakerLike[]): OrTaker {
 
-  const takersLength = takers.length;
+  const takersLastIndex = takers.length - 1;
 
   const takerVars: VarNode[] = [];
 
   const values = takers.reduce<[VarNode, unknown][]>((values, taker, i) => {
-    if (isInternalTaker(taker)) {
-      values.push(...taker.__values);
+    if (isTakerCodegen(taker)) {
+      values.push(...taker.values);
     } else {
-      values.push([takerVars[i] = createVar(), taker]);
+      const takerVar = takerVars[i] = createVar();
+      values.push([takerVar, taker]);
     }
     return values;
   }, []);
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
 
-    const node = js();
-    const lastNode = js();
+    const code: Code[] = [];
+    const tailCode: Code[] = [];
 
-    for (let i = 0; i < takersLength; ++i) {
+    for (let i = 0; i <= takersLastIndex; ++i) {
       const taker = takers[i];
 
-      node.push(isInternalTaker(taker) ? taker.__factory(inputVar, offsetVar, resultVar) : [resultVar, '=', takerVars[i], '(', inputVar, ',', offsetVar, ');']);
+      code.push(isTakerCodegen(taker) ? taker.factory(inputVar, offsetVar, resultVar) : [resultVar, '=', takerVars[i], '(', inputVar, ',', offsetVar, ');']);
 
-      if (i !== takersLength - 1) {
-        node.push('if(', resultVar, '===' + ResultCode.NO_MATCH + '){');
-        lastNode.push('}');
+      if (i !== takersLastIndex) {
+        code.push('if(', resultVar, '===' + ResultCode.NO_MATCH + '){');
+        tailCode.push('}');
       }
     }
-    return node.push(lastNode);
-  };
-  const taker = createTaker<OrTaker>(TakerType.OR, factory, values);
 
-  taker.__takers = takers;
+    code.push(tailCode);
+
+    return code;
+  };
+
+  const taker = createInternalTaker<OrTaker>(InternalTakerType.OR, factory, values);
+
+  taker.takers = takers;
 
   return taker;
 }

@@ -1,4 +1,4 @@
-import {all, char, never, none, ResultCode, Taker, TakerType, text} from '../main';
+import {all, char, InternalTaker, InternalTakerType, never, none, ResultCode, Taker, text} from '../main';
 import {
   createAllCaseSensitiveTextTaker,
   createAllCharCodeCheckerTaker,
@@ -20,7 +20,7 @@ describe('all', () => {
   });
 
   test('returns MaybeTaker', () => {
-    expect(all(() => 0, {maximumCount: 1}).__type).toBe(TakerType.MAYBE);
+    expect((all(() => 0, {maximumCount: 1}) as InternalTaker).type).toBe(InternalTakerType.MAYBE);
   });
 
   test('returns taker', () => {
@@ -29,16 +29,16 @@ describe('all', () => {
   });
 
   test('returns AllCharCodeCheckerTaker', () => {
-    expect(all(char(() => false)).__type).toBe(TakerType.ALL_CHAR_CODE_CHECKER);
+    expect((all(char(() => false)) as InternalTaker).type).toBe(InternalTakerType.ALL_CHAR_CODE_CHECKER);
   });
 
   test('returns AllCaseSensitiveTextTaker', () => {
-    expect(all(text('a')).__type).toBe(TakerType.ALL_CHAR_CODE_RANGE);
-    expect(all(text('aaa')).__type).toBe(TakerType.ALL_CASE_SENSITIVE_TEXT);
+    expect((all(text('a')) as InternalTaker).type).toBe(InternalTakerType.ALL_CHAR_CODE_RANGE);
+    expect((all(text('aaa')) as InternalTaker).type).toBe(InternalTakerType.ALL_CASE_SENSITIVE_TEXT);
   });
 
   test('returns AllTaker', () => {
-    expect(all(() => 0).__type).toBe(TakerType.ALL_GENERIC);
+    expect((all(() => 0) as InternalTaker).type).toBe(InternalTakerType.ALL_GENERIC);
   });
 });
 

@@ -1,4 +1,4 @@
-import {InternalTaker, TakerCodeFactory} from './taker-types';
+import {TakerCodegen, TakerCodeFactory, InternalTaker, TakerLike, Taker} from './taker-types';
 
 export const enum NodeType {
   CODE,
@@ -104,7 +104,23 @@ export function compileCode(child: CodeChild, vars: VarNode[] = []): string {
   }
 }
 
-export function createTaker<T extends InternalTaker>(type: T['__type'], factory: TakerCodeFactory, values: [VarNode, unknown][] = []): T {
+export function createInternalTaker<T extends InternalTaker & TakerCodegen>(type: T['type'], factory: TakerCodeFactory, values: [VarNode, unknown][] = []): T {
+
+  const taker = toTaker({factory, values}) as T;
+
+  taker.type = type;
+  taker.factory = factory;
+  taker.values = values;
+
+  return taker;
+}
+
+export function toTaker(ttt: TakerLike): Taker {
+  if (typeof ttt === 'function') {
+    return ttt;
+  }
+
+  const {factory, values} = ttt;
 
   const valuesVar = createVar();
   const node = js();
@@ -128,11 +144,5 @@ export function createTaker<T extends InternalTaker>(type: T['__type'], factory:
   const vars: VarNode[] = [];
   const src = compileCode(node, vars);
 
-  const taker: T = values.length === 0 ? Function(src)() : Function(encodeLowerAlpha(vars.indexOf(valuesVar)), src)(values.map(([, value]) => value));
-
-  taker.__type = type;
-  taker.__factory = factory;
-  taker.__values = values;
-
-  return taker;
+  return values.length === 0 ? Function(src)() : Function(encodeLowerAlpha(vars.indexOf(valuesVar)), src)(values.map(([, value]) => value));
 }

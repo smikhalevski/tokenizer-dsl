@@ -1,4 +1,4 @@
-import {none, ResultCode, TakerType, text} from '../main';
+import {InternalTaker, InternalTakerType, none, ResultCode, text} from '../main';
 import {createCaseInsensitiveTextTaker, createCaseSensitiveTextTaker} from '../main/text';
 
 describe('text', () => {
@@ -8,12 +8,12 @@ describe('text', () => {
   });
 
   test('returns CaseSensitiveTextTaker', () => {
-    expect(text('aaa').__type).toBe(TakerType.CASE_SENSITIVE_TEXT);
-    expect(text('123', {caseInsensitive: true}).__type).toBe(TakerType.CASE_SENSITIVE_TEXT);
+    expect((text('aaa') as InternalTaker).type).toBe(InternalTakerType.CASE_SENSITIVE_TEXT);
+    expect((text('123', {caseInsensitive: true}) as InternalTaker).type).toBe(InternalTakerType.CASE_SENSITIVE_TEXT);
   });
 
   test('returns CaseInsensitiveTextTaker', () => {
-    expect(text('aaa', {caseInsensitive: true}).__type).toBe(TakerType.CASE_INSENSITIVE_TEXT);
+    expect((text('aaa', {caseInsensitive: true}) as InternalTaker).type).toBe(InternalTakerType.CASE_INSENSITIVE_TEXT);
   });
 });
 

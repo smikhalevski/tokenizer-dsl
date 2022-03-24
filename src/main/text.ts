@@ -1,7 +1,7 @@
 import {createCharCodeRangeTaker} from './char';
-import {createTaker, createVar, js} from './js';
+import {Code, createInternalTaker, createVar} from './js';
 import {none} from './none';
-import {InternalTaker, ResultCode, Taker, TakerCodeFactory, TakerType} from './taker-types';
+import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory, TakerCodegen} from './taker-types';
 
 export interface TextOptions {
 
@@ -26,6 +26,7 @@ export interface TextOptions {
  * @see {@link char}
  */
 export function text(str: string, options: TextOptions = {}): Taker {
+
   const {
     caseInsensitive = false,
     locales,
@@ -45,33 +46,31 @@ export function text(str: string, options: TextOptions = {}): Taker {
   return createCaseSensitiveTextTaker(str);
 }
 
-export interface CaseSensitiveTextTaker extends InternalTaker {
-  __type: TakerType.CASE_SENSITIVE_TEXT;
-  __str: string;
+export interface CaseSensitiveTextTaker extends InternalTaker, TakerCodegen {
+  type: InternalTakerType.CASE_SENSITIVE_TEXT;
+  str: string;
 }
 
 export function createCaseSensitiveTextTaker(str: string): CaseSensitiveTextTaker {
 
   const strVar = createVar();
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => js(
-      resultVar, '=', inputVar, '.startsWith(', strVar, ',', offsetVar, ')',
-      '?', offsetVar, '+', str.length,
-      ':' + ResultCode.NO_MATCH,
-      ';',
-  );
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
+    resultVar, '=', inputVar, '.startsWith(', strVar, ',', offsetVar, ')',
+    '?', offsetVar, '+', str.length, ':' + ResultCode.NO_MATCH + ';',
+  ];
 
-  const taker = createTaker<CaseSensitiveTextTaker>(TakerType.CASE_SENSITIVE_TEXT, factory, [[strVar, str]]);
+  const taker = createInternalTaker<CaseSensitiveTextTaker>(InternalTakerType.CASE_SENSITIVE_TEXT, factory, [[strVar, str]]);
 
-  taker.__str = str;
+  taker.str = str;
 
   return taker;
 }
 
-export interface CaseInsensitiveTextTaker extends InternalTaker {
-  __type: TakerType.CASE_INSENSITIVE_TEXT;
-  __str: string;
-  __locales: string | string[] | undefined;
+export interface CaseInsensitiveTextTaker extends InternalTaker, TakerCodegen {
+  type: InternalTakerType.CASE_INSENSITIVE_TEXT;
+  str: string;
+  locales: string | string[] | undefined;
 }
 
 export function createCaseInsensitiveTextTaker(str: string, locales: string | string[] | undefined): CaseInsensitiveTextTaker {
@@ -82,18 +81,20 @@ export function createCaseInsensitiveTextTaker(str: string, locales: string | st
   const lowerCharCount = lowerCharCodes.length;
   const upperCharCount = upperCharCodes.length;
 
-  const charCount = Math.max(lowerCharCount, upperCharCount);
+  const minimumCharCount = Math.min(lowerCharCount, upperCharCount);
+  const maximumCharCount = Math.max(lowerCharCount, upperCharCount);
 
   const charCodeVar = createVar();
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
-    const node = js(
-        'var ', charCodeVar, ';',
-        resultVar, '=', offsetVar, '<', inputVar, '.length',
-    );
 
-    for (let i = 0; i < charCount; ++i) {
-      node.push(
+    const code: Code[] = [
+      'var ', charCodeVar, ';',
+      resultVar, '=', offsetVar, '+', minimumCharCount - 1, '<', inputVar, '.length',
+    ];
+
+    for (let i = 0; i < maximumCharCount; ++i) {
+      code.push(
           '&&(',
           charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '++),',
           i < lowerCharCount ? [charCodeVar, '===', lowerCharCodes[i]] : '',
@@ -101,13 +102,15 @@ export function createCaseInsensitiveTextTaker(str: string, locales: string | st
           ')',
       );
     }
-    return node.push('?', offsetVar, ':' + ResultCode.NO_MATCH, ';');
+    code.push('?', offsetVar, ':' + ResultCode.NO_MATCH, ';');
+
+    return code;
   };
 
-  const taker = createTaker<CaseInsensitiveTextTaker>(TakerType.CASE_INSENSITIVE_TEXT, factory);
+  const taker = createInternalTaker<CaseInsensitiveTextTaker>(InternalTakerType.CASE_INSENSITIVE_TEXT, factory);
 
-  taker.__str = str;
-  taker.__locales = locales;
+  taker.str = str;
+  taker.locales = locales;
 
   return taker;
 }

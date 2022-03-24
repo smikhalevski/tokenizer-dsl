@@ -1,9 +1,9 @@
-import {InternalTaker, Taker} from './taker-types';
+import {InternalTaker, TakerCodegen, TakerLike} from './taker-types';
 
-export function isTaker<T extends Taker>(taker: Taker, type: T['__type']): taker is T {
-  return taker.__type === type;
+export function isInternalTaker<T extends InternalTaker>(taker: TakerLike | InternalTaker, type: T['type']): taker is T {
+  return 'type' in taker && taker.type === type;
 }
 
-export function isInternalTaker(taker: Taker): taker is InternalTaker {
-  return '__factory' in taker;
+export function isTakerCodegen(taker: TakerLike | InternalTaker): taker is TakerCodegen {
+  return 'factory' in taker;
 }

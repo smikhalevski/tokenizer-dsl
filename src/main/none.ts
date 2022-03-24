@@ -1,13 +1,15 @@
-import {createTaker, js} from './js';
-import {InternalTaker, ResultCode, Taker, TakerCodeFactory, TakerType} from './taker-types';
+import {createInternalTaker} from './js';
+import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory, TakerCodegen} from './taker-types';
 
-const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => js(resultVar, '=' + ResultCode.NO_MATCH + ';');
+const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
+  resultVar, '=', offsetVar, ';',
+];
 
-export interface NoneTaker extends InternalTaker {
-  __type: TakerType.NONE;
+export interface NoneTaker extends InternalTaker, TakerCodegen {
+  type: InternalTakerType.NONE;
 }
 
 /**
- * Taker that always returns {@link ResultCode.NO_MATCH}.
+ * Taker that always returns the current offset.
  */
-export const none: Taker = createTaker<NoneTaker>(TakerType.NONE, factory);
+export const none: Taker = createInternalTaker<NoneTaker>(InternalTakerType.NONE, factory);

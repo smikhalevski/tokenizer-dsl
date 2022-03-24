@@ -1,4 +1,4 @@
-import {never, none, ResultCode, Taker, TakerType, text} from '../main';
+import {InternalTaker, InternalTakerType, never, none, ResultCode, Taker, text} from '../main';
 import {createSeqTaker, seq} from '../main/seq';
 
 describe('seq', () => {
@@ -18,7 +18,7 @@ describe('seq', () => {
   });
 
   test('returns SeqTaker', () => {
-    expect(seq(text('aaa'), text('bbb')).__type).toBe(TakerType.SEQ);
+    expect((seq(text('aaa'), text('bbb')) as InternalTaker).type).toBe(InternalTakerType.SEQ);
   });
 });
 
