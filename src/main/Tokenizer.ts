@@ -1,5 +1,6 @@
-import {toTaker} from './js';
+import {Code, createVar, toTaker, Var} from './js';
 import {ResultCode, Taker, TakerLike} from './taker-types';
+import {isTakerCodegen} from './taker-utils';
 
 export const enum ConfirmationMode {
   ALWAYS = 'always',
@@ -23,9 +24,9 @@ export interface Reader<S> extends ReaderOptions<S> {
 export interface ReaderOptions<S> {
 
   /**
-   * The stage at which reader can be used.
+   * The list of stages at which reader can be used.
    */
-  stage?: S;
+  stages?: S[];
 
   /**
    * The stage which should be used for next reader if this reader has successfully read the token.
@@ -42,7 +43,7 @@ export function createReader<S>(tokenType: unknown, taker: TakerLike, options?: 
   return {
     tokenType,
     taker: toTaker(taker),
-    stage: options?.stage,
+    stages: options?.stages,
     nextStage: options?.nextStage,
     confirmationMode: options?.confirmationMode,
   };
@@ -56,6 +57,75 @@ export interface Handler<S> {
 
   onUnrecognizedToken(offset: number): void;
 }
+
+export function createTokenizerCallback<S>(readers: Reader<S>[]): (this: Tokenizer, handler: Handler<S>) => void {
+
+  const uniqueStages = readers.reduce<unknown[]>((stages, reader) => {
+    if (reader.stages) {
+      for (const stage of reader.stages) {
+        if (stages.indexOf(stage) === -1) {
+          stages.push(stage);
+        }
+      }
+    }
+    return stages;
+  }, []);
+
+  const stageVar = createVar();
+  const onTokenVar = createVar();
+  const onErrorVar = createVar();
+
+  const inputVar = createVar();
+  const offsetVar = createVar();
+
+  const values: [Var, unknown][] = [];
+  const tailCode: Code[] = [];
+
+  const code: Code[] = [
+    'while(true){',
+    readers.map((reader) => {
+      const {taker, stages} = reader;
+
+      const readerVar = createVar();
+      const takerVar = createVar();
+      const takerResultVar = createVar();
+
+      values.push([readerVar, reader]);
+
+      if (isTakerCodegen(taker)) {
+        values.push([takerVar, taker]);
+      }
+
+      return [
+        !stages?.length ? '' : ['if(', stages.map((stage) => [stageVar, '===', uniqueStages.indexOf(stage)]), '){'],
+        'var ', takerResultVar, ';',
+        isTakerCodegen(taker) ? taker.factory(inputVar, offsetVar, takerResultVar) : [takerResultVar, '=', takerVar, '(', inputVar, ',', offsetVar, ');'],
+        'if(', takerResultVar, '!==' + ResultCode.NO_MATCH + '){',
+
+        // Raise error
+        'if(', takerResultVar, '<0){',
+        onErrorVar, '(', readerVar, ',', offsetVar, ',', takerResultVar, ');',
+        'return}',
+
+        // Emit token
+
+        reader.confirmationMode === ConfirmationMode.NEVER ? [
+            // Call reader immediately
+            onTokenVar,'(',readerVar,',',offsetVar,',',takerResultVar,');',
+        ] : [
+            // Defer reader call
+        ],
+
+        'continue}',
+        !stages?.length ? '' : '}',
+      ];
+    }),
+    // No readers matched
+    'break}'
+  ];
+  code.push(tailCode);
+}
+
 
 export class Tokenizer<S> {
 
@@ -153,7 +223,7 @@ export class Tokenizer<S> {
   public end(chunk: string, handler: Handler<S>): void {
     this.write(chunk, handler);
 
-    if (this.prevReader && this.prevReader.stage === this.stage) {
+    if (this.prevReader && this.prevReader.stages === this.stage) {
       handler.onToken(this.prevReader, this.prevStart, this.offset = this.prevEnd);
     }
     if (this.offset !== 0) {
