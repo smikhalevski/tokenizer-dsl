@@ -82,6 +82,7 @@ export const enum InternalTakerType {
   OR,
   REGEX,
   SEQ,
+  SKIP,
   CASE_SENSITIVE_TEXT,
   CASE_INSENSITIVE_TEXT,
   UNTIL_CASE_SENSITIVE_TEXT,
