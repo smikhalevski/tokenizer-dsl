@@ -13,7 +13,7 @@ export interface EndTaker extends InternalTaker, TakerCodegen {
 export function createEndTaker(endOffset: number): EndTaker {
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
-    resultVar, '=', inputVar, '.length+', offsetVar, ';',
+    resultVar, '=', inputVar, '.length', endOffset === 0 ? '' : ['+', endOffset], ';',
   ];
 
   const taker = createInternalTaker<EndTaker>(InternalTakerType.END, factory);
