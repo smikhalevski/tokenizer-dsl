@@ -298,26 +298,6 @@ describe('seq', () => {
 
 describe('text', () => {
 
-  describe('CaseSensitiveCharTaker', () => {
-
-    const input = 'ababab';
-
-    test('RegExp', (measure) => {
-      const re = /^a/;
-      measure(() => re.exec(input));
-    });
-
-    test('latest', (measure) => {
-      const take = latest.char(97);
-      measure(() => take(input, 0));
-    });
-
-    test('next', (measure) => {
-      const take = next.text('a');
-      measure(() => take(input, 0));
-    });
-  });
-
   describe('CaseSensitiveTextTaker', () => {
 
     const input = 'ababab';
