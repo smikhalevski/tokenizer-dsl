@@ -1,4 +1,4 @@
-import {Code, createInternalTaker, createVar, toTaker, VarNode} from './js';
+import {Code, createInternalTaker, createVar, toTaker, Var} from './js';
 import {never} from './never';
 import {none} from './none';
 import {
@@ -54,9 +54,9 @@ export function createOrTaker(takers: TakerLike[]): OrTaker {
 
   const takersLastIndex = takers.length - 1;
 
-  const takerVars: VarNode[] = [];
+  const takerVars: Var[] = [];
 
-  const values = takers.reduce<[VarNode, unknown][]>((values, taker, i) => {
+  const values = takers.reduce<[Var, unknown][]>((values, taker, i) => {
     if (isTakerCodegen(taker)) {
       values.push(...taker.values);
     } else {

@@ -1,4 +1,4 @@
-import {Code, createInternalTaker, createVar, VarNode} from './js';
+import {Code, createInternalTaker, createVar, Var} from './js';
 import {none} from './none';
 import {
   CharCodeChecker,
@@ -68,7 +68,7 @@ export function createCharCodeRangeTaker(charCodeRanges: CharCodeRange[]): CharC
   return taker;
 }
 
-export function createCharPredicate(charCodeVar: VarNode, charCodeRanges: CharCodeRange[]): Code {
+export function createCharPredicate(charCodeVar: Var, charCodeRanges: CharCodeRange[]): Code {
   return charCodeRanges.map((value, i) => [
     i === 0 ? '' : '||',
     typeof value === 'number' ? [charCodeVar, '===', value] : [charCodeVar, '>=', value[0], '&&', charCodeVar, '<=', value[1]],

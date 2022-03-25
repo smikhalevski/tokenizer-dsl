@@ -1,4 +1,4 @@
-import {Code, VarNode} from './js';
+import {Code, Var} from './js';
 
 /**
  * The callback that must return `true` is given char code is appropriate, and must return `false` otherwise.
@@ -41,7 +41,7 @@ export type Taker = (input: string, offset: number) => number;
  * };
  * ```
  */
-export type TakerCodeFactory = (inputVar: VarNode, offsetVar: VarNode, resultVar: VarNode) => Code;
+export type TakerCodeFactory = (inputVar: Var, offsetVar: Var, resultVar: Var) => Code;
 
 /**
  * Factory that returns the taker code and values for variables that must be bound to the taker.
@@ -59,7 +59,7 @@ export type TakerCodeFactory = (inputVar: VarNode, offsetVar: VarNode, resultVar
  */
 export interface TakerCodegen {
   factory: TakerCodeFactory;
-  values: [VarNode, unknown][];
+  values: [Var, unknown][];
 }
 
 export type TakerLike = Taker | TakerCodegen;

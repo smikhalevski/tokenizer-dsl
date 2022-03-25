@@ -1,110 +1,26 @@
 import {TakerCodegen, TakerCodeFactory, InternalTaker, TakerLike, Taker} from './taker-types';
 
-export const enum NodeType {
-  CODE,
-  VAR,
+export type Var = symbol;
+
+export type Code = Code[] | Var | string | number | boolean;
+
+export function createVar(): Var {
+  return Symbol();
 }
 
-export type Node = CodeNode | VarNode;
+export function compileCode(child: Code, vars: Var[] = []): string {
+  if (typeof child === 'symbol') {
+    const varIndex = vars.indexOf(child);
 
-export type CodeChild = Node | string | number | boolean;
-
-export type Code = Code[] | CodeChild;
-
-export interface CodeNode {
-  type: NodeType.CODE;
-  children: CodeChild[];
-
-  push(...code: Code[]): this;
-}
-
-export interface VarNode {
-  type: NodeType.VAR;
-}
-
-export function js(...code: Code[]): CodeNode {
-  return {
-    type: NodeType.CODE,
-    children: flatCode(code),
-    push,
-  };
-}
-
-export function createVar(): VarNode {
-  return {type: NodeType.VAR};
-}
-
-function push(this: CodeNode, ...code: Code[]): CodeNode {
-  this.children.push(...flatCode(code));
-  return this;
-}
-
-export function flatCode(code: Code[]): CodeChild[] {
-  let result: CodeChild[] | undefined = undefined;
-
-  for (let i = 0; i < code.length; ++i) {
-    const item = code[i];
-
-    let arr;
-    if (Array.isArray(item)) {
-      arr = flatCode(item);
-    } else if (typeof item === 'object' && item.type === NodeType.CODE) {
-      arr = item.children;
-    } else if (result) {
-      result.push(item);
-    }
-    if (arr) {
-      result ||= code.slice(0, i) as CodeChild[];
-      result.push(...arr);
-    }
+    return 'v' + (varIndex === -1 ? vars.push(child) - 1 : varIndex);
   }
-
-  return result || code as CodeChild[];
-}
-
-/**
- * Encodes an integer part of a non-negative number as a string of ASCII lower  alpha characters.
- *
- * ```ts
- * encodeLetters(100); // → 'cw'
- * ```
- *
- * @param value The non-negative integer number to encode as lower alpha string.
- */
-export function encodeLowerAlpha(value: number): string {
-  let str = '';
-
-  do {
-    str = String.fromCharCode(97 + value % 26) + str;
-    value = value / 26 | 0;
-  } while (value-- !== 0);
-
-  return str;
-}
-
-export function compileCode(child: CodeChild, vars: VarNode[] = []): string {
-
-  if (typeof child !== 'object') {
-    return String(child);
+  if (Array.isArray(child)) {
+    return child.map((c) => compileCode(c, vars)).join('');
   }
-
-  switch (child.type) {
-
-    case NodeType.CODE:
-      let str = '';
-      for (let i = 0; i < child.children.length; ++i) {
-        str += compileCode(child.children[i], vars);
-      }
-      return str;
-
-    case NodeType.VAR:
-      const varIndex = vars.indexOf(child);
-
-      return encodeLowerAlpha(varIndex === -1 ? vars.push(child) - 1 : varIndex);
-  }
+  return String(child);
 }
 
-export function createInternalTaker<T extends InternalTaker & TakerCodegen>(type: T['type'], factory: TakerCodeFactory, values: [VarNode, unknown][] = []): T {
+export function createInternalTaker<T extends InternalTaker & TakerCodegen>(type: T['type'], factory: TakerCodeFactory, values: [Var, unknown][] = []): T {
 
   const taker = toTaker({factory, values}) as T;
 
@@ -123,17 +39,17 @@ export function toTaker(ttt: TakerLike): Taker {
   const {factory, values} = ttt;
 
   const valuesVar = createVar();
-  const node = js();
+  const code: Code[] = [];
 
   for (let i = 0; i < values.length; ++i) {
-    node.push('var ', values[i][0], '=', valuesVar, '[', i, '];');
+    code.push('var ', values[i][0], '=', valuesVar, '[', i, '];');
   }
 
   const inputVar = createVar();
   const offsetVar = createVar();
   const returnVar = createVar();
 
-  node.push(
+  code.push(
       'return function(', inputVar, ',', offsetVar, '){',
       'var ', returnVar, ';',
       factory(inputVar, offsetVar, returnVar),
@@ -141,8 +57,8 @@ export function toTaker(ttt: TakerLike): Taker {
       '}',
   );
 
-  const vars: VarNode[] = [];
-  const src = compileCode(node, vars);
+  const vars: Var[] = [];
+  const src = compileCode(code, vars);
 
-  return values.length === 0 ? Function(src)() : Function(encodeLowerAlpha(vars.indexOf(valuesVar)), src)(values.map(([, value]) => value));
+  return values.length === 0 ? Function(src)() : Function('v' + (vars.indexOf(valuesVar)), src)(values.map(([, value]) => value));
 }
