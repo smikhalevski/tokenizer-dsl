@@ -1,19 +1,19 @@
 import {createEndTaker} from './end';
 import {createInternalTaker} from './js';
 import {none} from './none';
-import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory, TakerCodegen} from './taker-types';
+import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory} from './taker-types';
 
 export function skip(charCount = 1): Taker {
   if (charCount < 1) {
     return none;
   }
   if (isFinite(charCount)) {
-    return createSkipTaker(charCount);
+    return createSkipTaker(charCount | 0);
   }
   return createEndTaker(0);
 }
 
-export interface SkipTaker extends InternalTaker, TakerCodegen {
+export interface SkipTaker extends InternalTaker {
   type: InternalTakerType.SKIP;
   charCount: number;
 }

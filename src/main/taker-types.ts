@@ -99,6 +99,6 @@ export const enum InternalTakerType {
  *
  * @internal
  */
-export interface InternalTaker extends Taker {
+export interface InternalTaker extends Taker, TakerCodegen {
   type: InternalTakerType;
 }

@@ -11,7 +11,6 @@ import {
   ResultCode,
   Taker,
   TakerCodeFactory,
-  TakerCodegen,
   TakerLike
 } from './taker-types';
 import {isInternalTaker, isTakerCodegen} from './taker-utils';
@@ -75,7 +74,7 @@ export function isUntilTaker(taker: TakerLike): taker is UntilTaker {
       || isInternalTaker<UntilGenericTaker>(taker, InternalTakerType.UNTIL_GENERIC);
 }
 
-export interface UntilCharCodeRangeTaker extends InternalTaker, TakerCodegen {
+export interface UntilCharCodeRangeTaker extends InternalTaker {
   type: InternalTakerType.UNTIL_CHAR_CODE_RANGE;
 }
 
@@ -98,7 +97,7 @@ export function createUntilCharCodeRangeTaker(charCodeRanges: CharCodeRange[], i
   return createInternalTaker<UntilCharCodeRangeTaker>(InternalTakerType.UNTIL_CHAR_CODE_RANGE, factory);
 }
 
-export interface UntilCaseSensitiveTextTaker extends InternalTaker, TakerCodegen {
+export interface UntilCaseSensitiveTextTaker extends InternalTaker {
   type: InternalTakerType.UNTIL_CASE_SENSITIVE_TEXT;
 }
 
@@ -115,7 +114,7 @@ export function createUntilCaseSensitiveTextTaker(str: string, inclusive: boolea
   return createInternalTaker<UntilCaseSensitiveTextTaker>(InternalTakerType.UNTIL_CASE_SENSITIVE_TEXT, factory, [[strVar, str]]);
 }
 
-export interface UntilCharCodeCheckerTaker extends InternalTaker, TakerCodegen {
+export interface UntilCharCodeCheckerTaker extends InternalTaker {
   type: InternalTakerType.UNTIL_CHAR_CODE_CHECKER;
 }
 
@@ -136,7 +135,7 @@ export function createUntilCharCodeCheckerTaker(charCodeChecker: CharCodeChecker
   return createInternalTaker<UntilCharCodeCheckerTaker>(InternalTakerType.UNTIL_CHAR_CODE_CHECKER, factory, [[charCodeCheckerVar, charCodeChecker]]);
 }
 
-export interface UntilRegexTaker extends InternalTaker, TakerCodegen {
+export interface UntilRegexTaker extends InternalTaker {
   type: InternalTakerType.UNTIL_REGEX;
 }
 
@@ -156,7 +155,7 @@ export function createUntilRegexTaker(re: RegExp, inclusive: boolean): UntilRege
   return createInternalTaker<UntilRegexTaker>(InternalTakerType.UNTIL_REGEX, factory, [[reVar, re]]);
 }
 
-export interface UntilGenericTaker extends InternalTaker, TakerCodegen {
+export interface UntilGenericTaker extends InternalTaker {
   type: InternalTakerType.UNTIL_GENERIC;
 }
 

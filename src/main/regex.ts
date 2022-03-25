@@ -1,5 +1,5 @@
 import {createInternalTaker, createVar} from './js';
-import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory, TakerCodegen} from './taker-types';
+import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
 
 /**
  * Creates taker that matches a substring.
@@ -10,7 +10,7 @@ export function regex(re: RegExp): Taker {
   return createRegexTaker(re);
 }
 
-export interface RegexTaker extends InternalTaker, TakerCodegen {
+export interface RegexTaker extends InternalTaker {
   type: InternalTakerType.REGEX;
   re: RegExp;
 }

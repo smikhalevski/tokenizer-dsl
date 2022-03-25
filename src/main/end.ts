@@ -1,11 +1,11 @@
 import {createInternalTaker} from './js';
-import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory, TakerCodegen} from './taker-types';
+import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory} from './taker-types';
 
 export function end(endOffset = 0): Taker {
   return createEndTaker(endOffset);
 }
 
-export interface EndTaker extends InternalTaker, TakerCodegen {
+export interface EndTaker extends InternalTaker {
   type: InternalTakerType.END;
   endOffset: number;
 }

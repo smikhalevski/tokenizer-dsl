@@ -1,15 +1,7 @@
 import {Code, createInternalTaker, createVar, toTaker, Var} from './js';
 import {never} from './never';
 import {none} from './none';
-import {
-  InternalTaker,
-  InternalTakerType,
-  ResultCode,
-  Taker,
-  TakerCodeFactory,
-  TakerCodegen,
-  TakerLike
-} from './taker-types';
+import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory, TakerLike} from './taker-types';
 import {isInternalTaker, isTakerCodegen} from './taker-utils';
 
 /**
@@ -45,7 +37,7 @@ export function or(...takers: TakerLike[]): Taker {
   return createOrTaker(takers);
 }
 
-export interface OrTaker extends InternalTaker, TakerCodegen {
+export interface OrTaker extends InternalTaker {
   type: InternalTakerType.OR;
   takers: TakerLike[];
 }

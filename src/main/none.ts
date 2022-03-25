@@ -1,11 +1,11 @@
 import {createInternalTaker} from './js';
-import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory, TakerCodegen} from './taker-types';
+import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory} from './taker-types';
 
 const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
   resultVar, '=', offsetVar, ';',
 ];
 
-export interface NoneTaker extends InternalTaker, TakerCodegen {
+export interface NoneTaker extends InternalTaker {
   type: InternalTakerType.NONE;
 }
 

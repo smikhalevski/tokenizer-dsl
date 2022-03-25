@@ -1,7 +1,7 @@
 import {Code, createInternalTaker, createVar, toTaker, Var} from './js';
 import {never} from './never';
 import {none} from './none';
-import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory, TakerCodegen, TakerLike} from './taker-types';
+import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory, TakerLike} from './taker-types';
 import {isInternalTaker, isTakerCodegen} from './taker-utils';
 
 /**
@@ -36,7 +36,7 @@ export function seq(...takers: TakerLike[]): Taker {
   return createSeqTaker(takers);
 }
 
-export interface SeqTaker extends InternalTaker, TakerCodegen {
+export interface SeqTaker extends InternalTaker {
   type: InternalTakerType.SEQ;
   takers: TakerLike[];
 }

@@ -1,7 +1,8 @@
 import {createCharCodeRangeTaker} from './char';
 import {Code, createInternalTaker, createVar} from './js';
 import {none} from './none';
-import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory, TakerCodegen} from './taker-types';
+import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
+import {toCharCodes, toLowerCase, toUpperCase} from './taker-utils';
 
 export interface TextOptions {
 
@@ -46,7 +47,7 @@ export function text(str: string, options: TextOptions = {}): Taker {
   return createCaseSensitiveTextTaker(str);
 }
 
-export interface CaseSensitiveTextTaker extends InternalTaker, TakerCodegen {
+export interface CaseSensitiveTextTaker extends InternalTaker {
   type: InternalTakerType.CASE_SENSITIVE_TEXT;
   str: string;
 }
@@ -67,7 +68,7 @@ export function createCaseSensitiveTextTaker(str: string): CaseSensitiveTextTake
   return taker;
 }
 
-export interface CaseInsensitiveTextTaker extends InternalTaker, TakerCodegen {
+export interface CaseInsensitiveTextTaker extends InternalTaker {
   type: InternalTakerType.CASE_INSENSITIVE_TEXT;
   str: string;
   locales: string | string[] | undefined;
@@ -113,21 +114,4 @@ export function createCaseInsensitiveTextTaker(str: string, locales: string | st
   taker.locales = locales;
 
   return taker;
-}
-
-export function toLowerCase(str: string, locales: string | string[] | undefined): string {
-  return locales ? str.toLocaleLowerCase(locales) : str.toLowerCase();
-}
-
-export function toUpperCase(str: string, locales: string | string[] | undefined): string {
-  return locales ? str.toLocaleUpperCase(locales) : str.toUpperCase();
-}
-
-export function toCharCodes(str: string): number[] {
-  const charCodes: number[] = [];
-
-  for (let i = 0; i < str.length; ++i) {
-    charCodes.push(str.charCodeAt(i));
-  }
-  return charCodes;
 }

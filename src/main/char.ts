@@ -7,8 +7,7 @@ import {
   InternalTakerType,
   ResultCode,
   Taker,
-  TakerCodeFactory,
-  TakerCodegen
+  TakerCodeFactory
 } from './taker-types';
 
 /**
@@ -27,7 +26,7 @@ export function char(charCode: CharCodeChecker | CharCodeRange[]): Taker {
   return createCharCodeRangeTaker(charCode);
 }
 
-export interface CharCodeCheckerTaker extends InternalTaker, TakerCodegen {
+export interface CharCodeCheckerTaker extends InternalTaker {
   type: InternalTakerType.CHAR_CODE_CHECKER;
   charCodeChecker: CharCodeChecker;
 }
@@ -47,7 +46,7 @@ export function createCharCodeCheckerTaker(charCodeChecker: CharCodeChecker): Ch
   return taker;
 }
 
-export interface CharCodeRangeTaker extends InternalTaker, TakerCodegen {
+export interface CharCodeRangeTaker extends InternalTaker {
   type: InternalTakerType.CHAR_CODE_RANGE;
   charCodeRanges: CharCodeRange[];
 }
