@@ -36,7 +36,7 @@ export function until(taker: TakerLike, options: UntilOptions = {}): Taker {
 
   const {inclusive = false} = options;
 
-  if (taker === never || taker === none || isUntilTaker(taker)) {
+  if (taker === never || taker === none) {
     return taker;
   }
   if (isInternalTaker<RegexTaker>(taker, InternalTakerType.REGEX)) {
@@ -59,21 +59,6 @@ export function until(taker: TakerLike, options: UntilOptions = {}): Taker {
   return createUntilGenericTaker(taker, inclusive);
 }
 
-export type UntilTaker =
-    | UntilCharCodeRangeTaker
-    | UntilCaseSensitiveTextTaker
-    | UntilCharCodeCheckerTaker
-    | UntilRegexTaker
-    | UntilGenericTaker;
-
-export function isUntilTaker(taker: TakerLike): taker is UntilTaker {
-  return isInternalTaker<UntilCharCodeRangeTaker>(taker, InternalTakerType.UNTIL_CHAR_CODE_RANGE)
-      || isInternalTaker<UntilCaseSensitiveTextTaker>(taker, InternalTakerType.UNTIL_CASE_SENSITIVE_TEXT)
-      || isInternalTaker<UntilCharCodeCheckerTaker>(taker, InternalTakerType.UNTIL_CHAR_CODE_CHECKER)
-      || isInternalTaker<UntilRegexTaker>(taker, InternalTakerType.UNTIL_REGEX)
-      || isInternalTaker<UntilGenericTaker>(taker, InternalTakerType.UNTIL_GENERIC);
-}
-
 export interface UntilCharCodeRangeTaker extends InternalTaker {
   type: InternalTakerType.UNTIL_CHAR_CODE_RANGE;
 }
@@ -86,11 +71,9 @@ export function createUntilCharCodeRangeTaker(charCodeRanges: CharCodeRange[], i
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
     'var ', inputLengthVar, '=', inputVar, '.length,', indexVar, '=', offsetVar, ',', charCodeVar, ';',
-    'while(', indexVar, '<', inputLengthVar, '){',
-    charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
-    'if(', createCharPredicate(charCodeVar, charCodeRanges), ')break;',
-    '++', indexVar,
-    '}',
+    'while(', indexVar, '<', inputLengthVar,
+    '&&(', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, '),!(', createCharPredicate(charCodeVar, charCodeRanges), '))',
+    '){++', indexVar, '}',
     resultVar, '=', indexVar, '===', inputLengthVar, '?' + ResultCode.NO_MATCH + ':', indexVar, inclusive ? '+1;' : ';',
   ];
 

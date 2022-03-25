@@ -1,7 +1,7 @@
 import {char, InternalTaker, InternalTakerType, never, none, regex, ResultCode, text} from '../main';
 import {
   createUntilCaseSensitiveTextTaker,
-  createUntilCharCodeCheckerTaker,
+  createUntilCharCodeCheckerTaker, createUntilCharCodeRangeTaker,
   createUntilGenericTaker,
   createUntilRegexTaker,
   until
@@ -22,6 +22,10 @@ describe('until', () => {
     expect((until(text('aaa')) as InternalTaker).type).toBe(InternalTakerType.UNTIL_CASE_SENSITIVE_TEXT);
   });
 
+  test('returns UntilCharCodeRangeTaker', () => {
+    expect((until(char([97, 98])) as InternalTaker).type).toBe(InternalTakerType.UNTIL_CHAR_CODE_RANGE);
+  });
+
   test('returns UntilCharCodeCheckerTaker', () => {
     expect((until(char(() => false)) as InternalTaker).type).toBe(InternalTakerType.UNTIL_CHAR_CODE_CHECKER);
   });
@@ -32,6 +36,17 @@ describe('until', () => {
 
   test('returns UntilCharCodeCheckerTaker', () => {
     expect((until(() => 0) as InternalTaker).type).toBe(InternalTakerType.UNTIL_GENERIC);
+  });
+});
+
+describe('createUntilCharCodeRangeTaker', () => {
+
+  test('takes chars until char code is met', () => {
+    expect(createUntilCharCodeRangeTaker(['b'.charCodeAt(0)], false)('aaabbb', 0)).toBe(3);
+  });
+
+  test('takes chars including the searched char', () => {
+    expect(createUntilCharCodeRangeTaker(['b'.charCodeAt(0)], true)('aaabbb', 0)).toBe(4);
   });
 });
 
