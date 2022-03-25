@@ -3,6 +3,11 @@ import {createInternalTaker} from './js';
 import {none} from './none';
 import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory} from './taker-types';
 
+/**
+ * Creates taker that skips given number of chars.
+ *
+ * @param charCount The number of chars to skip.
+ */
 export function skip(charCount = 1): Taker {
   if (charCount < 1) {
     return none;

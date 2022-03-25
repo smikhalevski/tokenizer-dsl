@@ -159,7 +159,7 @@ export function createAllCaseSensitiveTextTaker(str: string, minimumCount: numbe
     'while(',
     indexVar, '+', str.length, '<=', inputLengthVar,
     maximumCount === Infinity ? '' : ['&&', takeCountVar, '<', maximumCount],
-    toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', indexVar, '+', i, ')===', charCode]),
+    toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', indexVar, i === 0 ? '' : '+' + i, ')===', charCode]),
     '){',
     minimumCount === 0 && maximumCount === Infinity ? '' : ['++', takeCountVar, ';'],
     indexVar, '+=', str.length,

@@ -48,25 +48,25 @@ export function createOrTaker(takers: TakerLike[]): OrTaker {
 
   const takerVars: Var[] = [];
 
-  const values = takers.reduce<[Var, unknown][]>((values, taker, i) => {
+  const values = takers.reduce<[Var, unknown][]>((values, taker) => {
     if (isTakerCodegen(taker)) {
       values.push(...taker.values);
     } else {
-      const takerVar = takerVars[i] = createVar();
+      const takerVar = createVar();
+      takerVars.push(takerVar);
       values.push([takerVar, taker]);
     }
     return values;
   }, []);
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
-
     const code: Code[] = [];
     const tailCode: Code[] = [];
 
-    for (let i = 0; i <= takersLastIndex; ++i) {
+    for (let i = 0, j = 0; i <= takersLastIndex; ++i) {
       const taker = takers[i];
 
-      code.push(isTakerCodegen(taker) ? taker.factory(inputVar, offsetVar, resultVar) : [resultVar, '=', takerVars[i], '(', inputVar, ',', offsetVar, ');']);
+      code.push(isTakerCodegen(taker) ? taker.factory(inputVar, offsetVar, resultVar) : [resultVar, '=', takerVars[j++], '(', inputVar, ',', offsetVar, ');']);
 
       if (i !== takersLastIndex) {
         code.push('if(', resultVar, '===' + ResultCode.NO_MATCH + '){');
@@ -75,7 +75,6 @@ export function createOrTaker(takers: TakerLike[]): OrTaker {
     }
 
     code.push(tailCode);
-
     return code;
   };
 

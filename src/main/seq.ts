@@ -47,29 +47,30 @@ export function createSeqTaker(takers: TakerLike[]): SeqTaker {
 
   const takerVars: Var[] = [];
 
-  const values = takers.reduce<[Var, unknown][]>((values, taker, i) => {
+  const values = takers.reduce<[Var, unknown][]>((values, taker) => {
     if (isTakerCodegen(taker)) {
       values.push(...taker.values);
     } else {
-      const takerVar = takerVars[i] = createVar();
+      const takerVar = createVar();
+      takerVars.push(takerVar);
       values.push([takerVar, taker]);
     }
     return values;
   }, []);
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
-
     const code: Code[] = [];
     const tailCode: Code[] = [];
 
-    for (let i = 0; i < takersLastIndex; ++i) {
+    let j = 0;
 
+    for (let i = 0; i < takersLastIndex; ++i) {
       const taker = takers[i];
       const takerResultVar = createVar();
 
       code.push(
           'var ', takerResultVar, ';',
-          isTakerCodegen(taker) ? taker.factory(inputVar, offsetVar, takerResultVar) : [takerResultVar, '=', takerVars[i], '(', inputVar, ',', offsetVar, ');'],
+          isTakerCodegen(taker) ? taker.factory(inputVar, offsetVar, takerResultVar) : [takerResultVar, '=', takerVars[j++], '(', inputVar, ',', offsetVar, ');'],
           'if(', takerResultVar, '<0){', resultVar, '=', takerResultVar, '}else{'
       );
       tailCode.push('}');
@@ -80,10 +81,9 @@ export function createSeqTaker(takers: TakerLike[]): SeqTaker {
     const lastTaker = takers[takersLastIndex];
 
     code.push(
-        isTakerCodegen(lastTaker) ? lastTaker.factory(inputVar, offsetVar, resultVar) : [resultVar, '=', takerVars[takersLastIndex], '(', inputVar, ',', offsetVar, ');'],
+        isTakerCodegen(lastTaker) ? lastTaker.factory(inputVar, offsetVar, resultVar) : [resultVar, '=', takerVars[j], '(', inputVar, ',', offsetVar, ');'],
         tailCode,
     );
-
     return code;
   };
 

@@ -70,6 +70,6 @@ export function createCharCodeRangeTaker(charCodeRanges: CharCodeRange[]): CharC
 export function createCharPredicate(charCodeVar: Var, charCodeRanges: CharCodeRange[]): Code {
   return charCodeRanges.map((value, i) => [
     i === 0 ? '' : '||',
-    typeof value === 'number' ? [charCodeVar, '===', value] : [charCodeVar, '>=', value[0], '&&', charCodeVar, '<=', value[1]],
+    typeof value === 'number' ? [charCodeVar, '===', value | 0] : [charCodeVar, '>=', value[0] | 0, '&&', charCodeVar, '<=', value[1] | 0],
   ]);
 }

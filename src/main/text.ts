@@ -57,7 +57,8 @@ export function createCaseSensitiveTextTaker(str: string): CaseSensitiveTextTake
   const strVar = createVar();
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
-    resultVar, '=', inputVar, '.startsWith(', strVar, ',', offsetVar, ')',
+    resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
+    toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, i === 0 ? '' : '+' + i, ')===', charCode]),
     '?', offsetVar, '+', str.length, ':' + ResultCode.NO_MATCH + ';',
   ];
 
@@ -76,18 +77,18 @@ export interface CaseInsensitiveTextTaker extends InternalTaker {
 
 export function createCaseInsensitiveTextTaker(str: string, locales: string | string[] | undefined): CaseInsensitiveTextTaker {
 
-  const lowerCharCodes = toCharCodes(toLowerCase(str, locales));
-  const upperCharCodes = toCharCodes(toUpperCase(str, locales));
-
-  const lowerCharCount = lowerCharCodes.length;
-  const upperCharCount = upperCharCodes.length;
-
-  const minimumCharCount = Math.min(lowerCharCount, upperCharCount);
-  const maximumCharCount = Math.max(lowerCharCount, upperCharCount);
-
   const charCodeVar = createVar();
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+
+    const lowerCharCodes = toCharCodes(toLowerCase(str, locales));
+    const upperCharCodes = toCharCodes(toUpperCase(str, locales));
+
+    const lowerCharCount = lowerCharCodes.length;
+    const upperCharCount = upperCharCodes.length;
+
+    const minimumCharCount = Math.min(lowerCharCount, upperCharCount);
+    const maximumCharCount = Math.max(lowerCharCount, upperCharCount);
 
     const code: Code[] = [
       'var ', charCodeVar, ';',

@@ -18,7 +18,6 @@ export function maybe(taker: TakerLike): Taker {
 
 export interface MaybeTaker extends InternalTaker {
   type: InternalTakerType.MAYBE;
-  baseTaker: TakerLike;
 }
 
 export function createMaybeTaker(baseTaker: TakerLike): MaybeTaker {
