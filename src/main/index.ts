@@ -10,3 +10,4 @@ export {seq} from './seq';
 export {text, TextOptions} from './text';
 export {until, UntilOptions} from './until';
 export * from './taker-types';
+export * from './Tokenizer';

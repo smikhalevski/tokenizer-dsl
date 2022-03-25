@@ -92,7 +92,7 @@ export function createUntilCharCodeRangeTaker(charCodeRanges: CharCodeRange[], i
     'if(', createCharPredicate(charCodeVar, charCodeRanges), ')break;',
     '++', indexVar,
     '}',
-    resultVar, '=', indexVar, '===', inputLengthVar, '?' + ResultCode.NO_MATCH + ':', inclusive ? [indexVar, '+1'] : indexVar, ';',
+    resultVar, '=', indexVar, '===', inputLengthVar, '?' + ResultCode.NO_MATCH + ':', indexVar, inclusive ? '+1;' : ';',
   ];
 
   return createInternalTaker<UntilCharCodeRangeTaker>(InternalTakerType.UNTIL_CHAR_CODE_RANGE, factory);
@@ -109,7 +109,7 @@ export function createUntilCaseSensitiveTextTaker(str: string, inclusive: boolea
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
     'var ', indexVar, '=', inputVar, '.indexOf(', strVar, ',', offsetVar, ');',
-    resultVar, '=', indexVar, '===-1?' + ResultCode.NO_MATCH + ':', inclusive ? [indexVar, '+', str.length] : indexVar, ';',
+    resultVar, '=', indexVar, '===-1?' + ResultCode.NO_MATCH + ':', indexVar, inclusive ? '+' + str.length : '', ';',
   ];
 
   return createInternalTaker<UntilCaseSensitiveTextTaker>(InternalTakerType.UNTIL_CASE_SENSITIVE_TEXT, factory, [[strVar, str]]);
@@ -130,7 +130,7 @@ export function createUntilCharCodeCheckerTaker(charCodeChecker: CharCodeChecker
     'while(', indexVar, '<', inputLengthVar, '&&!', charCodeCheckerVar, '(', inputVar, '.charCodeAt(', indexVar, '))){',
     '++', indexVar,
     '}',
-    resultVar, '=', indexVar, '===', inputLengthVar, '?' + ResultCode.NO_MATCH + ':', inclusive ? [indexVar, '+1'] : indexVar, ';',
+    resultVar, '=', indexVar, '===', inputLengthVar, '?' + ResultCode.NO_MATCH + ':', indexVar, inclusive ? '+1;' : ';',
   ];
 
   return createInternalTaker<UntilCharCodeCheckerTaker>(InternalTakerType.UNTIL_CHAR_CODE_CHECKER, factory, [[charCodeCheckerVar, charCodeChecker]]);
