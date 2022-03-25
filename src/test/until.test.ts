@@ -38,36 +38,31 @@ describe('until', () => {
 describe('createUntilCaseSensitiveTextTaker', () => {
 
   test('takes chars until substr is met', () => {
-    expect(createUntilCaseSensitiveTextTaker('b', false, false, 0)('aaabbb', 0)).toBe(3);
+    expect(createUntilCaseSensitiveTextTaker('b', false)('aaabbb', 0)).toBe(3);
   });
 
   test('takes chars including substr', () => {
-    expect(createUntilCaseSensitiveTextTaker('b', true, false, 0)('aaabbb', 0)).toBe(4);
+    expect(createUntilCaseSensitiveTextTaker('b', true)('aaabbb', 0)).toBe(4);
   });
 });
 
 describe('createUntilCharCodeCheckerTaker', () => {
 
   test('takes chars until char is met', () => {
-    expect(createUntilCharCodeCheckerTaker((charCode) => charCode === 'b'.charCodeAt(0), false, false, 0)('aaabbb', 0)).toBe(3);
+    expect(createUntilCharCodeCheckerTaker((charCode) => charCode === 'b'.charCodeAt(0), false)('aaabbb', 0)).toBe(3);
   });
 });
 
 describe('createUntilRegexTaker', () => {
 
   test('takes until regex is met', () => {
-    expect(createUntilRegexTaker(/b/, false, false, 0)('aaabbbaaabbb', 0)).toBe(3);
-    expect(createUntilRegexTaker(/b/, false, false, 0)('aaabbbaaabbb', 6)).toBe(9);
-    expect(createUntilRegexTaker(/c/, false, false, 0)('aaabbbaaabbb', 6)).toBe(ResultCode.NO_MATCH);
+    expect(createUntilRegexTaker(/b/, false)('aaabbbaaabbb', 0)).toBe(3);
+    expect(createUntilRegexTaker(/b/, false)('aaabbbaaabbb', 6)).toBe(9);
+    expect(createUntilRegexTaker(/c/, false)('aaabbbaaabbb', 6)).toBe(ResultCode.NO_MATCH);
   });
 
   test('takes chars including matched substr', () => {
-    expect(createUntilRegexTaker(/bb/, true, false, 0)('aaabbbb', 0)).toBe(5);
-  });
-
-  test('takes open-ended', () => {
-    expect(createUntilRegexTaker(/c/, false, true, 0)('aaabbb', 0)).toBe(6);
-    expect(createUntilRegexTaker(/c/, false, true, 3)('aaabbb', 0)).toBe(9);
+    expect(createUntilRegexTaker(/bb/, true)('aaabbbb', 0)).toBe(5);
   });
 });
 
@@ -79,7 +74,7 @@ describe('createUntilGenericTaker', () => {
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
     takerMock.mockReturnValueOnce(0);
 
-    expect(createUntilGenericTaker(takerMock, false, false, 0)('aaaa', 0)).toBe(2);
+    expect(createUntilGenericTaker(takerMock, false)('aaaa', 0)).toBe(2);
     expect(takerMock).toHaveBeenCalledTimes(3);
     expect(takerMock).toHaveBeenNthCalledWith(3, 'aaaa', 2);
   });
@@ -90,12 +85,12 @@ describe('createUntilGenericTaker', () => {
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
     takerMock.mockReturnValueOnce(77);
 
-    expect(createUntilGenericTaker(takerMock, true, false, 0)('aaaa', 0)).toBe(77);
+    expect(createUntilGenericTaker(takerMock, true)('aaaa', 0)).toBe(77);
     expect(takerMock).toHaveBeenCalledTimes(3);
     expect(takerMock).toHaveBeenNthCalledWith(3, 'aaaa', 2);
   });
 
   test('can use inline takers', () => {
-    expect(createUntilGenericTaker(text('bb'), false, false, 0)('aabbcc', 0)).toBe(2);
+    expect(createUntilGenericTaker(text('bb'), false)('aabbcc', 0)).toBe(2);
   });
 });
