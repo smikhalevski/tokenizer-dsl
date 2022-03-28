@@ -33,7 +33,7 @@ describe('compileTokenIterator', () => {
       chunk: 'abaabb',
       offset: 0,
       chunkOffset: 0,
-      stage: undefined,
+      stage: -1,
     };
 
     tokenIterator(state, false, handler);
@@ -51,7 +51,7 @@ describe('compileTokenIterator', () => {
       chunk: 'abaabb',
       offset: 6,
       chunkOffset: 0,
-      stage: undefined,
+      stage: -1,
     });
   });
 
@@ -63,7 +63,7 @@ describe('compileTokenIterator', () => {
       chunk: 'aaa',
       offset: 0,
       chunkOffset: 0,
-      stage: undefined,
+      stage: -1,
     };
 
     tokenIterator(state, true, handler);
@@ -79,7 +79,7 @@ describe('compileTokenIterator', () => {
       chunk: 'aaa',
       offset: 2,
       chunkOffset: 0,
-      stage: undefined,
+      stage: -1,
     });
   });
 
@@ -91,7 +91,7 @@ describe('compileTokenIterator', () => {
       chunk: 'aaa',
       offset: 0,
       chunkOffset: 0,
-      stage: undefined,
+      stage: -1,
     };
 
     tokenIterator(state, false, handler);
@@ -108,7 +108,7 @@ describe('compileTokenIterator', () => {
       chunk: 'aaa',
       offset: 3,
       chunkOffset: 0,
-      stage: undefined,
+      stage: -1,
     });
   });
 
@@ -120,7 +120,7 @@ describe('compileTokenIterator', () => {
       chunk: 'bbaaa',
       offset: 2,
       chunkOffset: 1000,
-      stage: undefined,
+      stage: -1,
     };
 
     tokenIterator(state, false, handler);
@@ -137,7 +137,7 @@ describe('compileTokenIterator', () => {
       chunk: 'bbaaa',
       offset: 5,
       chunkOffset: 1000,
-      stage: undefined,
+      stage: -1,
     });
   });
 
@@ -149,7 +149,7 @@ describe('compileTokenIterator', () => {
       chunk: 'bbaac',
       offset: 2,
       chunkOffset: 1000,
-      stage: undefined,
+      stage: -1,
     };
 
     tokenIterator(state, false, handler);
@@ -167,7 +167,7 @@ describe('compileTokenIterator', () => {
       chunk: 'bbaac',
       offset: 4,
       chunkOffset: 1000,
-      stage: undefined,
+      stage: -1,
     });
   });
 
@@ -181,7 +181,7 @@ describe('compileTokenIterator', () => {
       chunk: 'bbaaacceee',
       offset: 2,
       chunkOffset: 1000,
-      stage: undefined,
+      stage: -1,
     };
 
     tokenIterator(state, false, handler);
@@ -199,7 +199,38 @@ describe('compileTokenIterator', () => {
       chunk: 'bbaaacceee',
       offset: 5,
       chunkOffset: 1000,
-      stage: undefined,
+      stage: -1,
+    });
+  });
+
+  test('respects stages', () => {
+    const tokenA = createToken(text('a'), {stages: ['A'], nextStage: 'B'});
+    const tokenB = createToken(text('b'), {stages: ['B'], nextStage: 'A'});
+
+    const tokenIterator = compileTokenIterator([tokenA, tokenB]);
+
+    const state: TokenIteratorState = {
+      chunk: 'ababbbb',
+      offset: 0,
+      chunkOffset: 0,
+      stage: tokenIterator.uniqueStages.indexOf('A'),
+    };
+
+    tokenIterator(state, true, handler);
+
+    expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, tokenA, 0, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, tokenB, 1, 2);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, tokenA, 2, 3);
+
+    expect(errorCallbackMock).not.toHaveBeenCalled();
+    expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
+
+    expect(state).toEqual({
+      chunk: 'ababbbb',
+      offset: 3,
+      chunkOffset: 0,
+      stage: 1,
     });
   });
 });

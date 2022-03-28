@@ -69,5 +69,8 @@ export function compileFunction<F extends Function>(argVars: Var[], code: Code, 
 
   const boundVars = [boundValuesVar];
   boundVars.push(...argVars);
-  return Function.call(undefined, 'v0', assembleCode(boundCode, boundVars))(boundValues);
+
+  const source = assembleCode(boundCode, boundVars);
+
+  return Function.call(undefined, 'v0', source)(boundValues);
 }

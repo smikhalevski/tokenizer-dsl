@@ -4,12 +4,15 @@ import {ResultCode} from './takers';
 import {isTakerCodegen} from './takers/taker-utils';
 import {Token, TokenHandler} from './token-types';
 
+/**
+ * The mutable iterator state.
+ */
 export interface TokenIteratorState {
 
   /**
-   * The current tokenizer stage.
+   * The current tokenizer stage. A positive integer or -1 if stage is undefined.
    */
-  stage: unknown;
+  stage: number;
 
   /**
    * The chunk that is being processed.
@@ -30,7 +33,15 @@ export interface TokenIteratorState {
 /**
  * The callback that reads tokens from the input defined by iterator state.
  */
-export type TokenIterator = (state: TokenIteratorState, streaming: boolean, handler: TokenHandler) => void;
+export interface TokenIterator {
+
+  (state: TokenIteratorState, streaming: boolean, handler: TokenHandler): void;
+
+  /**
+   * The list of unique stages that are used by tokens that comprise this iterator.
+   */
+  uniqueStages: readonly unknown[];
+}
 
 /**
  * Compiles tokens into a token iterator function.
@@ -117,7 +128,7 @@ export function compileTokenIterator(tokens: Token[]): TokenIterator {
         errorCallbackVar, '(', tokenVar, ',', chunkOffsetVar, '+', nextOffsetVar, ',', takerResultVar, ');',
         'return}',
 
-        // Emit unconfirmed token
+        // Emit confirmed token
         'if(', prevReaderVar, '){',
         tokenCallbackVar, '(', prevReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', chunkOffsetVar, '+', nextOffsetVar, ');',
         prevReaderVar, '=undefined;',
@@ -139,7 +150,7 @@ export function compileTokenIterator(tokens: Token[]): TokenIterator {
 
     'if(', streamingVar, ')return;',
 
-    // Emit trailing token
+    // Emit trailing unconfirmed token
     'if(', prevReaderVar, '){',
     tokenCallbackVar, '(', prevReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', chunkOffsetVar, '+', nextOffsetVar, ');',
     stateVar, '.stage=', stageVar, ';',
@@ -151,5 +162,9 @@ export function compileTokenIterator(tokens: Token[]): TokenIterator {
     unrecognizedTokenCallbackVar, '(', chunkOffsetVar, '+', nextOffsetVar, ');',
   ];
 
-  return compileFunction([stateVar, streamingVar, handlerVar], code, bindings);
+  const tokenIterator = compileFunction<TokenIterator>([stateVar, streamingVar, handlerVar], code, bindings);
+
+  tokenIterator.uniqueStages = uniqueStages;
+
+  return tokenIterator;
 }
