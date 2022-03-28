@@ -1,4 +1,5 @@
-import {all, createToken, createTokenIterator, text, TokenIteratorState} from '../main';
+import {all, createToken, text} from '../main';
+import {createTokenIterator, TokenIteratorState} from '../main/createTokenIterator';
 
 describe('Tokenizer', () => {
 
@@ -28,5 +29,12 @@ describe('Tokenizer', () => {
     expect(handlerMock).toHaveBeenNthCalledWith(2, tokenB, 1, 2);
     expect(handlerMock).toHaveBeenNthCalledWith(3, tokenA, 2, 4);
     expect(handlerMock).toHaveBeenNthCalledWith(4, tokenB, 4, 6);
+
+    expect(state).toEqual({
+      chunk: 'abaabb',
+      offset: 6,
+      chunkOffset: 0,
+      stage: undefined,
+    });
   });
 });
