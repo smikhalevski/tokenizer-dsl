@@ -1,7 +1,8 @@
-import {Binding, Code, compileFunction, createVar} from './code';
+import {Code, Var} from './code-types';
+import {compileFunction, createVar} from './code-utils';
 import {ResultCode} from './takers';
 import {isTakerCodegen} from './takers/taker-utils';
-import {Token} from './token-utils';
+import {Token, TokenHandler} from './token-types';
 
 export interface TokenIteratorState {
 
@@ -26,11 +27,17 @@ export interface TokenIteratorState {
   chunkOffset: number;
 }
 
-export type TokenHandler = (token: Token, offset: number, result: number) => void;
-
+/**
+ * The callback that reads tokens from the input defined by iterator state.
+ */
 export type TokenIterator = (state: TokenIteratorState, streaming: boolean, handler: TokenHandler) => void;
 
-export function createTokenIterator(tokens: Token[]): TokenIterator {
+/**
+ * Compiles tokens into a token iterator function.
+ *
+ * @param tokens The list of tokes that iterator can process.
+ */
+export function compileTokenIterator(tokens: Token[]): TokenIterator {
 
   const uniqueStages = tokens.reduce<unknown[]>((stages, token) => {
     token.stages?.forEach((stage) => {
@@ -45,6 +52,10 @@ export function createTokenIterator(tokens: Token[]): TokenIterator {
   const streamingVar = createVar();
   const handlerVar = createVar();
 
+  const tokenCallbackVar = createVar();
+  const errorCallbackVar = createVar();
+  const unrecognizedTokenCallbackVar = createVar();
+
   const stageVar = createVar();
   const chunkVar = createVar();
   const offsetVar = createVar();
@@ -55,7 +66,7 @@ export function createTokenIterator(tokens: Token[]): TokenIterator {
   const chunkLengthVar = createVar();
   const takerResultVar = createVar();
 
-  const bindings: Binding[] = [];
+  const bindings: [Var, unknown][] = [];
 
   const code: Code = [
     'var ',
@@ -63,6 +74,10 @@ export function createTokenIterator(tokens: Token[]): TokenIterator {
     chunkVar, '=', stateVar, '.chunk,',
     offsetVar, '=', stateVar, '.offset,',
     chunkOffsetVar, '=', stateVar, '.chunkOffset,',
+
+    tokenCallbackVar, '=', handlerVar, '.token,',
+    errorCallbackVar, '=', handlerVar, '.error,',
+    unrecognizedTokenCallbackVar, '=', handlerVar, '.unrecognizedToken,',
 
     prevReaderVar, ',',
     nextOffsetVar, '=', offsetVar, ',',
@@ -99,12 +114,12 @@ export function createTokenIterator(tokens: Token[]): TokenIterator {
 
         // Emit error
         'if(', takerResultVar, '<0){',
-        handlerVar, '(', tokenVar, ',', chunkOffsetVar, '+', nextOffsetVar, ',', takerResultVar, ');',
-        'break}',
+        errorCallbackVar, '(', tokenVar, ',', chunkOffsetVar, '+', nextOffsetVar, ',', takerResultVar, ');',
+        'return}',
 
         // Emit unconfirmed token
         'if(', prevReaderVar, '){',
-        handlerVar, '(', prevReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', chunkOffsetVar, '+', nextOffsetVar, ');',
+        tokenCallbackVar, '(', prevReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', chunkOffsetVar, '+', nextOffsetVar, ');',
         prevReaderVar, '=undefined;',
         '}',
 
@@ -122,12 +137,18 @@ export function createTokenIterator(tokens: Token[]): TokenIterator {
     }),
     'break}',
 
-    'if(!', streamingVar, '&&', prevReaderVar, '){',
-    handlerVar, '(', prevReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', chunkOffsetVar, '+', nextOffsetVar, ');',
+    'if(', streamingVar, ')return;',
 
+    // Emit trailing token
+    'if(', prevReaderVar, '){',
+    tokenCallbackVar, '(', prevReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', chunkOffsetVar, '+', nextOffsetVar, ');',
     stateVar, '.stage=', stageVar, ';',
     stateVar, '.offset=', nextOffsetVar, ';',
     '}',
+
+    // Trigger unrecognized token
+    'if(', nextOffsetVar, '!==', chunkLengthVar, ')',
+    unrecognizedTokenCallbackVar, '(', chunkOffsetVar, '+', nextOffsetVar, ');',
   ];
 
   return compileFunction([stateVar, streamingVar, handlerVar], code, bindings);

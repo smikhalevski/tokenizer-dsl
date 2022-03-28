@@ -1,4 +1,5 @@
-import {Code, createVar, Var} from '../code';
+import {Code, Var} from '../code-types';
+import {createVar} from '../code-utils';
 import {never} from './never';
 import {none} from './none';
 import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory, TakerLike} from './taker-types';

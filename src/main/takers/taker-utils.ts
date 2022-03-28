@@ -1,4 +1,5 @@
-import {Binding, Code, compileFunction, createVar} from '../code';
+import {Code, Var} from '../code-types';
+import {compileFunction, createVar} from '../code-utils';
 import {InternalTaker, Taker, TakerCodeFactory, TakerCodegen, TakerLike} from './taker-types';
 
 export function isInternalTaker<T extends InternalTaker>(taker: TakerLike | InternalTaker, type: T['type']): taker is T {
@@ -34,7 +35,7 @@ export function toCharCodes(str: string): number[] {
  * @param bindings The optional variable bindings available inside the taker function.
  * @returns The taker function.
  */
-export function compileInternalTaker<T extends InternalTaker>(type: T['type'], factory: TakerCodeFactory, bindings?: Binding[]): T {
+export function compileInternalTaker<T extends InternalTaker>(type: T['type'], factory: TakerCodeFactory, bindings?: [Var, unknown][]): T {
   const taker = toTaker({factory, bindings}) as T;
 
   taker.type = type;

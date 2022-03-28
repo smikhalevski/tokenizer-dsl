@@ -1,6 +1,5 @@
-import {assembleCode, compileFunction, createVar, Var} from '../../main/code';
-import {InternalTakerType} from '../../main';
-import {compileInternalTaker} from '../../main/takers/taker-utils';
+import {Var} from '../main';
+import {assembleCode, compileFunction, createVar} from '../main/code-utils';
 
 describe('assembleCode', () => {
 
@@ -76,18 +75,5 @@ describe('compileFunction', () => {
           [bound2Var, (value: number) => value * 7],
         ])(5, 2)
     ).toBe(29);
-  });
-});
-
-describe('compileInternalTaker', () => {
-
-  test('compiles taker', () => {
-    const boundVar = createVar();
-
-    const taker = compileInternalTaker(InternalTakerType.NEVER, (inputVar, offsetVar, resultVar) => [
-      resultVar, '=', inputVar, '.charCodeAt(', offsetVar, ')+', boundVar, ';'
-    ], [[boundVar, 1]]);
-
-    expect(taker('a', 0)).toBe(98);
   });
 });

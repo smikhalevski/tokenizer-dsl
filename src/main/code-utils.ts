@@ -1,19 +1,4 @@
-/**
- * The placeholder that denotes a variable reference in a code fragment.
- */
-export type Var = symbol;
-
-/**
- * The code fragment.
- */
-export type Code = Code[] | Var | string | number | boolean;
-
-/**
- * The value that would be bound to the given variable inside a compiled function.
- *
- * @see {@link compileFunction}
- */
-export type Binding = [Var, unknown];
+import {Code, Var} from './code-types';
 
 /**
  * Creates the new variable placeholder.
@@ -54,7 +39,7 @@ export function assembleCode(code: Code, vars: Var[] = []): string {
  * @param bindings The list of variable-value pairs that are bound to the output function.
  * @returns The compiled function.
  */
-export function compileFunction<F extends Function>(argVars: Var[], code: Code, bindings?: Binding[]): F {
+export function compileFunction<F extends Function>(argVars: Var[], code: Code, bindings?: [Var, unknown][]): F {
 
   if (!bindings || bindings.length === 0) {
     const args = argVars.map((argVar, i) => 'v' + i);
