@@ -1,4 +1,4 @@
-import {all, char, maybe, or, ResultCode, seq, text} from '../main';
+import {all, char, maybe, or, ResultCode, seq, text} from '../../main';
 
 test('readme example', () => {
 

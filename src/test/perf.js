@@ -82,7 +82,7 @@ describe('readme', () => {
 
     measure(() => takeNumber(input, 0));
   });
-});
+}, {targetRme: 0.001});
 
 describe('char', () => {
 
@@ -125,13 +125,13 @@ describe('char', () => {
       measure(() => take(input, 0));
     });
   });
-});
+}, {targetRme: 0.001});
 
 describe('all', () => {
 
   describe('AllCharCodeCheckerTaker', () => {
 
-    const input = 'a'.repeat(10_000) + 'b';
+    const input = 'aaaaaab';
 
     test('RegExp', (measure) => {
       const re = /^a*/;
@@ -151,10 +151,10 @@ describe('all', () => {
 
   describe('AllCharCodeRangeTaker', () => {
 
-    const input = 'ab'.repeat(5_000) + 'b';
+    const input = 'abababc';
 
     test('RegExp', (measure) => {
-      const re = /^ab*/;
+      const re = /^[ab]*/;
       measure(() => re.exec(input));
     });
 
@@ -169,49 +169,89 @@ describe('all', () => {
     });
   });
 
-  describe('AllCharCodeCheckerTaker {minimumCount: 1}', () => {
+  describe('AllCharCodeRangeTaker {minimumCount: 2}', () => {
 
-    const input = 'a'.repeat(10_000) + 'b';
+    const input = 'aaabbb';
 
     test('RegExp', (measure) => {
-      const re = /^a+/;
+      const re = /^[ab]{2,}/;
       measure(() => re.exec(input));
     });
 
     test('latest', (measure) => {
-      const take = latest.allCharBy((charCode) => charCode === 97, 1);
+      const take = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2);
       measure(() => take(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.all(next.char((charCode) => charCode === 97), {minimumCount: 1});
+      const take = next.all(next.char([97, 98]), {minimumCount: 2});
       measure(() => take(input, 0));
     });
   });
 
-  describe('AllCharCodeCheckerTaker {maximumCount: 3}', () => {
+  describe('AllCharCodeRangeTaker {maximumCount: 3}', () => {
 
-    const input = 'a'.repeat(10_000) + 'b';
+    const input = 'aaabbb';
 
     test('RegExp', (measure) => {
-      const re = /^a{0,3}/;
+      const re = /^[ab]{,3}/;
       measure(() => re.exec(input));
     });
 
     test('latest', (measure) => {
-      const take = latest.allCharBy((charCode) => charCode === 97, 0, 3);
+      const take = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 0, 3);
       measure(() => take(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.all(next.char((charCode) => charCode === 97), {maximumCount: 3});
+      const take = next.all(next.char([97, 98]), {maximumCount: 3});
+      measure(() => take(input, 0));
+    });
+  });
+
+  describe('AllCharCodeRangeTaker {minimumCount: 2, maximumCount: 3}', () => {
+
+    const input = 'aaabbb';
+
+    test('RegExp', (measure) => {
+      const re = /^[ab]{2,3}/;
+      measure(() => re.exec(input));
+    });
+
+    test('latest', (measure) => {
+      const take = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2, 3);
+      measure(() => take(input, 0));
+    });
+
+    test('next', (measure) => {
+      const take = next.all(next.char([97, 98]), {minimumCount: 2, maximumCount: 3});
+      measure(() => take(input, 0));
+    });
+  });
+
+  describe('AllCharCodeRangeTaker {minimumCount: 2, maximumCount: 2}', () => {
+
+    const input = 'aaabbb';
+
+    test('RegExp', (measure) => {
+      const re = /^[ab]{2}/;
+      measure(() => re.exec(input));
+    });
+
+    test('latest', (measure) => {
+      const take = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2, 2);
+      measure(() => take(input, 0));
+    });
+
+    test('next', (measure) => {
+      const take = next.all(next.char([97, 98]), {minimumCount: 2, maximumCount: 2});
       measure(() => take(input, 0));
     });
   });
 
   describe('AllCaseSensitiveTextTaker', () => {
 
-    const input = 'ab'.repeat(100) + 'd';
+    const input = 'ababababc';
 
     test('RegExp', (measure) => {
       const re = /^(?:ab)*/;
@@ -231,7 +271,7 @@ describe('all', () => {
 
   describe('AllRegexTaker', () => {
 
-    const input = 'ab'.repeat(5_000) + 'd';
+    const input = 'ababababc';
 
     test('RegExp', (measure) => {
       const re = /^(?:ab)*/;
@@ -248,7 +288,7 @@ describe('all', () => {
       measure(() => take(input, 0));
     });
   });
-});
+}, {targetRme: 0.001});
 
 describe('or', () => {
 
@@ -271,7 +311,7 @@ describe('or', () => {
       measure(() => take(input, 0));
     });
   });
-});
+}, {targetRme: 0.001});
 
 describe('seq', () => {
 
@@ -294,49 +334,9 @@ describe('seq', () => {
       measure(() => take(input, 0));
     });
   });
-});
+}, {targetRme: 0.001});
 
 describe('text', () => {
-
-  describe('CaseSensitiveCharTaker', () => {
-
-    const input = 'ababab';
-
-    test('RegExp', (measure) => {
-      const re = /^a/;
-      measure(() => re.exec(input));
-    });
-
-    test('latest', (measure) => {
-      const take = latest.char(97);
-      measure(() => take(input, 0));
-    });
-
-    test('next', (measure) => {
-      const take = next.text('a');
-      measure(() => take(input, 0));
-    });
-  });
-
-  describe('CaseInsensitiveCharTaker', () => {
-
-    const input = 'ababab';
-
-    test('RegExp', (measure) => {
-      const re = /^A/i;
-      measure(() => re.exec(input));
-    });
-
-    test('latest', (measure) => {
-      const take = latest.charBy((charCode) => charCode === 65 || charCode === 97);
-      measure(() => take(input, 0));
-    });
-
-    test('next', (measure) => {
-      const take = next.text('A', {caseInsensitive: true});
-      measure(() => take(input, 0));
-    });
-  });
 
   describe('CaseSensitiveTextTaker', () => {
 
@@ -377,13 +377,33 @@ describe('text', () => {
       measure(() => take(input, 0));
     });
   });
-});
+}, {targetRme: 0.001});
 
 describe('until', () => {
 
+  describe('UntilCharCodeRangeTaker', () => {
+
+    const input = 'aaaaaab';
+
+    test('RegExp', (measure) => {
+      const re = /^.*[bc]/;
+      measure(() => re.exec(input));
+    });
+
+    test('latest', (measure) => {
+      const take = latest.untilCharBy((charCode) => charCode === 98 || charCode === 99, false, false);
+      measure(() => take(input, 0));
+    });
+
+    test('next', (measure) => {
+      const take = next.until(next.char([98, 99]));
+      measure(() => take(input, 0));
+    });
+  });
+
   describe('UntilCharCodeCheckerTaker', () => {
 
-    const input = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaabaaaaa';
+    const input = 'aaaaaab';
 
     test('RegExp', (measure) => {
       const re = /^.*b/;
@@ -403,51 +423,31 @@ describe('until', () => {
 
   describe('UntilCaseSensitiveTextTaker', () => {
 
-    const input = 'a'.repeat(1000) + 'b';
+    const input = 'aaaaaabc';
 
     test('RegExp', (measure) => {
-      const re = /b/;
+      const re = /bc/;
       measure(() => re.exec(input));
     });
 
     test('indexOf', (measure) => {
-      measure(() => input.indexOf('b'));
+      measure(() => input.indexOf('bc'));
     });
 
     test('latest', (measure) => {
-      const take = latest.untilText('b', false, false);
+      const take = latest.untilText('bc', false, false);
       measure(() => take(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.until(next.text('b'));
-      measure(() => take(input, 0));
-    });
-  });
-
-  describe('UntilCaseSensitiveTextTaker {openEnded: true}', () => {
-
-    const input = 'a'.repeat(1000) + 'b';
-
-    test('RegExp', (measure) => {
-      const re = /b/;
-      measure(() => re.exec(input));
-    });
-
-    test('latest', (measure) => {
-      const take = latest.untilText('b', false, true);
-      measure(() => take(input, 0));
-    });
-
-    test('next', (measure) => {
-      const take = next.until(next.text('b'), {openEnded: true});
+      const take = next.until(next.text('bc'));
       measure(() => take(input, 0));
     });
   });
 
   describe('UntilRegexTaker', () => {
 
-    const input = 'a'.repeat(1000) + 'b';
+    const input = 'aaaaaab';
 
     test('RegExp', (measure) => {
       const re = /b/;
@@ -465,4 +465,4 @@ describe('until', () => {
     });
   });
 
-});
+}, {targetRme: 0.001});

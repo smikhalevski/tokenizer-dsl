@@ -1,5 +1,5 @@
-import {char, none, ResultCode, TakerType} from '../main';
-import {createCharCodeCheckerTaker, createCharCodeRangeTaker} from '../main/char';
+import {char, InternalTaker, InternalTakerType, none, ResultCode} from '../../main';
+import {createCharCodeCheckerTaker, createCharCodeRangeTaker} from '../../main/takers/char';
 
 const A = 'a'.charCodeAt(0);
 const B = 'b'.charCodeAt(0);
@@ -11,11 +11,11 @@ describe('char', () => {
   });
 
   test('returns CharCodeCheckerTaker', () => {
-    expect(char(() => false).__type).toBe(TakerType.CHAR_CODE_CHECKER);
+    expect((char(() => false) as InternalTaker).type).toBe(InternalTakerType.CHAR_CODE_CHECKER);
   });
 
   test('returns CharCodeRangeTaker', () => {
-    expect(char([0]).__type).toBe(TakerType.CHAR_CODE_RANGE);
+    expect((char([0]) as InternalTaker).type).toBe(InternalTakerType.CHAR_CODE_RANGE);
   });
 });
 

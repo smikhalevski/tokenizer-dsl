@@ -1,5 +1,5 @@
-import {maybe, never, none, ResultCode, TakerType} from '../main';
-import {createMaybeTaker} from '../main/maybe';
+import {InternalTaker, InternalTakerType, maybe, never, none, ResultCode, text} from '../../main';
+import {createMaybeTaker} from '../../main/takers/maybe';
 
 describe('maybe', () => {
 
@@ -12,7 +12,7 @@ describe('maybe', () => {
   });
 
   test('returns MaybeTaker', () => {
-    expect(maybe(() => 0).__type).toBe(TakerType.MAYBE);
+    expect((maybe(() => 0) as InternalTaker).type).toBe(InternalTakerType.MAYBE);
   });
 });
 
@@ -33,4 +33,10 @@ describe('createMaybeTaker', () => {
     expect(createMaybeTaker(takerMock)('aabbcc', 2)).toBe(2);
     expect(takerMock).toHaveBeenCalledTimes(1);
   });
+
+  test('can use inline takers', () => {
+    expect(createMaybeTaker(text('aa'))('aabbcc', 0)).toBe(2);
+    expect(createMaybeTaker(text('bb'))('aabbcc', 0)).toBe(0);
+  });
+
 });

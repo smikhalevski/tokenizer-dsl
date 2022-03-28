@@ -1,5 +1,5 @@
-import {never, none, ResultCode, Taker, TakerType, text} from '../main';
-import {createSeqTaker, seq} from '../main/seq';
+import {InternalTaker, InternalTakerType, never, none, ResultCode, Taker, text} from '../../main';
+import {createSeqTaker, seq} from '../../main/takers/seq';
 
 describe('seq', () => {
 
@@ -18,7 +18,7 @@ describe('seq', () => {
   });
 
   test('returns SeqTaker', () => {
-    expect(seq(text('aaa'), text('bbb')).__type).toBe(TakerType.SEQ);
+    expect((seq(text('aaa'), text('bbb')) as InternalTaker).type).toBe(InternalTakerType.SEQ);
   });
 });
 
@@ -46,5 +46,9 @@ describe('createSeqTaker', () => {
 
     expect(createSeqTaker([takerMock, takerMock, takerMock])('aabbcc', 2)).toBe(-2);
     expect(takerMock).toHaveBeenCalledTimes(2);
+  });
+
+  test('can use inline takers', () => {
+    expect(createSeqTaker([text('aa'), text('bb')])('aabbcc', 0)).toBe(4);
   });
 });

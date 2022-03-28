@@ -1,5 +1,5 @@
-import {none, or, ResultCode, Taker, TakerType} from '../main';
-import {createOrTaker} from '../main/or';
+import {InternalTaker, InternalTakerType, none, or, ResultCode, Taker, text} from '../../main';
+import {createOrTaker} from '../../main/takers/or';
 
 describe('or', () => {
 
@@ -14,7 +14,7 @@ describe('or', () => {
 
   test('returns OrTaker', () => {
     const takerMock = jest.fn();
-    expect(or(takerMock, takerMock).__type).toBe(TakerType.OR);
+    expect((or(takerMock, takerMock) as InternalTaker).type).toBe(InternalTakerType.OR);
   });
 });
 
@@ -46,5 +46,9 @@ describe('createOrTaker', () => {
 
     expect(createOrTaker([takerMock, takerMock])('aabbcc', 2)).toBe(-2);
     expect(takerMock).toHaveBeenCalledTimes(2);
+  });
+
+  test('can use inline takers', () => {
+    expect(createOrTaker([text('bb'), text('aa')])('aabbcc', 0)).toBe(2);
   });
 });
