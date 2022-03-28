@@ -11,6 +11,13 @@ export type Var = symbol;
 export type Code = Code[] | Var | string | number | boolean;
 
 /**
+ * The value that would be bound to the given variable inside a compiled function.
+ *
+ * @see {@link compileFunction}
+ */
+export type Binding = [Var, unknown];
+
+/**
  * Creates the new variable placeholder.
  */
 export function createVar(): Var {
@@ -49,12 +56,12 @@ export function assembleCode(code: Code, vars: Var[] = []): string {
  * @param bindings The list of variable-value pairs that are bound to the output function.
  * @returns The compiled function.
  */
-export function compileFunction(argVars: Var[], code: Code, bindings?: [Var, unknown][]): Function {
+export function compileFunction<F extends Function>(argVars: Var[], code: Code, bindings?: Binding[]): F {
 
   if (!bindings || bindings.length === 0) {
     const args = argVars.map((argVar, i) => 'v' + i);
     args.push(assembleCode(code, argVars.slice(0)));
-    return Function.apply(undefined, args);
+    return Function.apply(undefined, args) as F;
   }
 
   const boundValuesVar = createVar();
@@ -82,7 +89,15 @@ export function compileFunction(argVars: Var[], code: Code, bindings?: [Var, unk
   return Function.call(undefined, 'v0', assembleCode(boundCode, boundVars))(boundValues);
 }
 
-export function compileInternalTaker<T extends InternalTaker>(type: T['type'], factory: TakerCodeFactory, bindings: [Var, unknown][] = []): T {
+/**
+ * Compiles an internal taker function of the given type.
+ *
+ * @param type The type of the taker.
+ * @param factory The factory that returns the taker body code.
+ * @param bindings The optional variable bindings available inside the taker function.
+ * @returns The taker function.
+ */
+export function compileInternalTaker<T extends InternalTaker>(type: T['type'], factory: TakerCodeFactory, bindings?: Binding[]): T {
   const taker = toTaker({factory, bindings}) as T;
 
   taker.type = type;
@@ -109,5 +124,5 @@ export function toTaker(taker: TakerLike): Taker {
     'return ', resultVar,
   ];
 
-  return compileFunction([inputVar, offsetVar, resultVar], code, bindings) as Taker;
+  return compileFunction([inputVar, offsetVar, resultVar], code, bindings);
 }

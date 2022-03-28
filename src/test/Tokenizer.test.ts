@@ -1,29 +1,32 @@
-import {all, createReader, Handler, text, Tokenizer} from '../main';
+import {all, createToken, createTokenIterator, text, TokenIteratorState} from '../main';
 
 describe('Tokenizer', () => {
 
   test('emits tokens', () => {
-    const onTokenMock = jest.fn();
-    const onErrorMock = jest.fn();
-    const onUnrecognizedTokenMock = jest.fn();
 
-    const handler: Handler<unknown> = {
-      onToken: onTokenMock,
-      onError: onErrorMock,
-      onUnrecognizedToken: onUnrecognizedTokenMock,
+    const tokenA = createToken(all(text('a')));
+    const tokenB = createToken(all(text('b')));
+
+    const iter = createTokenIterator([
+      tokenA,
+      tokenB,
+    ]);
+
+    const state: TokenIteratorState = {
+      chunk: 'abaabb',
+      offset: 0,
+      chunkOffset: 0,
+      stage: undefined,
     };
 
-    const readerA = createReader('A', all(text('a'), {minimumCount: 1}));
-    const readerB = createReader('B', all(text('b'), {minimumCount: 1}));
+    const handlerMock = jest.fn();
 
-    const tokenizer = new Tokenizer([readerA, readerB], undefined);
+    iter(state, false, handlerMock);
 
-    tokenizer.end('abaabb', handler);
-
-    expect(onTokenMock).toHaveBeenCalledTimes(4);
-    expect(onTokenMock).toHaveBeenNthCalledWith(1, readerA, 0, 1);
-    expect(onTokenMock).toHaveBeenNthCalledWith(2, readerB, 1, 2);
-    expect(onTokenMock).toHaveBeenNthCalledWith(3, readerA, 2, 4);
-    expect(onTokenMock).toHaveBeenNthCalledWith(4, readerB, 4, 6);
+    expect(handlerMock).toHaveBeenCalledTimes(4);
+    expect(handlerMock).toHaveBeenNthCalledWith(1, tokenA, 0, 1);
+    expect(handlerMock).toHaveBeenNthCalledWith(2, tokenB, 1, 2);
+    expect(handlerMock).toHaveBeenNthCalledWith(3, tokenA, 2, 4);
+    expect(handlerMock).toHaveBeenNthCalledWith(4, tokenB, 4, 6);
   });
 });
