@@ -1,4 +1,4 @@
-import {createInternalTaker, createVar} from './js';
+import {compileInternalTaker, createVar} from './code';
 import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
 
 /**
@@ -28,7 +28,7 @@ export function createRegexTaker(re: RegExp): RegexTaker {
     resultVar, '=', arrVar, '===null||', arrVar, '.index!==', offsetVar, '?' + ResultCode.NO_MATCH + ':', reVar, '.lastIndex;',
   ];
 
-  const taker = createInternalTaker<RegexTaker>(InternalTakerType.REGEX, factory, [[reVar, re]]);
+  const taker = compileInternalTaker<RegexTaker>(InternalTakerType.REGEX, factory, [[reVar, re]]);
 
   taker.re = re;
 

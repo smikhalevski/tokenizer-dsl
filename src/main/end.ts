@@ -1,4 +1,4 @@
-import {createInternalTaker} from './js';
+import {compileInternalTaker} from './code';
 import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory} from './taker-types';
 
 /**
@@ -20,5 +20,5 @@ export function createEndTaker(offset: number): EndTaker {
     resultVar, '=', inputVar, '.length', offset === 0 ? '' : '+' + offset, ';',
   ];
 
-  return createInternalTaker<EndTaker>(InternalTakerType.END, factory);
+  return compileInternalTaker<EndTaker>(InternalTakerType.END, factory);
 }

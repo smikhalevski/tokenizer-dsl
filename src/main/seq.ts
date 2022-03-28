@@ -1,4 +1,4 @@
-import {Code, createInternalTaker, createVar, toTaker, Var} from './js';
+import {Code, compileInternalTaker, createVar, toTaker, Var} from './code';
 import {never} from './never';
 import {none} from './none';
 import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory, TakerLike} from './taker-types';
@@ -49,7 +49,9 @@ export function createSeqTaker(takers: TakerLike[]): SeqTaker {
 
   const values = takers.reduce<[Var, unknown][]>((values, taker) => {
     if (isTakerCodegen(taker)) {
-      values.push(...taker.values);
+      if (taker.bindings) {
+        values.push(...taker.bindings);
+      }
     } else {
       const takerVar = createVar();
       takerVars.push(takerVar);
@@ -87,7 +89,7 @@ export function createSeqTaker(takers: TakerLike[]): SeqTaker {
     return code;
   };
 
-  const taker = createInternalTaker<SeqTaker>(InternalTakerType.SEQ, factory, values);
+  const taker = compileInternalTaker<SeqTaker>(InternalTakerType.SEQ, factory, values);
 
   taker.takers = takers;
 

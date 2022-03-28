@@ -1,4 +1,4 @@
-import {Code, createInternalTaker, createVar, toTaker, Var} from './js';
+import {Code, compileInternalTaker, createVar, toTaker, Var} from './code';
 import {never} from './never';
 import {none} from './none';
 import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory, TakerLike} from './taker-types';
@@ -50,7 +50,9 @@ export function createOrTaker(takers: TakerLike[]): OrTaker {
 
   const values = takers.reduce<[Var, unknown][]>((values, taker) => {
     if (isTakerCodegen(taker)) {
-      values.push(...taker.values);
+      if (taker.bindings) {
+        values.push(...taker.bindings);
+      }
     } else {
       const takerVar = createVar();
       takerVars.push(takerVar);
@@ -78,7 +80,7 @@ export function createOrTaker(takers: TakerLike[]): OrTaker {
     return code;
   };
 
-  const taker = createInternalTaker<OrTaker>(InternalTakerType.OR, factory, values);
+  const taker = compileInternalTaker<OrTaker>(InternalTakerType.OR, factory, values);
 
   taker.takers = takers;
 

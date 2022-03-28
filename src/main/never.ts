@@ -1,4 +1,4 @@
-import {createInternalTaker} from './js';
+import {compileInternalTaker} from './code';
 import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
 
 const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
@@ -12,4 +12,4 @@ export interface NeverTaker extends InternalTaker {
 /**
  * Taker that always returns {@link ResultCode.NO_MATCH}.
  */
-export const never: Taker = createInternalTaker<NeverTaker>(InternalTakerType.NEVER, factory);
+export const never: Taker = compileInternalTaker<NeverTaker>(InternalTakerType.NEVER, factory);

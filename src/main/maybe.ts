@@ -1,4 +1,4 @@
-import {createInternalTaker, createVar} from './js';
+import {compileInternalTaker, createVar} from './code';
 import {never} from './never';
 import {none} from './none';
 import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory, TakerLike} from './taker-types';
@@ -31,5 +31,5 @@ export function createMaybeTaker(baseTaker: TakerLike): MaybeTaker {
     resultVar, '=', baseTakerResultVar, '===' + ResultCode.NO_MATCH + '?', offsetVar, ':', baseTakerResultVar, ';',
   ];
 
-  return createInternalTaker<MaybeTaker>(InternalTakerType.MAYBE, factory, isTakerCodegen(baseTaker) ? baseTaker.values : [[baseTakerVar, baseTaker]]);
+  return compileInternalTaker<MaybeTaker>(InternalTakerType.MAYBE, factory, isTakerCodegen(baseTaker) ? baseTaker.bindings : [[baseTakerVar, baseTaker]]);
 }

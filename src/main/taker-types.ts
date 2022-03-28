@@ -1,4 +1,4 @@
-import {Code, Var} from './js';
+import {Code, Var} from './code';
 
 /**
  * The callback that must return `true` is given char code is appropriate, and must return `false` otherwise.
@@ -59,7 +59,7 @@ export type TakerCodeFactory = (inputVar: Var, offsetVar: Var, resultVar: Var) =
  */
 export interface TakerCodegen {
   factory: TakerCodeFactory;
-  values: [Var, unknown][];
+  bindings?: [Var, unknown][] | undefined;
 }
 
 export type TakerLike = Taker | TakerCodegen;

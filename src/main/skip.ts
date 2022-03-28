@@ -1,5 +1,5 @@
+import {compileInternalTaker} from './code';
 import {createEndTaker} from './end';
-import {createInternalTaker} from './js';
 import {none} from './none';
 import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
 
@@ -31,7 +31,7 @@ export function createSkipTaker(charCount: number): SkipTaker {
     resultVar, '=', offsetVar, '+', charCount, '<=', inputVar, '.length?', offsetVar, '+', charCount, ':' + ResultCode.NO_MATCH + ';',
   ];
 
-  const taker = createInternalTaker<SkipTaker>(InternalTakerType.SKIP, factory);
+  const taker = compileInternalTaker<SkipTaker>(InternalTakerType.SKIP, factory);
 
   taker.charCount = charCount;
 

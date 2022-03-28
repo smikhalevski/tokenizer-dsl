@@ -1,5 +1,5 @@
 import {CharCodeCheckerTaker, CharCodeRangeTaker, createCharPredicate} from './char';
-import {createInternalTaker, createVar, toTaker} from './js';
+import {compileInternalTaker, createVar, toTaker} from './code';
 import {createMaybeTaker} from './maybe';
 import {never} from './never';
 import {none} from './none';
@@ -106,7 +106,7 @@ export function createAllCharCodeCheckerTaker(charCodeChecker: CharCodeChecker, 
     ';',
   ];
 
-  return createInternalTaker<AllCharCodeCheckerTaker>(InternalTakerType.ALL_CHAR_CODE_CHECKER, factory, [[charCodeCheckerVar, charCodeChecker]]);
+  return compileInternalTaker<AllCharCodeCheckerTaker>(InternalTakerType.ALL_CHAR_CODE_CHECKER, factory, [[charCodeCheckerVar, charCodeChecker]]);
 }
 
 export interface AllCharCodeRangeTaker extends InternalTaker {
@@ -138,7 +138,7 @@ export function createAllCharCodeRangeTaker(charCodeRanges: CharCodeRange[], min
     ';'
   ];
 
-  return createInternalTaker<AllCharCodeRangeTaker>(InternalTakerType.ALL_CHAR_CODE_RANGE, factory);
+  return compileInternalTaker<AllCharCodeRangeTaker>(InternalTakerType.ALL_CHAR_CODE_RANGE, factory);
 }
 
 export interface AllCaseSensitiveTextTaker extends InternalTaker {
@@ -169,7 +169,7 @@ export function createAllCaseSensitiveTextTaker(str: string, minimumCount: numbe
     ';',
   ];
 
-  return createInternalTaker<AllCaseSensitiveTextTaker>(InternalTakerType.ALL_CASE_SENSITIVE_TEXT, factory, [[strVar, str]]);
+  return compileInternalTaker<AllCaseSensitiveTextTaker>(InternalTakerType.ALL_CASE_SENSITIVE_TEXT, factory, [[strVar, str]]);
 }
 
 export interface AllRegexTaker extends InternalTaker {
@@ -198,7 +198,7 @@ export function createAllRegexTaker(re: RegExp, minimumCount: number, maximumCou
     resultVar, '=', arrVar, '===null||', arrVar, '.index!==', offsetVar, '?' + ResultCode.NO_MATCH + ':', reVar, '.lastIndex;',
   ];
 
-  return createInternalTaker<AllRegexTaker>(InternalTakerType.ALL_REGEX, factory, [[reVar, re]]);
+  return compileInternalTaker<AllRegexTaker>(InternalTakerType.ALL_REGEX, factory, [[reVar, re]]);
 }
 
 export interface AllGenericTaker extends InternalTaker {
@@ -231,5 +231,5 @@ export function createAllGenericTaker(baseTaker: TakerLike, minimumCount: number
     ';',
   ];
 
-  return createInternalTaker<AllGenericTaker>(InternalTakerType.ALL_GENERIC, factory, isTakerCodegen(baseTaker) ? baseTaker.values : [[baseTakerVar, baseTaker]]);
+  return compileInternalTaker<AllGenericTaker>(InternalTakerType.ALL_GENERIC, factory, isTakerCodegen(baseTaker) ? baseTaker.bindings : [[baseTakerVar, baseTaker]]);
 }

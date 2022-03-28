@@ -1,5 +1,5 @@
 import {createCharCodeRangeTaker} from './char';
-import {Code, createInternalTaker, createVar} from './js';
+import {Code, compileInternalTaker, createVar} from './code';
 import {none} from './none';
 import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
 import {toCharCodes, toLowerCase, toUpperCase} from './taker-utils';
@@ -62,7 +62,7 @@ export function createCaseSensitiveTextTaker(str: string): CaseSensitiveTextTake
     '?', offsetVar, '+', str.length, ':' + ResultCode.NO_MATCH + ';',
   ];
 
-  const taker = createInternalTaker<CaseSensitiveTextTaker>(InternalTakerType.CASE_SENSITIVE_TEXT, factory, [[strVar, str]]);
+  const taker = compileInternalTaker<CaseSensitiveTextTaker>(InternalTakerType.CASE_SENSITIVE_TEXT, factory, [[strVar, str]]);
 
   taker.str = str;
 
@@ -109,7 +109,7 @@ export function createCaseInsensitiveTextTaker(str: string, locales: string | st
     return code;
   };
 
-  const taker = createInternalTaker<CaseInsensitiveTextTaker>(InternalTakerType.CASE_INSENSITIVE_TEXT, factory);
+  const taker = compileInternalTaker<CaseInsensitiveTextTaker>(InternalTakerType.CASE_INSENSITIVE_TEXT, factory);
 
   taker.str = str;
   taker.locales = locales;

@@ -1,47 +1,79 @@
-import {Code, createVar, toTaker, Var} from './js';
+import {Code, createVar, toTaker, Var} from './code';
 import {ResultCode, Taker, TakerLike} from './taker-types';
 import {isTakerCodegen} from './taker-utils';
 
-export const enum ConfirmationMode {
+/**
+ * The strategy of token confirmation.
+ */
+export const enum TokenConfirmationMode {
+
+  /**
+   * Next token must be read before the current token is emitted.
+   */
   ALWAYS = 'always',
+
+  /**
+   * Token is emitted as soon as it is read.
+   */
   NEVER = 'never',
+
+  /**
+   * Next token must be read before the current token is emitted during streaming. Otherwise, token is emitted as soon
+   * as it is read.
+   */
   STREAMING = 'streaming',
 }
 
-export interface Reader<S> extends ReaderOptions<S> {
+/**
+ * Defines how tokens are read from the input string.
+ */
+export interface TokenReader extends TokenReaderOptions {
 
   /**
-   * The type of the emitted token.
-   */
-  tokenType: unknown;
-
-  /**
-   * Taker that reads chars from the string.
+   * The taker that takes chars from the string.
    */
   taker: Taker;
 }
 
-export interface ReaderOptions<S> {
+/**
+ * The options of the token reader.
+ */
+export interface TokenReaderOptions {
 
   /**
-   * The list of stages at which reader can be used.
+   * The list of stages at which reader can be used. If omitted then reader is used on all stages. If an empty array
+   * then reader is never used.
+   *
+   * @default undefined
    */
-  stages?: S[];
+  stages?: unknown[] | undefined;
 
   /**
    * The stage which should be used for next reader if this reader has successfully read the token.
+   *
+   * If `undefined` the next stage is set to the current stage.
+   *
+   * @default undefined
    */
-  nextStage?: S;
+  nextStage?: unknown;
 
   /**
    * Defines if the token should be emitted only after the consequent token was read.
+   *
+   * @default TokenConfirmationMode.STREAMING
    */
-  confirmationMode?: ConfirmationMode;
+  confirmationMode?: TokenConfirmationMode;
 }
 
-export function createReader<S>(tokenType: unknown, taker: TakerLike, options?: ReaderOptions<S>): Reader<S> {
+/**
+ * Creates the new token reader.
+ *
+ * @param taker The taker that takes chars from the string.
+ * @param options Other options.
+ * @returns The {@link TokenReader} instance.
+ */
+export function createTokenReader(taker: TakerLike, options?: TokenReaderOptions): TokenReader {
   return {
-    tokenType,
     taker: toTaker(taker),
     stages: options?.stages,
     nextStage: options?.nextStage,
@@ -49,42 +81,81 @@ export function createReader<S>(tokenType: unknown, taker: TakerLike, options?: 
   };
 }
 
-export interface Handler<S> {
+/**
+ * The handler that is invoked when tokenizer state is changed.
+ */
+export interface TokenHandler {
 
-  onToken(reader: Reader<S>, start: number, end: number): void;
+  /**
+   * Triggered when the reader has successfully read the token from the input string.
+   *
+   * @param reader The reader that read the token.
+   * @param startOffset The offset in the input string where the token starts.
+   * @param endOffset The offset in the input string where the token ends.
+   */
+  token(reader: TokenReader, startOffset: number, endOffset: number): void;
 
-  onError(reader: Reader<S>, offset: number, errorCode: number): void;
+  /**
+   * Triggered if taker returned an error code.
+   *
+   * @param reader The reader that failed to read the token.
+   * @param offset The offset in the input string where the token starts.
+   * @param errorCode The error code.
+   */
+  error(reader: TokenReader, offset: number, errorCode: number): void;
 
-  onUnrecognizedToken(offset: number): void;
+  /**
+   * Triggered if there were no readers that could handle the token at the given offset.
+   *
+   * @param offset The offset in the input string where the token should have started.
+   */
+  unrecognizedToken(offset: number): void;
 }
 
-export function createTokenizerCallback<S>(readers: Reader<S>[]): (this: Tokenizer, handler: Handler<S>) => void {
+export function createTokenizerCallback(readers: TokenReader[]): (handler: TokenHandler) => void {
 
   const uniqueStages = readers.reduce<unknown[]>((stages, reader) => {
-    if (reader.stages) {
-      for (const stage of reader.stages) {
-        if (stages.indexOf(stage) === -1) {
-          stages.push(stage);
-        }
+    reader.stages?.forEach((stage) => {
+      if (stages.indexOf(stage) === -1) {
+        stages.push(stage);
       }
-    }
+    });
     return stages;
   }, []);
 
+  const handlerVar = createVar();
+
   const stageVar = createVar();
-  const onTokenVar = createVar();
-  const onErrorVar = createVar();
+  const tokenCallbackVar = createVar();
+  const errorCallbackVar = createVar();
+  const unrecognizedTokenCallbackVar = createVar();
+
+  const prevReaderVar = createVar();
+  const prevOffsetVar = createVar();
 
   const inputVar = createVar();
   const offsetVar = createVar();
 
   const values: [Var, unknown][] = [];
-  const tailCode: Code[] = [];
 
-  const code: Code[] = [
-    'while(true){',
+  const code: Code = [
+    'var ',
+    stageVar, '=this.stage,',
+    prevReaderVar, '=this.prevReaderVar,',
+    prevOffsetVar, '=this.prevOffsetVar,',
+    tokenCallbackVar, '=', handlerVar, '.token,',
+    errorCallbackVar, '=', handlerVar, '.error,',
+    unrecognizedTokenCallbackVar, '=', handlerVar, '.unrecognizedToken;',
+
+    'while(', offsetVar, '<', inputVar, '.length){',
     readers.map((reader) => {
+
       const {taker, stages} = reader;
+
+      if (stages?.length === 0) {
+        // Reader is never used
+        return '';
+      }
 
       const readerVar = createVar();
       const takerVar = createVar();
@@ -97,148 +168,53 @@ export function createTokenizerCallback<S>(readers: Reader<S>[]): (this: Tokeniz
       }
 
       return [
-        !stages?.length ? '' : ['if(', stages.map((stage) => [stageVar, '===', uniqueStages.indexOf(stage)]), '){'],
+        // Check if reader can be applied on the current stage
+        stages ? ['if(', stages.map((stage) => [stageVar, '===', uniqueStages.indexOf(stage)]), '){'] : '',
+
+        // Take chars from the input string
         'var ', takerResultVar, ';',
         isTakerCodegen(taker) ? taker.factory(inputVar, offsetVar, takerResultVar) : [takerResultVar, '=', takerVar, '(', inputVar, ',', offsetVar, ');'],
+
         'if(', takerResultVar, '!==' + ResultCode.NO_MATCH + '){',
 
-        // Raise error
+        // Taker error
         'if(', takerResultVar, '<0){',
-        onErrorVar, '(', readerVar, ',', offsetVar, ',', takerResultVar, ');',
+        errorCallbackVar, '(', readerVar, ',', offsetVar, ',', takerResultVar, ');',
         'return}',
 
-        // Emit token
+        reader.nextStage === undefined ? '' : [stageVar, '=this.stage=', uniqueStages.indexOf(reader.nextStage), ';'],
+        'this.offset=', takerResultVar, ';',
 
-        reader.confirmationMode === ConfirmationMode.NEVER ? [
-            // Call reader immediately
-            onTokenVar,'(',readerVar,',',offsetVar,',',takerResultVar,');',
+        // Emit confirmed token
+        'if(', prevReaderVar, '){',
+        'this.prevReader=undefined;',
+        'this.prevOffset=-1;',
+        tokenCallbackVar, '(', prevReaderVar, ',', prevOffsetVar, ',', offsetVar, ');',
+        prevReaderVar, '=undefined;',
+        prevOffsetVar, '=-1',
+        '}',
+
+        // Emit token
+        reader.confirmationMode === TokenConfirmationMode.NEVER ? [
+          // Call reader immediately
+          tokenCallbackVar, '(', readerVar, ',', offsetVar, ',', takerResultVar, ');',
         ] : [
-            // Defer reader call
+          // Defer reader call
+          prevReaderVar, '=this.prevReader=', readerVar, ';',
+          prevOffsetVar, '=this.prevOffset=', offsetVar, ';',
         ],
 
+        offsetVar, '=', takerResultVar, ';',
+
         'continue}',
-        !stages?.length ? '' : '}',
+        stages ? '}' : '',
       ];
     }),
     // No readers matched
+    unrecognizedTokenCallbackVar, '(', offsetVar, ');',
     'break}'
   ];
-  code.push(tailCode);
-}
 
-
-export class Tokenizer<S> {
-
-  private readonly readers;
-  private readonly initialStage;
-  private stage;
-  private offset = 0;
-  private str = '';
-
-  private prevReader: Reader<S> | undefined;
-  private prevStart = -1;
-  private prevEnd = -1;
-
-  public constructor(readers: readonly Reader<S>[], initialStage: S) {
-    this.readers = readers;
-    this.stage = this.initialStage = initialStage;
-  }
-
-  public write(chunk: string, handler: Handler<S>): void {
-
-    const {
-      onToken,
-      onError,
-    } = handler;
-
-    let {
-      readers,
-      stage,
-      offset,
-      str,
-      prevReader,
-      prevStart,
-      prevEnd,
-    } = this;
-
-    const readersLength = readers.length;
-
-    str = str + chunk;
-
-    nextToken: while (true) {
-      for (let i = 0; i < readersLength; ++i) {
-
-        const reader = readers[i];
-        const result = reader.taker(str, offset);
-
-        if (result === ResultCode.NO_MATCH) {
-          continue;
-        }
-        if (result < 0) {
-          onError(reader, offset, result);
-          return;
-        }
-
-        this.offset = result;
-
-        if (reader.confirmationMode === ConfirmationMode.NEVER) {
-
-          if (prevReader) {
-            prevReader = this.prevReader = undefined;
-            prevStart = this.prevStart = -1;
-            prevEnd = this.prevEnd = -1;
-          }
-
-          onToken(reader, offset, result);
-
-        } else {
-
-          this.prevReader = reader;
-          this.prevStart = offset;
-          this.prevEnd = result;
-
-          if (prevReader) {
-            onToken(prevReader, prevStart, prevEnd);
-          }
-
-          prevReader = reader;
-          prevStart = offset;
-          prevEnd = result;
-        }
-
-        offset = result;
-
-        const {nextStage} = reader;
-
-        if (nextStage != null) {
-          stage = nextStage;
-        }
-
-        continue nextToken;
-      }
-      break;
-    }
-  }
-
-  public end(chunk: string, handler: Handler<S>): void {
-    this.write(chunk, handler);
-
-    if (this.prevReader && this.prevReader.stages === this.stage) {
-      handler.onToken(this.prevReader, this.prevStart, this.offset = this.prevEnd);
-    }
-    if (this.offset !== 0) {
-      handler.onUnrecognizedToken(this.offset);
-    }
-  }
-
-  public reset(): void {
-
-    this.stage = this.initialStage;
-    this.offset = 0;
-    this.str = '';
-
-    this.prevReader = undefined;
-    this.prevStart = -1;
-    this.prevEnd = -1;
-  }
+  return () => {
+  };
 }

@@ -1,4 +1,4 @@
-import {Code, createInternalTaker, createVar, Var} from './js';
+import {Code, compileInternalTaker, createVar, Var} from './code';
 import {none} from './none';
 import {
   CharCodeChecker,
@@ -39,7 +39,7 @@ export function createCharCodeCheckerTaker(charCodeChecker: CharCodeChecker): Ch
     resultVar, '=', charCodeCheckerVar, '(', inputVar, '.charCodeAt(', offsetVar, '))?', offsetVar, '+1:' + ResultCode.NO_MATCH + ';',
   ];
 
-  const taker = createInternalTaker<CharCodeCheckerTaker>(InternalTakerType.CHAR_CODE_CHECKER, factory, [[charCodeCheckerVar, charCodeChecker]]);
+  const taker = compileInternalTaker<CharCodeCheckerTaker>(InternalTakerType.CHAR_CODE_CHECKER, factory, [[charCodeCheckerVar, charCodeChecker]]);
 
   taker.charCodeChecker = charCodeChecker;
 
@@ -60,7 +60,7 @@ export function createCharCodeRangeTaker(charCodeRanges: CharCodeRange[]): CharC
     resultVar, '=', createCharPredicate(charCodeVar, charCodeRanges), '?', offsetVar, '+1:' + ResultCode.NO_MATCH + ';',
   ];
 
-  const taker = createInternalTaker<CharCodeRangeTaker>(InternalTakerType.CHAR_CODE_RANGE, factory);
+  const taker = compileInternalTaker<CharCodeRangeTaker>(InternalTakerType.CHAR_CODE_RANGE, factory);
 
   taker.charCodeRanges = charCodeRanges;
 

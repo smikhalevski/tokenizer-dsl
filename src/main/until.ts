@@ -1,5 +1,5 @@
 import {CharCodeCheckerTaker, CharCodeRangeTaker, createCharPredicate} from './char';
-import {createInternalTaker, createVar} from './js';
+import {compileInternalTaker, createVar} from './code';
 import {never} from './never';
 import {none} from './none';
 import {RegexTaker} from './regex';
@@ -77,7 +77,7 @@ export function createUntilCharCodeRangeTaker(charCodeRanges: CharCodeRange[], i
     resultVar, '=', indexVar, '===', inputLengthVar, '?' + ResultCode.NO_MATCH + ':', indexVar, inclusive ? '+1;' : ';',
   ];
 
-  return createInternalTaker<UntilCharCodeRangeTaker>(InternalTakerType.UNTIL_CHAR_CODE_RANGE, factory);
+  return compileInternalTaker<UntilCharCodeRangeTaker>(InternalTakerType.UNTIL_CHAR_CODE_RANGE, factory);
 }
 
 export interface UntilCaseSensitiveTextTaker extends InternalTaker {
@@ -94,7 +94,7 @@ export function createUntilCaseSensitiveTextTaker(str: string, inclusive: boolea
     resultVar, '=', indexVar, '===-1?' + ResultCode.NO_MATCH + ':', indexVar, inclusive ? '+' + str.length : '', ';',
   ];
 
-  return createInternalTaker<UntilCaseSensitiveTextTaker>(InternalTakerType.UNTIL_CASE_SENSITIVE_TEXT, factory, [[strVar, str]]);
+  return compileInternalTaker<UntilCaseSensitiveTextTaker>(InternalTakerType.UNTIL_CASE_SENSITIVE_TEXT, factory, [[strVar, str]]);
 }
 
 export interface UntilCharCodeCheckerTaker extends InternalTaker {
@@ -115,7 +115,7 @@ export function createUntilCharCodeCheckerTaker(charCodeChecker: CharCodeChecker
     resultVar, '=', indexVar, '===', inputLengthVar, '?' + ResultCode.NO_MATCH + ':', indexVar, inclusive ? '+1;' : ';',
   ];
 
-  return createInternalTaker<UntilCharCodeCheckerTaker>(InternalTakerType.UNTIL_CHAR_CODE_CHECKER, factory, [[charCodeCheckerVar, charCodeChecker]]);
+  return compileInternalTaker<UntilCharCodeCheckerTaker>(InternalTakerType.UNTIL_CHAR_CODE_CHECKER, factory, [[charCodeCheckerVar, charCodeChecker]]);
 }
 
 export interface UntilRegexTaker extends InternalTaker {
@@ -135,7 +135,7 @@ export function createUntilRegexTaker(re: RegExp, inclusive: boolean): UntilRege
     resultVar, '=', arrVar, '===null?' + ResultCode.NO_MATCH + ':', inclusive ? [reVar, '.lastIndex'] : [arrVar, '.index'], ';',
   ];
 
-  return createInternalTaker<UntilRegexTaker>(InternalTakerType.UNTIL_REGEX, factory, [[reVar, re]]);
+  return compileInternalTaker<UntilRegexTaker>(InternalTakerType.UNTIL_REGEX, factory, [[reVar, re]]);
 }
 
 export interface UntilGenericTaker extends InternalTaker {
@@ -158,5 +158,5 @@ export function createUntilGenericTaker(baseTaker: TakerLike, inclusive: boolean
     resultVar, '=', baseTakerResultVar, '<', 0, '?', baseTakerResultVar, ':', inclusive ? baseTakerResultVar : [indexVar, '-1'], ';',
   ];
 
-  return createInternalTaker<UntilGenericTaker>(InternalTakerType.UNTIL_GENERIC, factory, isTakerCodegen(baseTaker) ? baseTaker.values : [[baseTakerVar, baseTaker]]);
+  return compileInternalTaker<UntilGenericTaker>(InternalTakerType.UNTIL_GENERIC, factory, isTakerCodegen(baseTaker) ? baseTaker.bindings : [[baseTakerVar, baseTaker]]);
 }
