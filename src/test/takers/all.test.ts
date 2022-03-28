@@ -1,11 +1,11 @@
-import {all, char, InternalTaker, InternalTakerType, never, none, ResultCode, text} from '../main';
+import {all, char, InternalTaker, InternalTakerType, never, none, ResultCode, text} from '../../main';
 import {
   createAllCaseSensitiveTextTaker,
   createAllCharCodeCheckerTaker,
   createAllCharCodeRangeTaker,
   createAllGenericTaker,
   createAllRegexTaker
-} from '../main/all';
+} from '../../main/takers/all';
 
 describe('all', () => {
 

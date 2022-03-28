@@ -1,5 +1,5 @@
+import {createVar} from '../code';
 import {CharCodeCheckerTaker, CharCodeRangeTaker, createCharPredicate} from './char';
-import {compileInternalTaker, createVar, toTaker} from './code';
 import {createMaybeTaker} from './maybe';
 import {never} from './never';
 import {none} from './none';
@@ -14,7 +14,7 @@ import {
   TakerCodeFactory,
   TakerLike
 } from './taker-types';
-import {isInternalTaker, isTakerCodegen, toCharCodes} from './taker-utils';
+import {compileInternalTaker, isInternalTaker, isTakerCodegen, toCharCodes, toTaker} from './taker-utils';
 import {CaseSensitiveTextTaker} from './text';
 
 export interface AllOptions {

@@ -1,5 +1,5 @@
-import {compileInternalTaker} from './code';
 import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
+import {compileInternalTaker} from './taker-utils';
 
 const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
   resultVar, '=' + ResultCode.NO_MATCH + ';',

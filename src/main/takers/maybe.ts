@@ -1,8 +1,8 @@
-import {compileInternalTaker, createVar} from './code';
+import {createVar} from '../code';
 import {never} from './never';
 import {none} from './none';
 import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory, TakerLike} from './taker-types';
-import {isTakerCodegen} from './taker-utils';
+import {compileInternalTaker, isTakerCodegen} from './taker-utils';
 
 /**
  * Creates taker that returns `taker` result or current offset if taker returned {@link ResultCode.NO_MATCH}.

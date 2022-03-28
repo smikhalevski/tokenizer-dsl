@@ -1,5 +1,5 @@
-import {toTaker} from './code';
-import {Taker, TakerLike} from './taker-types';
+import {Taker, TakerLike} from './takers';
+import {toTaker} from './takers/taker-utils';
 
 /**
  * Defines how tokens are read from the input string.

@@ -1,7 +1,7 @@
-import {compileInternalTaker} from './code';
 import {createEndTaker} from './end';
 import {none} from './none';
 import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
+import {compileInternalTaker} from './taker-utils';
 
 /**
  * Creates taker that skips given number of chars.

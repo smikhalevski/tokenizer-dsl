@@ -1,5 +1,5 @@
+import {createVar} from '../code';
 import {CharCodeCheckerTaker, CharCodeRangeTaker, createCharPredicate} from './char';
-import {compileInternalTaker, createVar} from './code';
 import {never} from './never';
 import {none} from './none';
 import {RegexTaker} from './regex';
@@ -13,7 +13,7 @@ import {
   TakerCodeFactory,
   TakerLike
 } from './taker-types';
-import {isInternalTaker, isTakerCodegen} from './taker-utils';
+import {compileInternalTaker, isInternalTaker, isTakerCodegen} from './taker-utils';
 import {CaseSensitiveTextTaker} from './text';
 
 export interface UntilOptions {

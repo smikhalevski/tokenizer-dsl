@@ -1,8 +1,8 @@
+import {Code, createVar} from '../code';
 import {createCharCodeRangeTaker} from './char';
-import {Code, compileInternalTaker, createVar} from './code';
 import {none} from './none';
 import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
-import {toCharCodes, toLowerCase, toUpperCase} from './taker-utils';
+import {compileInternalTaker, toCharCodes, toLowerCase, toUpperCase} from './taker-utils';
 
 export interface TextOptions {
 

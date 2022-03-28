@@ -1,8 +1,8 @@
-import {Code, compileInternalTaker, createVar, toTaker, Var} from './code';
+import {Code, createVar, Var} from '../code';
 import {never} from './never';
 import {none} from './none';
 import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory, TakerLike} from './taker-types';
-import {isInternalTaker, isTakerCodegen} from './taker-utils';
+import {compileInternalTaker, isInternalTaker, isTakerCodegen, toTaker} from './taker-utils';
 
 /**
  * Creates a taker that applies takers one after another.

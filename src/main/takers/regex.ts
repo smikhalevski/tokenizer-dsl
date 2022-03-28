@@ -1,5 +1,6 @@
-import {compileInternalTaker, createVar} from './code';
+import {createVar} from '../code';
 import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
+import {compileInternalTaker} from './taker-utils';
 
 /**
  * Creates taker that matches a substring.

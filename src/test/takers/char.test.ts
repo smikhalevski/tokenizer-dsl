@@ -1,5 +1,5 @@
-import {char, InternalTaker, InternalTakerType, none, ResultCode} from '../main';
-import {createCharCodeCheckerTaker, createCharCodeRangeTaker} from '../main/char';
+import {char, InternalTaker, InternalTakerType, none, ResultCode} from '../../main';
+import {createCharCodeCheckerTaker, createCharCodeRangeTaker} from '../../main/takers/char';
 
 const A = 'a'.charCodeAt(0);
 const B = 'b'.charCodeAt(0);

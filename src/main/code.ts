@@ -1,5 +1,3 @@
-import {InternalTaker, Taker, TakerCodeFactory, TakerLike} from './taker-types';
-
 /**
  * The placeholder that denotes a variable reference in a code fragment.
  */
@@ -87,42 +85,4 @@ export function compileFunction<F extends Function>(argVars: Var[], code: Code, 
   const boundVars = [boundValuesVar];
   boundVars.push(...argVars);
   return Function.call(undefined, 'v0', assembleCode(boundCode, boundVars))(boundValues);
-}
-
-/**
- * Compiles an internal taker function of the given type.
- *
- * @param type The type of the taker.
- * @param factory The factory that returns the taker body code.
- * @param bindings The optional variable bindings available inside the taker function.
- * @returns The taker function.
- */
-export function compileInternalTaker<T extends InternalTaker>(type: T['type'], factory: TakerCodeFactory, bindings?: Binding[]): T {
-  const taker = toTaker({factory, bindings}) as T;
-
-  taker.type = type;
-  taker.factory = factory;
-  taker.bindings = bindings;
-
-  return taker;
-}
-
-export function toTaker(taker: TakerLike): Taker {
-  if (typeof taker === 'function') {
-    return taker;
-  }
-
-  const {factory, bindings} = taker;
-
-  const inputVar = createVar();
-  const offsetVar = createVar();
-  const resultVar = createVar();
-
-  const code: Code = [
-    'var ', resultVar, ';',
-    factory(inputVar, offsetVar, resultVar),
-    'return ', resultVar,
-  ];
-
-  return compileFunction([inputVar, offsetVar, resultVar], code, bindings);
 }

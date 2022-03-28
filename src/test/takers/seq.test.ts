@@ -1,5 +1,5 @@
-import {InternalTaker, InternalTakerType, never, none, ResultCode, Taker, text} from '../main';
-import {createSeqTaker, seq} from '../main/seq';
+import {InternalTaker, InternalTakerType, never, none, ResultCode, Taker, text} from '../../main';
+import {createSeqTaker, seq} from '../../main/takers/seq';
 
 describe('seq', () => {
 

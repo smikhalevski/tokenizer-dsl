@@ -1,5 +1,5 @@
-import {compileInternalTaker} from './code';
 import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory} from './taker-types';
+import {compileInternalTaker} from './taker-utils';
 
 /**
  * Creates taker that returns the input length plus the offset.

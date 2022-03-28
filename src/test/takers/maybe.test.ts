@@ -1,5 +1,5 @@
-import {InternalTaker, InternalTakerType, maybe, never, none, ResultCode, text} from '../main';
-import {createMaybeTaker} from '../main/maybe';
+import {InternalTaker, InternalTakerType, maybe, never, none, ResultCode, text} from '../../main';
+import {createMaybeTaker} from '../../main/takers/maybe';
 
 describe('maybe', () => {
 

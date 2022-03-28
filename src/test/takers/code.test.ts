@@ -1,5 +1,6 @@
-import {InternalTakerType} from '../main';
-import {assembleCode, compileFunction, compileInternalTaker, createVar, Var} from '../main/code';
+import {assembleCode, compileFunction, createVar, Var} from '../../main/code';
+import {InternalTakerType} from '../../main';
+import {compileInternalTaker} from '../../main/takers/taker-utils';
 
 describe('assembleCode', () => {
 

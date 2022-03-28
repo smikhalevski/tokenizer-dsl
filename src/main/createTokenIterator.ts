@@ -1,6 +1,6 @@
 import {Binding, Code, compileFunction, createVar} from './code';
-import {ResultCode} from './taker-types';
-import {isTakerCodegen} from './taker-utils';
+import {ResultCode} from './takers';
+import {isTakerCodegen} from './takers/taker-utils';
 import {Token} from './token-utils';
 
 export interface TokenIteratorState {

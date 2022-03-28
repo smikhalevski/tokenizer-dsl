@@ -1,4 +1,4 @@
-import {Code, compileInternalTaker, createVar, Var} from './code';
+import {Code, createVar, Var} from '../code';
 import {none} from './none';
 import {
   CharCodeChecker,
@@ -9,6 +9,7 @@ import {
   Taker,
   TakerCodeFactory
 } from './taker-types';
+import {compileInternalTaker} from './taker-utils';
 
 /**
  * Creates a taker that matches a single char by its code.
