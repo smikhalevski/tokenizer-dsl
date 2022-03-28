@@ -79,25 +79,50 @@ describe('createAllCharCodeCheckerTaker', () => {
 
 describe('createAllCharCodeRangeTaker', () => {
 
-  test('takes sequential chars', () => {
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0), 'b'.charCodeAt(0)], 0, Infinity)('aaabbbccc', 2)).toBe(6);
-    expect(createAllCharCodeRangeTaker([['a'.charCodeAt(0), 'c'.charCodeAt(0)]], 0, Infinity)('aaabbbccc', 2)).toBe(9);
+  test('takes exact number of chars', () => {
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 2, 2)('aaaa', 0)).toBe(2);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 2, 2)('aaaa', 1)).toBe(3);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 2, 2)('aaaa', 2)).toBe(4);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 2, 2)('abbb', 0)).toBe(ResultCode.NO_MATCH);
   });
 
-  test('takes if count is sufficient', () => {
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 2, Infinity)('aaab', 1)).toBe(3);
+  test('takes exact number of chars when length is insufficient', () => {
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 2, 2)('aaaa', 3)).toBe(ResultCode.NO_MATCH);
   });
 
-  test('does not take if count is insufficient', () => {
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 2, Infinity)('aabb', 1)).toBe(ResultCode.NO_MATCH);
-  });
-
-  test('takes limited number of chars', () => {
+  test('takes maximum number of chars', () => {
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, 2)('aaaa', 0)).toBe(2);
     expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, 2)('aaaa', 1)).toBe(3);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, 2)('abbb', 0)).toBe(1);
   });
 
-  test('stops at string end', () => {
+  test('takes maximum number of chars does not overflow input length', () => {
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, 2)('aaaa', 3)).toBe(4);
+  });
+
+  test('takes minimum and maximum number of chars', () => {
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, 2)('aaaa', 0)).toBe(2);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, 2)('aaaa', 1)).toBe(3);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, 2)('aaaa', 3)).toBe(4);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, 2)('aaaa', 4)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, 2)('aabb', 1)).toBe(2);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, 2)('aabb', 2)).toBe(ResultCode.NO_MATCH);
+  });
+
+  test('takes minimum number of chars', () => {
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, Infinity)('aaaa', 0)).toBe(4);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, Infinity)('aaaa', 1)).toBe(4);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, Infinity)('aaaa', 4)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, Infinity)('aabb', 1)).toBe(2);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, Infinity)('aabb', 2)).toBe(ResultCode.NO_MATCH);
+  });
+
+  test('takes unlimited number of chars', () => {
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, Infinity)('aaaa', 0)).toBe(4);
     expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, Infinity)('aaaa', 1)).toBe(4);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, Infinity)('aaaa', 4)).toBe(4);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, Infinity)('aabb', 1)).toBe(2);
+    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, Infinity)('aabb', 2)).toBe(2);
   });
 });
 

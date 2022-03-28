@@ -169,6 +169,86 @@ describe('all', () => {
     });
   });
 
+  describe('AllCharCodeRangeTaker {minimumCount: 2}', () => {
+
+    const input = 'aaabbb';
+
+    test('RegExp', (measure) => {
+      const re = /^[ab]{2,}/;
+      measure(() => re.exec(input));
+    });
+
+    test('latest', (measure) => {
+      const take = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2);
+      measure(() => take(input, 0));
+    });
+
+    test('next', (measure) => {
+      const take = next.all(next.char([97, 98]), {minimumCount: 2});
+      measure(() => take(input, 0));
+    });
+  });
+
+  describe('AllCharCodeRangeTaker {maximumCount: 3}', () => {
+
+    const input = 'aaabbb';
+
+    test('RegExp', (measure) => {
+      const re = /^[ab]{,3}/;
+      measure(() => re.exec(input));
+    });
+
+    test('latest', (measure) => {
+      const take = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 0, 3);
+      measure(() => take(input, 0));
+    });
+
+    test('next', (measure) => {
+      const take = next.all(next.char([97, 98]), {maximumCount: 3});
+      measure(() => take(input, 0));
+    });
+  });
+
+  describe('AllCharCodeRangeTaker {minimumCount: 2, maximumCount: 3}', () => {
+
+    const input = 'aaabbb';
+
+    test('RegExp', (measure) => {
+      const re = /^[ab]{2,3}/;
+      measure(() => re.exec(input));
+    });
+
+    test('latest', (measure) => {
+      const take = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2, 3);
+      measure(() => take(input, 0));
+    });
+
+    test('next', (measure) => {
+      const take = next.all(next.char([97, 98]), {minimumCount: 2, maximumCount: 3});
+      measure(() => take(input, 0));
+    });
+  });
+
+  describe('AllCharCodeRangeTaker {minimumCount: 2, maximumCount: 2}', () => {
+
+    const input = 'aaabbb';
+
+    test('RegExp', (measure) => {
+      const re = /^[ab]{2}/;
+      measure(() => re.exec(input));
+    });
+
+    test('latest', (measure) => {
+      const take = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2, 2);
+      measure(() => take(input, 0));
+    });
+
+    test('next', (measure) => {
+      const take = next.all(next.char([97, 98]), {minimumCount: 2, maximumCount: 2});
+      measure(() => take(input, 0));
+    });
+  });
+
   describe('AllCaseSensitiveTextTaker', () => {
 
     const input = 'ababababc';
