@@ -114,7 +114,11 @@ export function compileTokenIterator(tokens: Token[]): TokenIterator {
 
       bindings.push([tokenVar, token]);
 
-      if (!isTakerCodegen(taker)) {
+      if (isTakerCodegen(taker)) {
+        if (taker.bindings) {
+          bindings.push(...taker.bindings);
+        }
+      } else {
         bindings.push([takerVar, taker]);
       }
 
