@@ -51,8 +51,15 @@ export function compileFunction<F extends Function>(argVars: Var[], code: Code, 
   const boundCode: Code[] = [];
   const boundValues: unknown[] = [];
 
-  for (let i = 0; i < bindings.length; ++i) {
-    boundCode.push('var ', bindings[i][0], '=', boundValuesVar, '[', i, '];');
+  nextBinding: for (let i = 0; i < bindings.length; ++i) {
+    const boundVar = bindings[i][0];
+
+    for (let j = 0; j < i; ++j) {
+      if (boundVar === bindings[j][0]) {
+        continue nextBinding;
+      }
+    }
+    boundCode.push('var ', boundVar, '=', boundValuesVar, '[', i, '];');
     boundValues.push(bindings[i][1]);
   }
 

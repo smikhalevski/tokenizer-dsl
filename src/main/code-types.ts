@@ -6,4 +6,4 @@ export type Var = symbol;
 /**
  * The code fragment.
  */
-export type Code = Code[] | Var | string | number | boolean;
+export type Code = Code[] | Var | string | number | boolean | null | undefined;
