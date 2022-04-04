@@ -83,5 +83,5 @@ export function toTaker(taker: TakerLike): Taker {
     'return ', resultVar,
   ];
 
-  return compileFunction([inputVar, offsetVar, resultVar], code, bindings);
+  return compileFunction([inputVar, offsetVar], code, bindings);
 }
