@@ -3,18 +3,12 @@ import {Taker} from './takers';
 /**
  * Defines how token is read from the input string.
  */
-export interface Token extends TokenOptions {
+export interface Token {
 
   /**
    * The taker that takes chars from the string.
    */
   taker: Taker;
-}
-
-/**
- * The options of the token.
- */
-export interface TokenOptions {
 
   /**
    * The list of stages at which token can be used. If omitted then token is used on all stages. If an empty array
@@ -22,7 +16,7 @@ export interface TokenOptions {
    *
    * @default undefined
    */
-  stages?: unknown[] | undefined;
+  stages: unknown[] | undefined;
 
   /**
    * The stage which should be used for next token if this token has successfully read the token.
@@ -31,7 +25,7 @@ export interface TokenOptions {
    *
    * @default undefined
    */
-  nextStage?: unknown;
+  nextStage: unknown;
 }
 
 export interface TokenHandler {
