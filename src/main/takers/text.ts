@@ -96,7 +96,7 @@ export function createCaseInsensitiveTextTaker(str: string): CaseInsensitiveText
       const upperCharCode = upperCharCodes[i];
 
       if (lowerCharCode === upperCharCode) {
-        code.push(inputVar, '.charCodeAt(', offsetVar, '++)===', lowerCharCode);
+        code.push('&&', inputVar, '.charCodeAt(', offsetVar, '++)===', lowerCharCode);
       } else {
         code.push(
             '&&(',
