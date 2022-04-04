@@ -1,16 +1,16 @@
 import {compileTokenIterator, TokenIteratorState} from './compileTokenIterator';
 import {Token, TokenHandler} from './token-types';
 
-export class Tokenizer {
+export class Tokenizer implements TokenIteratorState {
+
+  public stage;
+  public chunk = '';
+  public offset = 0;
+  public chunkOffset = 0;
 
   private readonly initialStage;
-  private readonly iterator;
-  private readonly state: TokenIteratorState = {
-    stage: -1,
-    chunk: '',
-    offset: 0,
-    chunkOffset: 0,
-  };
+  private readonly tokenIterator;
+
   private handler;
 
   public constructor(tokens: Token[], handler: TokenHandler, initialStage?: unknown) {
@@ -18,8 +18,8 @@ export class Tokenizer {
       throw new Error('Tokens expected');
     }
 
-    const tokenIterator = this.iterator = compileTokenIterator(tokens);
-    this.initialStage = this.state.stage = tokenIterator.uniqueStages.indexOf(initialStage);
+    const tokenIterator = this.tokenIterator = compileTokenIterator(tokens);
+    this.stage = this.initialStage = tokenIterator.uniqueStages.indexOf(initialStage);
     this.handler = handler;
   }
 
@@ -28,30 +28,24 @@ export class Tokenizer {
   }
 
   public write(chunk: string): void {
-    const {state} = this;
-
-    state.chunk = state.chunk.slice(state.offset) + chunk;
-    state.chunkOffset += state.offset;
-    state.offset = 0;
-    this.iterator(this.state, true, this.handler);
+    this.chunk = this.chunk.slice(this.offset) + chunk;
+    this.chunkOffset += this.offset;
+    this.offset = 0;
+    this.tokenIterator(this, true, this.handler);
   }
 
   public end(chunk?: string): void {
-    const {state} = this;
-
     if (chunk) {
-      state.chunk = state.chunk.slice(state.offset) + chunk;
-      state.chunkOffset += state.offset;
-      state.offset = 0;
+      this.chunk = this.chunk.slice(this.offset) + chunk;
+      this.chunkOffset += this.offset;
+      this.offset = 0;
     }
-    this.iterator(state, false, this.handler);
+    this.tokenIterator(this, false, this.handler);
   }
 
   public reset(): void {
-    const {state} = this;
-
-    state.stage = this.initialStage;
-    state.chunk = '';
-    state.offset = state.chunkOffset = 0;
+    this.stage = this.initialStage;
+    this.chunk = '';
+    this.offset = this.chunkOffset = 0;
   }
 }
