@@ -15,6 +15,10 @@ describe('text', () => {
   test('returns CaseInsensitiveTextTaker', () => {
     expect((text('aaa', {caseInsensitive: true}) as InternalTaker).type).toBe(InternalTakerType.CASE_INSENSITIVE_TEXT);
   });
+
+  test('throws if text length is ambiguous', () => {
+    expect(() => text('ßß', {caseInsensitive: true})).toThrow();
+  });
 });
 
 describe('createCaseSensitiveTextTaker', () => {
@@ -32,7 +36,7 @@ describe('createCaseSensitiveTextTaker', () => {
 describe('createCaseInsensitiveTextTaker', () => {
 
   test('takes case-insensitive text', () => {
-    const taker = createCaseInsensitiveTextTaker('abc', undefined);
+    const taker = createCaseInsensitiveTextTaker('abc');
 
     expect(taker('AAAABC', 3)).toBe(6);
     expect(taker('AAAABCDE', 3)).toBe(6);

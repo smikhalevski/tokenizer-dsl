@@ -3,7 +3,7 @@ import {createVar} from '../code-utils';
 import {createCharCodeRangeTaker} from './char';
 import {none} from './none';
 import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
-import {compileInternalTaker, toCharCodes, toLowerCase, toUpperCase} from './taker-utils';
+import {compileInternalTaker, toCharCode, toCharCodes} from './taker-utils';
 
 export interface TextOptions {
 
@@ -13,11 +13,6 @@ export interface TextOptions {
    * @default false
    */
   caseInsensitive?: boolean;
-
-  /**
-   * Locale that is used to match case-insensitive strings.
-   */
-  locales?: string | string[];
 }
 
 /**
@@ -29,21 +24,25 @@ export interface TextOptions {
  */
 export function text(str: string, options: TextOptions = {}): Taker {
 
-  const {
-    caseInsensitive = false,
-    locales,
-  } = options;
+  const {caseInsensitive = false} = options;
 
   const strLength = str.length;
 
   if (strLength === 0) {
     return none;
   }
-  if (caseInsensitive && toLowerCase(str, locales) !== toUpperCase(str, locales)) {
-    return createCaseInsensitiveTextTaker(str, locales);
+
+  const strUpper = str.toUpperCase();
+  const strLower = str.toLowerCase();
+
+  if (caseInsensitive && strUpper !== strLower) {
+    if (strUpper.length !== strLower.length) {
+      throw new Error('Unsupported char');
+    }
+    return createCaseInsensitiveTextTaker(str);
   }
   if (strLength === 1) {
-    return createCharCodeRangeTaker([str.charCodeAt(0)]);
+    return createCharCodeRangeTaker([toCharCode(str)]);
   }
   return createCaseSensitiveTextTaker(str);
 }
@@ -59,7 +58,7 @@ export function createCaseSensitiveTextTaker(str: string): CaseSensitiveTextTake
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
     resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
-    toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, i === 0 ? '' : '+' + i, ')===', charCode]),
+    toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, i > 0 ? '+' + i : '', ')===', charCode]),
     '?', offsetVar, '+', str.length, ':' + ResultCode.NO_MATCH + ';',
   ];
 
@@ -73,39 +72,41 @@ export function createCaseSensitiveTextTaker(str: string): CaseSensitiveTextTake
 export interface CaseInsensitiveTextTaker extends InternalTaker {
   type: InternalTakerType.CASE_INSENSITIVE_TEXT;
   str: string;
-  locales: string | string[] | undefined;
 }
 
-export function createCaseInsensitiveTextTaker(str: string, locales: string | string[] | undefined): CaseInsensitiveTextTaker {
-
-  const charCodeVar = createVar();
+export function createCaseInsensitiveTextTaker(str: string): CaseInsensitiveTextTaker {
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
 
-    const lowerCharCodes = toCharCodes(toLowerCase(str, locales));
-    const upperCharCodes = toCharCodes(toUpperCase(str, locales));
+    const charCodeVar = createVar();
 
-    const lowerCharCount = lowerCharCodes.length;
-    const upperCharCount = upperCharCodes.length;
+    const lowerCharCodes = toCharCodes(str.toLowerCase());
+    const upperCharCodes = toCharCodes(str.toUpperCase());
 
-    const minimumCharCount = Math.min(lowerCharCount, upperCharCount);
-    const maximumCharCount = Math.max(lowerCharCount, upperCharCount);
+    const charCount = lowerCharCodes.length;
 
     const code: Code[] = [
       'var ', charCodeVar, ';',
-      resultVar, '=', offsetVar, '+', minimumCharCount - 1, '<', inputVar, '.length',
+      resultVar, '=', offsetVar, '+', charCount - 1, '<', inputVar, '.length',
     ];
 
-    for (let i = 0; i < maximumCharCount; ++i) {
-      code.push(
-          '&&(',
-          charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '++),',
-          i < lowerCharCount ? [charCodeVar, '===', lowerCharCodes[i]] : '',
-          i < upperCharCount ? [i < lowerCharCount ? '||' : '', charCodeVar, '===', upperCharCodes[i]] : '',
-          ')',
-      );
+    for (let i = 0; i < charCount; ++i) {
+
+      const lowerCharCode = lowerCharCodes[i];
+      const upperCharCode = upperCharCodes[i];
+
+      if (lowerCharCode === upperCharCode) {
+        code.push(inputVar, '.charCodeAt(', offsetVar, '++)===', lowerCharCode);
+      } else {
+        code.push(
+            '&&(',
+            charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '++),',
+            charCodeVar, '===', lowerCharCode, '||', charCodeVar, '===', upperCharCode,
+            ')',
+        );
+      }
     }
-    code.push('?', offsetVar, ':' + ResultCode.NO_MATCH, ';');
+    code.push('?', offsetVar, ':' + ResultCode.NO_MATCH + ';');
 
     return code;
   };
@@ -113,7 +114,6 @@ export function createCaseInsensitiveTextTaker(str: string, locales: string | st
   const taker = compileInternalTaker<CaseInsensitiveTextTaker>(InternalTakerType.CASE_INSENSITIVE_TEXT, factory);
 
   taker.str = str;
-  taker.locales = locales;
 
   return taker;
 }
