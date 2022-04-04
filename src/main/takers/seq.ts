@@ -15,26 +15,27 @@ export function seq(...takers: TakerLike[]): Taker {
     return never;
   }
 
-  takers = takers.reduce<TakerLike[]>((takers, taker) => {
+  const t: TakerLike[] = [];
+
+  for (const taker of takers) {
     if (isInternalTaker<SeqTaker>(taker, InternalTakerType.SEQ)) {
-      takers.push(...taker.takers);
-      return takers;
+      t.push(...taker.takers);
+      continue;
     }
     if (taker !== none) {
-      takers.push(taker);
+      t.push(taker);
     }
-    return takers;
-  }, []);
+  }
 
-  const takersLength = takers.length;
+  const takersLength = t.length;
 
   if (takersLength === 0) {
     return none;
   }
   if (takersLength === 1) {
-    return toTaker(takers[0]);
+    return toTaker(t[0]);
   }
-  return createSeqTaker(takers);
+  return createSeqTaker(t);
 }
 
 export interface SeqTaker extends InternalTaker {
@@ -44,36 +45,33 @@ export interface SeqTaker extends InternalTaker {
 
 export function createSeqTaker(takers: TakerLike[]): SeqTaker {
 
-  const takersLastIndex = takers.length - 1;
+  const takersLength = takers.length;
+  const bindings: [Var, unknown][] = [];
 
-  const takerVars: Var[] = [];
-
-  const values = takers.reduce<[Var, unknown][]>((values, taker) => {
-    if (isTakerCodegen(taker)) {
-      if (taker.bindings) {
-        values.push(...taker.bindings);
-      }
-    } else {
-      const takerVar = createVar();
-      takerVars.push(takerVar);
-      values.push([takerVar, taker]);
+  for (const taker of takers) {
+    if (!isTakerCodegen(taker)) {
+      bindings.push([createVar(), taker]);
+      continue;
     }
-    return values;
-  }, []);
+    if (taker.bindings) {
+      bindings.push(...taker.bindings);
+    }
+  }
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+
     const code: Code[] = [];
     const tailCode: Code[] = [];
 
     let j = 0;
 
-    for (let i = 0; i < takersLastIndex; ++i) {
+    for (let i = 0; i < takersLength - 1; ++i) {
       const taker = takers[i];
       const takerResultVar = createVar();
 
       code.push(
           'var ', takerResultVar, ';',
-          isTakerCodegen(taker) ? taker.factory(inputVar, offsetVar, takerResultVar) : [takerResultVar, '=', takerVars[j++], '(', inputVar, ',', offsetVar, ');'],
+          isTakerCodegen(taker) ? taker.factory(inputVar, offsetVar, takerResultVar) : [takerResultVar, '=', bindings[j++][0], '(', inputVar, ',', offsetVar, ');'],
           'if(', takerResultVar, '<0){', resultVar, '=', takerResultVar, '}else{'
       );
       tailCode.push('}');
@@ -81,16 +79,16 @@ export function createSeqTaker(takers: TakerLike[]): SeqTaker {
       offsetVar = takerResultVar;
     }
 
-    const lastTaker = takers[takersLastIndex];
+    const lastTaker = takers[takersLength - 1];
 
     code.push(
-        isTakerCodegen(lastTaker) ? lastTaker.factory(inputVar, offsetVar, resultVar) : [resultVar, '=', takerVars[j], '(', inputVar, ',', offsetVar, ');'],
+        isTakerCodegen(lastTaker) ? lastTaker.factory(inputVar, offsetVar, resultVar) : [resultVar, '=', bindings[j][0], '(', inputVar, ',', offsetVar, ');'],
         tailCode,
     );
     return code;
   };
 
-  const taker = compileInternalTaker<SeqTaker>(InternalTakerType.SEQ, factory, values);
+  const taker = compileInternalTaker<SeqTaker>(InternalTakerType.SEQ, factory, bindings);
 
   taker.takers = takers;
 

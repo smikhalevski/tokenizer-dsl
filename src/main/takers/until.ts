@@ -48,7 +48,7 @@ export function until(taker: TakerLike, options: UntilOptions = {}): Taker {
     if (charCodeRanges.length === 1 && typeof charCodeRanges[0] === 'number') {
       return createUntilCaseSensitiveTextTaker(String.fromCharCode(charCodeRanges[0]), inclusive);
     }
-    return createUntilCharCodeRangeTaker(taker.charCodeRanges, inclusive);
+    return createUntilCharCodeRangeTaker(charCodeRanges, inclusive);
   }
   if (isInternalTaker<CaseSensitiveTextTaker>(taker, InternalTakerType.CASE_SENSITIVE_TEXT)) {
     return createUntilCaseSensitiveTextTaker(taker.str, inclusive);
@@ -65,17 +65,24 @@ export interface UntilCharCodeRangeTaker extends InternalTaker {
 
 export function createUntilCharCodeRangeTaker(charCodeRanges: CharCodeRange[], inclusive: boolean): UntilCharCodeRangeTaker {
 
-  const inputLengthVar = createVar();
-  const indexVar = createVar();
-  const charCodeVar = createVar();
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
-    'var ', inputLengthVar, '=', inputVar, '.length,', indexVar, '=', offsetVar, ',', charCodeVar, ';',
-    'while(', indexVar, '<', inputLengthVar,
-    '&&(', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, '),!(', createCharPredicate(charCodeVar, charCodeRanges), '))',
-    '){++', indexVar, '}',
-    resultVar, '=', indexVar, '===', inputLengthVar, '?' + ResultCode.NO_MATCH + ':', indexVar, inclusive ? '+1;' : ';',
-  ];
+    const inputLengthVar = createVar();
+    const indexVar = createVar();
+    const charCodeVar = createVar();
+
+    return [
+      'var ',
+      inputLengthVar, '=', inputVar, '.length,',
+      indexVar, '=', offsetVar, ',',
+      charCodeVar,
+      ';',
+      'while(', indexVar, '<', inputLengthVar,
+      '&&(', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, '),!(', createCharPredicate(charCodeVar, charCodeRanges), '))',
+      ')++', indexVar, ';',
+      resultVar, '=', indexVar, '===', inputLengthVar, '?' + ResultCode.NO_MATCH + ':', indexVar, inclusive ? '+1;' : ';',
+    ];
+  };
 
   return compileInternalTaker<UntilCharCodeRangeTaker>(InternalTakerType.UNTIL_CHAR_CODE_RANGE, factory);
 }
@@ -86,13 +93,16 @@ export interface UntilCaseSensitiveTextTaker extends InternalTaker {
 
 export function createUntilCaseSensitiveTextTaker(str: string, inclusive: boolean): UntilCaseSensitiveTextTaker {
 
-  const indexVar = createVar();
   const strVar = createVar();
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
-    'var ', indexVar, '=', inputVar, '.indexOf(', strVar, ',', offsetVar, ');',
-    resultVar, '=', indexVar, '===-1?' + ResultCode.NO_MATCH + ':', indexVar, inclusive ? '+' + str.length : '', ';',
-  ];
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+    const indexVar = createVar();
+
+    return [
+      'var ', indexVar, '=', inputVar, '.indexOf(', strVar, ',', offsetVar, ');',
+      resultVar, '=', indexVar, '===-1?' + ResultCode.NO_MATCH + ':', indexVar, inclusive ? '+' + str.length : '', ';',
+    ];
+  };
 
   return compileInternalTaker<UntilCaseSensitiveTextTaker>(InternalTakerType.UNTIL_CASE_SENSITIVE_TEXT, factory, [[strVar, str]]);
 }
@@ -104,16 +114,20 @@ export interface UntilCharCodeCheckerTaker extends InternalTaker {
 export function createUntilCharCodeCheckerTaker(charCodeChecker: CharCodeChecker, inclusive: boolean): UntilCharCodeCheckerTaker {
 
   const charCodeCheckerVar = createVar();
-  const inputLengthVar = createVar();
-  const indexVar = createVar();
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
-    'var ', inputLengthVar, '=', inputVar, '.length,', indexVar, '=', offsetVar, ';',
-    'while(', indexVar, '<', inputLengthVar, '&&!', charCodeCheckerVar, '(', inputVar, '.charCodeAt(', indexVar, '))){',
-    '++', indexVar,
-    '}',
-    resultVar, '=', indexVar, '===', inputLengthVar, '?' + ResultCode.NO_MATCH + ':', indexVar, inclusive ? '+1;' : ';',
-  ];
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+
+    const inputLengthVar = createVar();
+    const indexVar = createVar();
+
+    return [
+      'var ',
+      inputLengthVar, '=', inputVar, '.length,',
+      indexVar, '=', offsetVar, ';',
+      'while(', indexVar, '<', inputLengthVar, '&&!', charCodeCheckerVar, '(', inputVar, '.charCodeAt(', indexVar, ')))++', indexVar, ';',
+      resultVar, '=', indexVar, '===', inputLengthVar, '?' + ResultCode.NO_MATCH + ':', indexVar, inclusive ? '+1;' : ';',
+    ];
+  };
 
   return compileInternalTaker<UntilCharCodeCheckerTaker>(InternalTakerType.UNTIL_CHAR_CODE_CHECKER, factory, [[charCodeCheckerVar, charCodeChecker]]);
 }
@@ -124,16 +138,19 @@ export interface UntilRegexTaker extends InternalTaker {
 
 export function createUntilRegexTaker(re: RegExp, inclusive: boolean): UntilRegexTaker {
 
-  re = new RegExp(re.source, re.flags.replace(/[yg]/, '') + 'g');
+  re = RegExp(re.source, re.flags.replace(/[yg]/, '') + 'g');
 
   const reVar = createVar();
-  const arrVar = createVar();
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
-    reVar, '.lastIndex=', offsetVar, ';',
-    'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
-    resultVar, '=', arrVar, '===null?' + ResultCode.NO_MATCH + ':', inclusive ? [reVar, '.lastIndex'] : [arrVar, '.index'], ';',
-  ];
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+    const arrVar = createVar();
+
+    return [
+      reVar, '.lastIndex=', offsetVar, ';',
+      'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
+      resultVar, '=', arrVar, '===null?' + ResultCode.NO_MATCH + ':', inclusive ? [reVar, '.lastIndex'] : [arrVar, '.index'], ';',
+    ];
+  };
 
   return compileInternalTaker<UntilRegexTaker>(InternalTakerType.UNTIL_REGEX, factory, [[reVar, re]]);
 }
@@ -144,19 +161,26 @@ export interface UntilGenericTaker extends InternalTaker {
 
 export function createUntilGenericTaker(baseTaker: TakerLike, inclusive: boolean): UntilGenericTaker {
 
-  const inputLengthVar = createVar();
-  const indexVar = createVar();
   const baseTakerVar = createVar();
-  const baseTakerResultVar = createVar();
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
-    'var ', inputLengthVar, '=', inputVar, '.length,', indexVar, '=', offsetVar, ',', baseTakerResultVar, '=' + ResultCode.NO_MATCH + ';',
-    'while(', indexVar, '<', inputLengthVar, '&&', baseTakerResultVar, '===' + ResultCode.NO_MATCH + '){',
-    isTakerCodegen(baseTaker) ? baseTaker.factory(inputVar, indexVar, baseTakerResultVar) : [baseTakerResultVar, '=', baseTakerVar, '(', inputVar, ',', indexVar, ');'],
-    '++', indexVar,
-    '}',
-    resultVar, '=', baseTakerResultVar, '<', 0, '?', baseTakerResultVar, ':', inclusive ? baseTakerResultVar : [indexVar, '-1'], ';',
-  ];
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+
+    const inputLengthVar = createVar();
+    const indexVar = createVar();
+    const baseTakerResultVar = createVar();
+
+    return [
+      'var ',
+      inputLengthVar, '=', inputVar, '.length,',
+      indexVar, '=', offsetVar, ',',
+      baseTakerResultVar, '=' + ResultCode.NO_MATCH + ';',
+      'while(', indexVar, '<', inputLengthVar, '&&', baseTakerResultVar, '===' + ResultCode.NO_MATCH + '){',
+      isTakerCodegen(baseTaker) ? baseTaker.factory(inputVar, indexVar, baseTakerResultVar) : [baseTakerResultVar, '=', baseTakerVar, '(', inputVar, ',', indexVar, ');'],
+      '++', indexVar,
+      '}',
+      resultVar, '=', baseTakerResultVar, '<', 0, '?', baseTakerResultVar, ':', inclusive ? baseTakerResultVar : [indexVar, '-1'], ';',
+    ];
+  };
 
   return compileInternalTaker<UntilGenericTaker>(InternalTakerType.UNTIL_GENERIC, factory, isTakerCodegen(baseTaker) ? baseTaker.bindings : [[baseTakerVar, baseTaker]]);
 }

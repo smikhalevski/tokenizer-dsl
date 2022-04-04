@@ -8,6 +8,8 @@ import {
   until
 } from '../../main/takers/until';
 
+const B = 'b'.charCodeAt(0);
+
 describe('until', () => {
 
   test('returns none', () => {
@@ -43,11 +45,11 @@ describe('until', () => {
 describe('createUntilCharCodeRangeTaker', () => {
 
   test('takes chars until char code is met', () => {
-    expect(createUntilCharCodeRangeTaker(['b'.charCodeAt(0)], false)('aaabbb', 0)).toBe(3);
+    expect(createUntilCharCodeRangeTaker([[B, B]], false)('aaabbb', 0)).toBe(3);
   });
 
   test('takes chars including the searched char', () => {
-    expect(createUntilCharCodeRangeTaker(['b'.charCodeAt(0)], true)('aaabbb', 0)).toBe(4);
+    expect(createUntilCharCodeRangeTaker([[B, B]], true)('aaabbb', 0)).toBe(4);
   });
 });
 
@@ -65,7 +67,7 @@ describe('createUntilCaseSensitiveTextTaker', () => {
 describe('createUntilCharCodeCheckerTaker', () => {
 
   test('takes chars until char is met', () => {
-    expect(createUntilCharCodeCheckerTaker((charCode) => charCode === 'b'.charCodeAt(0), false)('aaabbb', 0)).toBe(3);
+    expect(createUntilCharCodeCheckerTaker((charCode) => charCode === B, false)('aaabbb', 0)).toBe(3);
   });
 });
 

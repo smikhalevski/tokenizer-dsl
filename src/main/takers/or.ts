@@ -12,76 +12,76 @@ import {compileInternalTaker, isInternalTaker, isTakerCodegen, toTaker} from './
  */
 export function or(...takers: TakerLike[]): Taker {
 
-  takers = takers.reduce<TakerLike[]>((takers, taker) => {
+  const t: TakerLike[] = [];
 
-    if (takers.length !== 0 && takers[takers.length - 1] === none) {
-      return takers;
+  for (const taker of takers) {
+    if (taker === none) {
+      break;
     }
     if (isInternalTaker<OrTaker>(taker, InternalTakerType.OR)) {
-      takers.push(...taker.takers);
-      return takers;
+      t.push(...taker.takers);
+      continue;
     }
     if (taker !== never) {
-      takers.push(taker);
+      t.push(taker);
     }
-    return takers;
-  }, []);
+  }
 
-  const takersLength = takers.length;
+  const takersLength = t.length;
 
   if (takersLength === 0) {
     return none;
   }
   if (takersLength === 1) {
-    return toTaker(takers[0]);
+    return toTaker(t[0]);
   }
-  return createOrTaker(takers);
+  return createOrTaker(t);
 }
 
 export interface OrTaker extends InternalTaker {
   type: InternalTakerType.OR;
-  takers: TakerLike[];
+  takers: readonly TakerLike[];
 }
 
 export function createOrTaker(takers: TakerLike[]): OrTaker {
 
-  const takersLastIndex = takers.length - 1;
+  const takersLength = takers.length;
+  const bindings: [Var, unknown][] = [];
 
-  const takerVars: Var[] = [];
-
-  const values = takers.reduce<[Var, unknown][]>((values, taker) => {
-    if (isTakerCodegen(taker)) {
-      if (taker.bindings) {
-        values.push(...taker.bindings);
-      }
-    } else {
-      const takerVar = createVar();
-      takerVars.push(takerVar);
-      values.push([takerVar, taker]);
+  for (const taker of takers) {
+    if (!isTakerCodegen(taker)) {
+      bindings.push([createVar(), taker]);
+      continue;
     }
-    return values;
-  }, []);
+    if (taker.bindings) {
+      bindings.push(...taker.bindings);
+    }
+  }
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+
     const code: Code[] = [];
     const tailCode: Code[] = [];
 
-    for (let i = 0, j = 0; i <= takersLastIndex; ++i) {
+    for (let i = 0, j = 0; i < takersLength; ++i) {
       const taker = takers[i];
 
-      code.push(isTakerCodegen(taker) ? taker.factory(inputVar, offsetVar, resultVar) : [resultVar, '=', takerVars[j++], '(', inputVar, ',', offsetVar, ');']);
-
-      if (i !== takersLastIndex) {
+      if (isTakerCodegen(taker)) {
+        code.push(taker.factory(inputVar, offsetVar, resultVar));
+      } else {
+        code.push(resultVar, '=', bindings[j++][0], '(', inputVar, ',', offsetVar, ');');
+      }
+      if (i < takersLength - 1) {
         code.push('if(', resultVar, '===' + ResultCode.NO_MATCH + '){');
         tailCode.push('}');
       }
     }
-
     code.push(tailCode);
+
     return code;
   };
 
-  const taker = compileInternalTaker<OrTaker>(InternalTakerType.OR, factory, values);
+  const taker = compileInternalTaker<OrTaker>(InternalTakerType.OR, factory, bindings);
 
   taker.takers = takers;
 

@@ -1,4 +1,3 @@
-import {createEndTaker} from './end';
 import {none} from './none';
 import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
 import {compileInternalTaker} from './taker-utils';
@@ -11,13 +10,10 @@ import {compileInternalTaker} from './taker-utils';
 export function skip(charCount = 1): Taker {
   charCount = Math.max(charCount | 0, 0);
 
-  if (charCount < 1) {
+  if (charCount === 0) {
     return none;
   }
-  if (isFinite(charCount)) {
-    return createSkipTaker(charCount);
-  }
-  return createEndTaker(0);
+  return createSkipTaker(charCount);
 }
 
 export interface SkipTaker extends InternalTaker {
