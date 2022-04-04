@@ -35,14 +35,14 @@ describe('createCharCodeCheckerTaker', () => {
 describe('createCharCodeRangeTaker', () => {
 
   test('takes exact char at offset', () => {
-    expect(createCharCodeRangeTaker(['a'.charCodeAt(0)])('aaabbb', 2)).toBe(3);
+    expect(createCharCodeRangeTaker([A])('aaabbb', 2)).toBe(3);
   });
 
   test('takes char code range at offset', () => {
-    expect(createCharCodeRangeTaker([['a'.charCodeAt(0) - 1, 'a'.charCodeAt(0) + 1]])('aaabbb', 2)).toBe(3);
+    expect(createCharCodeRangeTaker([[A - 1, A + 1]])('aaabbb', 2)).toBe(3);
   });
 
   test('does not read unmatched char', () => {
-    expect(createCharCodeRangeTaker(['a'.charCodeAt(0)])('aaabbb', 4)).toBe(ResultCode.NO_MATCH);
+    expect(createCharCodeRangeTaker([A])('aaabbb', 4)).toBe(ResultCode.NO_MATCH);
   });
 });

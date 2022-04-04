@@ -4,28 +4,33 @@ import {none} from './none';
 import {
   CharCodeChecker,
   CharCodeRange,
+  CharCodeRangeLike,
   InternalTaker,
   InternalTakerType,
   ResultCode,
   Taker,
   TakerCodeFactory
 } from './taker-types';
-import {compileInternalTaker} from './taker-utils';
+import {compileInternalTaker, toCharCodeRanges} from './taker-utils';
 
 /**
  * Creates a taker that matches a single char by its code.
  *
- * @param charCode A function that receives a char code from the input and returns `true` if it matches.
+ * @param charCode A function that receives a char code from the input and returns `true` if it matches. Or an array of
+ * char codes, or tuples of lower/upper char codes that define an inclusive range of codes.
+ *
  * @see {@link text}
  */
-export function char(charCode: CharCodeChecker | CharCodeRange[]): Taker {
+export function char(charCode: CharCodeChecker | CharCodeRangeLike[]): Taker {
   if (typeof charCode === 'function') {
     return createCharCodeCheckerTaker(charCode);
   }
-  if (charCode.length === 0) {
+  const ranges = toCharCodeRanges(charCode);
+
+  if (ranges.length === 0) {
     return none;
   }
-  return createCharCodeRangeTaker(charCode);
+  return createCharCodeRangeTaker(ranges);
 }
 
 export interface CharCodeCheckerTaker extends InternalTaker {
@@ -55,12 +60,14 @@ export interface CharCodeRangeTaker extends InternalTaker {
 
 export function createCharCodeRangeTaker(charCodeRanges: CharCodeRange[]): CharCodeRangeTaker {
 
-  const charCodeVar = createVar();
+  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+    const charCodeVar = createVar();
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
-    'var ', charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, ');',
-    resultVar, '=', createCharPredicate(charCodeVar, charCodeRanges), '?', offsetVar, '+1:' + ResultCode.NO_MATCH + ';',
-  ];
+    return [
+      'var ', charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, ');',
+      resultVar, '=', createCharPredicate(charCodeVar, charCodeRanges), '?', offsetVar, '+1:' + ResultCode.NO_MATCH + ';',
+    ];
+  };
 
   const taker = compileInternalTaker<CharCodeRangeTaker>(InternalTakerType.CHAR_CODE_RANGE, factory);
 
@@ -70,8 +77,16 @@ export function createCharCodeRangeTaker(charCodeRanges: CharCodeRange[]): CharC
 }
 
 export function createCharPredicate(charCodeVar: Var, charCodeRanges: CharCodeRange[]): Code {
-  return charCodeRanges.map((value, i) => [
-    i === 0 ? '' : '||',
-    typeof value === 'number' ? [charCodeVar, '===', value | 0] : [charCodeVar, '>=', value[0] | 0, '&&', charCodeVar, '<=', value[1] | 0],
-  ]);
+  const code: Code[] = [];
+
+  for (let i = 0; i < charCodeRanges.length; ++i) {
+    const range = charCodeRanges[i];
+
+    if (typeof range === 'number') {
+      code.push(i > 0 ? '||' : '', charCodeVar, '===', range);
+    } else {
+      code.push(i > 0 ? '||' : '', charCodeVar, '>=', range[0], '&&', charCodeVar, '<=', range[1]);
+    }
+  }
+  return code;
 }
