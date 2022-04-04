@@ -49,12 +49,12 @@ export function createOrTaker(takers: TakerLike[]): OrTaker {
   const bindings: [Var, unknown][] = [];
 
   for (const taker of takers) {
-    if (!isTakerCodegen(taker)) {
+    if (isTakerCodegen(taker)) {
+      if (taker.bindings) {
+        bindings.push(...taker.bindings);
+      }
+    } else {
       bindings.push([createVar(), taker]);
-      continue;
-    }
-    if (taker.bindings) {
-      bindings.push(...taker.bindings);
     }
   }
 
