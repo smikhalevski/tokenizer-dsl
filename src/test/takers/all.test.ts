@@ -7,6 +7,8 @@ import {
   createAllRegexTaker
 } from '../../main/takers/all';
 
+const A = 'a'.charCodeAt(0);
+
 describe('all', () => {
 
   test('returns never', () => {
@@ -16,9 +18,12 @@ describe('all', () => {
   });
 
   test('returns none', () => {
-    expect(all(() => 0, {maximumCount: -1})).toBe(none);
-    expect(all(() => 0, {maximumCount: 0})).toBe(none);
     expect(all(none)).toBe(none);
+  });
+
+  test('returns unlimited taker', () => {
+    expect((all(() => 0, {maximumCount: -1}) as InternalTaker).type).toBe(InternalTakerType.ALL_GENERIC);
+    expect((all(() => 0, {maximumCount: 0}) as InternalTaker).type).toBe(InternalTakerType.ALL_GENERIC);
   });
 
   test('returns MaybeTaker', () => {
@@ -47,8 +52,8 @@ describe('all', () => {
 describe('createAllCharCodeCheckerTaker', () => {
 
   test('takes sequential chars', () => {
-    expect(createAllCharCodeCheckerTaker(() => true, 0, Infinity)('aaabbbccc', 2)).toBe(9);
-    expect(createAllCharCodeCheckerTaker(() => false, 1, Infinity)('aaabbbccc', 2)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeCheckerTaker(() => true, 0, 0)('aaabbbccc', 2)).toBe(9);
+    expect(createAllCharCodeCheckerTaker(() => false, 1, 0)('aaabbbccc', 2)).toBe(ResultCode.NO_MATCH);
   });
 
   test('takes if count is sufficient', () => {
@@ -57,7 +62,7 @@ describe('createAllCharCodeCheckerTaker', () => {
     charCodeCheckerMock.mockReturnValueOnce(true);
     charCodeCheckerMock.mockReturnValueOnce(false);
 
-    expect(createAllCharCodeCheckerTaker(charCodeCheckerMock, 2, Infinity)('aaaa', 1)).toBe(3);
+    expect(createAllCharCodeCheckerTaker(charCodeCheckerMock, 2, 0)('aaaa', 1)).toBe(3);
   });
 
   test('does not take if count is insufficient', () => {
@@ -65,7 +70,7 @@ describe('createAllCharCodeCheckerTaker', () => {
     charCodeCheckerMock.mockReturnValueOnce(true);
     charCodeCheckerMock.mockReturnValueOnce(false);
 
-    expect(createAllCharCodeCheckerTaker(charCodeCheckerMock, 2, Infinity)('aaaa', 1)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeCheckerTaker(charCodeCheckerMock, 2, 0)('aaaa', 1)).toBe(ResultCode.NO_MATCH);
   });
 
   test('takes limited number of chars', () => {
@@ -73,72 +78,72 @@ describe('createAllCharCodeCheckerTaker', () => {
   });
 
   test('stops at string end', () => {
-    expect(createAllCharCodeCheckerTaker(() => true, 0, Infinity)('aaaa', 1)).toBe(4);
+    expect(createAllCharCodeCheckerTaker(() => true, 0, 0)('aaaa', 1)).toBe(4);
   });
 });
 
 describe('createAllCharCodeRangeTaker', () => {
 
   test('takes exact number of chars', () => {
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 2, 2)('aaaa', 0)).toBe(2);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 2, 2)('aaaa', 1)).toBe(3);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 2, 2)('aaaa', 2)).toBe(4);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 2, 2)('abbb', 0)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeRangeTaker([A], 2, 2)('aaaa', 0)).toBe(2);
+    expect(createAllCharCodeRangeTaker([A], 2, 2)('aaaa', 1)).toBe(3);
+    expect(createAllCharCodeRangeTaker([A], 2, 2)('aaaa', 2)).toBe(4);
+    expect(createAllCharCodeRangeTaker([A], 2, 2)('abbb', 0)).toBe(ResultCode.NO_MATCH);
   });
 
   test('takes exact number of chars when length is insufficient', () => {
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 2, 2)('aaaa', 3)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeRangeTaker([A], 2, 2)('aaaa', 3)).toBe(ResultCode.NO_MATCH);
   });
 
   test('takes maximum number of chars', () => {
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, 2)('aaaa', 0)).toBe(2);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, 2)('aaaa', 1)).toBe(3);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, 2)('abbb', 0)).toBe(1);
+    expect(createAllCharCodeRangeTaker([A], 0, 2)('aaaa', 0)).toBe(2);
+    expect(createAllCharCodeRangeTaker([A], 0, 2)('aaaa', 1)).toBe(3);
+    expect(createAllCharCodeRangeTaker([A], 0, 2)('abbb', 0)).toBe(1);
   });
 
   test('takes maximum number of chars does not overflow input length', () => {
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, 2)('aaaa', 3)).toBe(4);
+    expect(createAllCharCodeRangeTaker([A], 0, 2)('aaaa', 3)).toBe(4);
   });
 
   test('takes minimum and maximum number of chars', () => {
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, 2)('aaaa', 0)).toBe(2);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, 2)('aaaa', 1)).toBe(3);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, 2)('aaaa', 3)).toBe(4);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, 2)('aaaa', 4)).toBe(ResultCode.NO_MATCH);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, 2)('aabb', 1)).toBe(2);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, 2)('aabb', 2)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeRangeTaker([A], 1, 2)('aaaa', 0)).toBe(2);
+    expect(createAllCharCodeRangeTaker([A], 1, 2)('aaaa', 1)).toBe(3);
+    expect(createAllCharCodeRangeTaker([A], 1, 2)('aaaa', 3)).toBe(4);
+    expect(createAllCharCodeRangeTaker([A], 1, 2)('aaaa', 4)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeRangeTaker([A], 1, 2)('aabb', 1)).toBe(2);
+    expect(createAllCharCodeRangeTaker([A], 1, 2)('aabb', 2)).toBe(ResultCode.NO_MATCH);
   });
 
   test('takes minimum number of chars', () => {
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, Infinity)('aaaa', 0)).toBe(4);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, Infinity)('aaaa', 1)).toBe(4);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, Infinity)('aaaa', 4)).toBe(ResultCode.NO_MATCH);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, Infinity)('aabb', 1)).toBe(2);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 1, Infinity)('aabb', 2)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeRangeTaker([A], 1, 0)('aaaa', 0)).toBe(4);
+    expect(createAllCharCodeRangeTaker([A], 1, 0)('aaaa', 1)).toBe(4);
+    expect(createAllCharCodeRangeTaker([A], 1, 0)('aaaa', 4)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeRangeTaker([A], 1, 0)('aabb', 1)).toBe(2);
+    expect(createAllCharCodeRangeTaker([A], 1, 0)('aabb', 2)).toBe(ResultCode.NO_MATCH);
   });
 
   test('takes unlimited number of chars', () => {
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, Infinity)('aaaa', 0)).toBe(4);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, Infinity)('aaaa', 1)).toBe(4);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, Infinity)('aaaa', 4)).toBe(4);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, Infinity)('aabb', 1)).toBe(2);
-    expect(createAllCharCodeRangeTaker(['a'.charCodeAt(0)], 0, Infinity)('aabb', 2)).toBe(2);
+    expect(createAllCharCodeRangeTaker([A], 0, 0)('aaaa', 0)).toBe(4);
+    expect(createAllCharCodeRangeTaker([A], 0, 0)('aaaa', 1)).toBe(4);
+    expect(createAllCharCodeRangeTaker([A], 0, 0)('aaaa', 4)).toBe(4);
+    expect(createAllCharCodeRangeTaker([A], 0, 0)('aabb', 1)).toBe(2);
+    expect(createAllCharCodeRangeTaker([A], 0, 0)('aabb', 2)).toBe(2);
   });
 });
 
 describe('createAllCaseSensitiveTextTaker', () => {
 
   test('takes sequential case-insensitive substrings', () => {
-    expect(createAllCaseSensitiveTextTaker('abc', 0, Infinity)('abcabcabcd', 3)).toBe(9);
-    expect(createAllCaseSensitiveTextTaker('abc', 3, Infinity)('abcabcabcd', 3)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCaseSensitiveTextTaker('abc', 0, 0)('abcabcabcd', 3)).toBe(9);
+    expect(createAllCaseSensitiveTextTaker('abc', 3, 0)('abcabcabcd', 3)).toBe(ResultCode.NO_MATCH);
   });
 
   test('takes if count is sufficient', () => {
-    expect(createAllCaseSensitiveTextTaker('ab', 2, Infinity)('abababc', 2)).toBe(6);
+    expect(createAllCaseSensitiveTextTaker('ab', 2, 0)('abababc', 2)).toBe(6);
   });
 
   test('does not take if count is insufficient', () => {
-    expect(createAllCaseSensitiveTextTaker('ab', 2, Infinity)('aabb', 1)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCaseSensitiveTextTaker('ab', 2, 0)('aabb', 1)).toBe(ResultCode.NO_MATCH);
   });
 
   test('takes limited number of chars', () => {
@@ -146,24 +151,24 @@ describe('createAllCaseSensitiveTextTaker', () => {
   });
 
   test('stops at string end', () => {
-    expect(createAllCaseSensitiveTextTaker('ab', 0, Infinity)('abababab', 0)).toBe(8);
+    expect(createAllCaseSensitiveTextTaker('ab', 0, 0)('abababab', 0)).toBe(8);
   });
 });
 
 describe('createAllRegexTaker', () => {
 
   test('takes sequential regex matches', () => {
-    expect(createAllRegexTaker(/a/, 0, Infinity)('aaaaabaaa', 3)).toBe(5);
-    expect(createAllRegexTaker(/a/, 3, Infinity)('aaaaabaaa', 3)).toBe(ResultCode.NO_MATCH);
+    expect(createAllRegexTaker(/a/, 0, 0)('aaaaabaaa', 3)).toBe(5);
+    expect(createAllRegexTaker(/a/, 3, 0)('aaaaabaaa', 3)).toBe(ResultCode.NO_MATCH);
     expect(createAllRegexTaker(/a/, 0, 3)('aaaaa', 0)).toBe(3);
   });
 
   test('takes if count is sufficient', () => {
-    expect(createAllRegexTaker(/ab/, 2, Infinity)('abababc', 2)).toBe(6);
+    expect(createAllRegexTaker(/ab/, 2, 0)('abababc', 2)).toBe(6);
   });
 
   test('does not take if count is insufficient', () => {
-    expect(createAllRegexTaker(/ab/, 2, Infinity)('aabb', 1)).toBe(ResultCode.NO_MATCH);
+    expect(createAllRegexTaker(/ab/, 2, 0)('aabb', 1)).toBe(ResultCode.NO_MATCH);
   });
 
   test('takes limited number of chars', () => {
@@ -171,7 +176,7 @@ describe('createAllRegexTaker', () => {
   });
 
   test('stops at string end', () => {
-    expect(createAllRegexTaker(/ab/, 0, Infinity)('abababab', 0)).toBe(8);
+    expect(createAllRegexTaker(/ab/, 0, 0)('abababab', 0)).toBe(8);
   });
 });
 
@@ -183,7 +188,7 @@ describe('createAllGenericTaker', () => {
     takerMock.mockReturnValueOnce(4);
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
-    expect(createAllGenericTaker(takerMock, 0, Infinity)('aabbcc', 2)).toBe(4);
+    expect(createAllGenericTaker(takerMock, 0, 0)('aabbcc', 2)).toBe(4);
     expect(takerMock).toHaveBeenCalledTimes(3);
   });
 
@@ -192,7 +197,7 @@ describe('createAllGenericTaker', () => {
     takerMock.mockReturnValueOnce(3);
     takerMock.mockReturnValueOnce(3);
 
-    expect(createAllGenericTaker(takerMock, 0, Infinity)('aabbcc', 2)).toBe(3);
+    expect(createAllGenericTaker(takerMock, 0, 0)('aabbcc', 2)).toBe(3);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -202,7 +207,7 @@ describe('createAllGenericTaker', () => {
     takerMock.mockReturnValueOnce(-2);
     takerMock.mockReturnValueOnce(3);
 
-    expect(createAllGenericTaker(takerMock, 0, Infinity)('aabbcc', 2)).toBe(-2);
+    expect(createAllGenericTaker(takerMock, 0, 0)('aabbcc', 2)).toBe(-2);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -211,7 +216,7 @@ describe('createAllGenericTaker', () => {
     takerMock.mockReturnValueOnce(1);
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
-    expect(createAllGenericTaker(takerMock, 2, Infinity)('a', 0)).toBe(ResultCode.NO_MATCH);
+    expect(createAllGenericTaker(takerMock, 2, 0)('a', 0)).toBe(ResultCode.NO_MATCH);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -222,7 +227,7 @@ describe('createAllGenericTaker', () => {
     takerMock.mockReturnValueOnce(3);
     takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
 
-    expect(createAllGenericTaker(takerMock, 2, Infinity)('aaa', 0)).toBe(3);
+    expect(createAllGenericTaker(takerMock, 2, 0)('aaa', 0)).toBe(3);
     expect(takerMock).toHaveBeenCalledTimes(4);
   });
 
@@ -246,6 +251,6 @@ describe('createAllGenericTaker', () => {
   });
 
   test('can use inline takers', () => {
-    expect(createAllGenericTaker(text('a'), 0, Infinity)('aabbcc', 0)).toBe(2);
+    expect(createAllGenericTaker(text('a'), 0, 0)('aabbcc', 0)).toBe(2);
   });
 });
