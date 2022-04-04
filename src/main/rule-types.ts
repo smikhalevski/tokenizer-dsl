@@ -3,7 +3,7 @@ import {Taker} from './takers';
 /**
  * Defines how token is read from the input string.
  */
-export interface Token {
+export interface Rule {
 
   /**
    * The taker that takes chars from the string.
@@ -28,25 +28,25 @@ export interface Token {
   nextStage: unknown;
 }
 
-export interface TokenHandler {
+export interface RuleHandler {
 
   /**
    * Triggered when a token was read from the input stream.
    *
-   * @param token The token that was read.
+   * @param rule The token that was read.
    * @param startOffset The absolute offset from the start of the input stream where the token starts.
    * @param endOffset The absolute offset from the start of the input stream where the token ends.
    */
-  token(token: Token, startOffset: number, endOffset: number): void;
+  token(rule: Rule, startOffset: number, endOffset: number): void;
 
   /**
    * Triggered when a taker returned an error code (a negative number, usually an integer <= -2).
    *
-   * @param token The token that returned an error.
+   * @param rule The token that returned an error.
    * @param offset The offset from which the token was read.
    * @param errorCode The error code.
    */
-  error(token: Token, offset: number, errorCode: number): void;
+  error(rule: Rule, offset: number, errorCode: number): void;
 
   /**
    * Triggered if the tokenizer failed to read detect the token in the input stream at the given offset.

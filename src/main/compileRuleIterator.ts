@@ -2,12 +2,12 @@ import {Code, Var} from './code-types';
 import {compileFunction, createVar} from './code-utils';
 import {ResultCode} from './takers';
 import {isTakerCodegen} from './takers/taker-utils';
-import {Token, TokenHandler} from './token-types';
+import {Rule, RuleHandler} from './rule-types';
 
 /**
  * The mutable iterator state.
  */
-export interface TokenIteratorState {
+export interface RuleIteratorState {
 
   /**
    * The current tokenizer stage. A positive integer or -1 if stage is undefined.
@@ -33,9 +33,9 @@ export interface TokenIteratorState {
 /**
  * The callback that reads tokens from the input defined by iterator state.
  */
-export interface TokenIterator {
+export interface RuleIterator {
 
-  (state: TokenIteratorState, streaming: boolean, handler: TokenHandler): void;
+  (state: RuleIteratorState, streaming: boolean, handler: RuleHandler): void;
 
   /**
    * The list of unique stages that are used by tokens that comprise this iterator.
@@ -46,19 +46,18 @@ export interface TokenIterator {
 /**
  * Compiles tokens into a token iterator function.
  *
- * @param tokens The list of tokes that iterator can process.
+ * @param rules The list of tokes that iterator can process.
  */
-export function compileTokenIterator(tokens: Token[]): TokenIterator {
+export function compileRuleIterator(rules: Rule[]): RuleIterator {
 
   const uniqueStages: unknown[] = [];
 
-  for (const token of tokens) {
-    if (!token.stages) {
-      continue;
-    }
-    for (const stage of token.stages) {
-      if (uniqueStages.indexOf(stage) === -1) {
-        uniqueStages.push(stage);
+  for (const rule of rules) {
+    if (rule.stages) {
+      for (const stage of rule.stages) {
+        if (uniqueStages.indexOf(stage) === -1) {
+          uniqueStages.push(stage);
+        }
       }
     }
   }
@@ -101,18 +100,18 @@ export function compileTokenIterator(tokens: Token[]): TokenIterator {
 
     'while(', nextOffsetVar, '<', chunkLengthVar, '){',
 
-    tokens.map((token) => {
+    rules.map((rule) => {
 
-      const {taker, stages} = token;
+      const {taker, stages} = rule;
 
       if (stages?.length === 0) {
         return '';
       }
 
-      const tokenVar = createVar();
+      const ruleVar = createVar();
       const takerVar = createVar();
 
-      bindings.push([tokenVar, token]);
+      bindings.push([ruleVar, rule]);
 
       if (isTakerCodegen(taker)) {
         if (taker.bindings) {
@@ -133,7 +132,7 @@ export function compileTokenIterator(tokens: Token[]): TokenIterator {
 
         // Emit error
         'if(', takerResultVar, '<0){',
-        errorCallbackVar, '(', tokenVar, ',', chunkOffsetVar, '+', nextOffsetVar, ',', takerResultVar, ');',
+        errorCallbackVar, '(', ruleVar, ',', chunkOffsetVar, '+', nextOffsetVar, ',', takerResultVar, ');',
         'return}',
 
         // Emit confirmed token
@@ -145,8 +144,8 @@ export function compileTokenIterator(tokens: Token[]): TokenIterator {
         stateVar, '.stage=', stageVar, ';',
         stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
-        token.nextStage === undefined ? '' : [stageVar, '=', uniqueStages.indexOf(token.nextStage), ';'],
-        prevReaderVar, '=', tokenVar, ';',
+        rule.nextStage === undefined ? '' : [stageVar, '=', uniqueStages.indexOf(rule.nextStage), ';'],
+        prevReaderVar, '=', ruleVar, ';',
         nextOffsetVar, '=', takerResultVar, ';',
 
         'continue}',
@@ -170,9 +169,9 @@ export function compileTokenIterator(tokens: Token[]): TokenIterator {
     unrecognizedTokenCallbackVar, '(', chunkOffsetVar, '+', nextOffsetVar, ');',
   ];
 
-  const tokenIterator = compileFunction<TokenIterator>([stateVar, streamingVar, handlerVar], code, bindings);
+  const ruleIterator = compileFunction<RuleIterator>([stateVar, streamingVar, handlerVar], code, bindings);
 
-  tokenIterator.uniqueStages = uniqueStages;
+  ruleIterator.uniqueStages = uniqueStages;
 
-  return tokenIterator;
+  return ruleIterator;
 }
