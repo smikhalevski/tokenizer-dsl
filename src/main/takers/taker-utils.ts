@@ -1,6 +1,14 @@
 import {Code, Var} from '../code-types';
 import {compileFunction, createVar} from '../code-utils';
-import {InternalTaker, Taker, TakerCodeFactory, TakerCodegen, TakerLike} from './taker-types';
+import {
+  CharCodeRange,
+  CharCodeRangeLike,
+  InternalTaker,
+  Taker,
+  TakerCodeFactory,
+  TakerCodegen,
+  TakerLike
+} from './taker-types';
 
 export function isInternalTaker<T extends InternalTaker>(taker: TakerLike | InternalTaker, type: T['type']): taker is T {
   return 'type' in taker && taker.type === type;
@@ -10,14 +18,6 @@ export function isTakerCodegen(taker: TakerLike | InternalTaker): taker is Taker
   return 'factory' in taker;
 }
 
-export function toLowerCase(str: string, locales: string | string[] | undefined): string {
-  return locales ? str.toLocaleLowerCase(locales) : str.toLowerCase();
-}
-
-export function toUpperCase(str: string, locales: string | string[] | undefined): string {
-  return locales ? str.toLocaleUpperCase(locales) : str.toUpperCase();
-}
-
 export function toCharCodes(str: string): number[] {
   const charCodes: number[] = [];
 
@@ -25,6 +25,27 @@ export function toCharCodes(str: string): number[] {
     charCodes.push(str.charCodeAt(i));
   }
   return charCodes;
+}
+
+export function toCharCodeRanges(values: CharCodeRangeLike[]): CharCodeRange[] {
+  const ranges: CharCodeRange[] = [];
+
+  for (const value of values) {
+    if (typeof value === 'string') {
+      ranges.push(...toCharCodes(value));
+      continue;
+    }
+    if (typeof value === 'number') {
+      ranges.push(value);
+      continue;
+    }
+    ranges.push([toCharCode(value[0]), toCharCode(value[1])]);
+  }
+  return ranges;
+}
+
+export function toCharCode(value: string | number): number {
+  return typeof value === 'string' ? value.charCodeAt(0) : value;
 }
 
 /**

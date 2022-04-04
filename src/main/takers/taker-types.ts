@@ -5,9 +5,8 @@ import {Code, Var} from '../code-types';
  */
 export type CharCodeChecker = (charCode: number) => boolean;
 
-/**
- * The single char code or a tuple of lower/upper char codes that define an inclusive range of codes.
- */
+export type CharCodeRangeLike = number | string | [number | string, number | string];
+
 export type CharCodeRange = number | [number, number];
 
 export const enum ResultCode {

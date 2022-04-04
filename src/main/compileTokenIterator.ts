@@ -50,14 +50,18 @@ export interface TokenIterator {
  */
 export function compileTokenIterator(tokens: Token[]): TokenIterator {
 
-  const uniqueStages = tokens.reduce<unknown[]>((stages, token) => {
-    token.stages?.forEach((stage) => {
-      if (stages.indexOf(stage) === -1) {
-        stages.push(stage);
+  const uniqueStages: unknown[] = [];
+
+  for (const token of tokens) {
+    if (!token.stages) {
+      continue;
+    }
+    for (const stage of token.stages) {
+      if (uniqueStages.indexOf(stage) === -1) {
+        uniqueStages.push(stage);
       }
-    });
-    return stages;
-  }, []);
+    }
+  }
 
   const stateVar = createVar();
   const streamingVar = createVar();
