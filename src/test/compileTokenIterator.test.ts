@@ -204,8 +204,8 @@ describe('compileTokenIterator', () => {
   });
 
   test('respects stages', () => {
-    const tokenA = createToken(text('a'), {stages: ['A'], nextStage: 'B'});
-    const tokenB = createToken(text('b'), {stages: ['B'], nextStage: 'A'});
+    const tokenA = createToken(text('a'), ['A'], 'B');
+    const tokenB = createToken(text('b'), ['B'], 'A');
 
     const tokenIterator = compileTokenIterator([tokenA, tokenB]);
 
