@@ -1,5 +1,4 @@
-import {TakerLike} from './takers';
-import {toTaker} from './takers/taker-utils';
+import {TakerLike, toTaker} from '../takers';
 import {Rule} from './rule-types';
 
 /**

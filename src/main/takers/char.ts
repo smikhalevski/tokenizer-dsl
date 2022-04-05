@@ -1,5 +1,5 @@
-import {Code, Var} from '../code-types';
-import {createVar} from '../code-utils';
+import {Code, Var} from '../code';
+import {createVar} from '../code';
 import {none} from './none';
 import {
   CharCodeChecker,

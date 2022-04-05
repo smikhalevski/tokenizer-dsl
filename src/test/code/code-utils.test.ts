@@ -1,5 +1,4 @@
-import {Var} from '../main';
-import {assembleCode, compileFunction, createVar} from '../main/code-utils';
+import {assembleCode, compileFunction, createVar, Var} from '../../main/code';
 
 describe('assembleCode', () => {
 

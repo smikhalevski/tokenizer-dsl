@@ -1,5 +1,5 @@
-import {Code} from '../code-types';
-import {createVar} from '../code-utils';
+import {Code} from '../code';
+import {createVar} from '../code';
 import {createCharCodeRangeTaker} from './char';
 import {none} from './none';
 import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';

@@ -1,17 +1,15 @@
-import {compileRuleIterator, RuleIteratorState} from './compileRuleIterator';
-import {Rule, RuleHandler} from './rule-types';
+import {compileRuleIterator, Rule, RuleHandler, RuleIteratorState} from './rules';
 
 export class Tokenizer implements RuleIteratorState {
 
-  public stage;
+  public stageIndex;
   public chunk = '';
   public offset = 0;
   public chunkOffset = 0;
+  public handler;
 
-  private readonly initialStage;
+  private readonly initialStageIndex;
   private readonly ruleIterator;
-
-  private handler;
 
   public constructor(rules: Rule[], handler: RuleHandler, initialStage?: unknown) {
     if (rules.length === 0) {
@@ -19,11 +17,7 @@ export class Tokenizer implements RuleIteratorState {
     }
 
     const ruleIterator = this.ruleIterator = compileRuleIterator(rules);
-    this.stage = this.initialStage = ruleIterator.uniqueStages.indexOf(initialStage);
-    this.handler = handler;
-  }
-
-  public setHandler(handler: RuleHandler): void {
+    this.stageIndex = this.initialStageIndex = ruleIterator.uniqueStages.indexOf(initialStage);
     this.handler = handler;
   }
 
@@ -44,7 +38,7 @@ export class Tokenizer implements RuleIteratorState {
   }
 
   public reset(): void {
-    this.stage = this.initialStage;
+    this.stageIndex = this.initialStageIndex;
     this.chunk = '';
     this.offset = this.chunkOffset = 0;
   }

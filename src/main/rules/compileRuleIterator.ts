@@ -1,7 +1,5 @@
-import {Code, Var} from './code-types';
-import {compileFunction, createVar} from './code-utils';
-import {ResultCode} from './takers';
-import {isTakerCodegen} from './takers/taker-utils';
+import {Code, compileFunction, createVar, Var} from '../code';
+import {isTakerCodegen, ResultCode} from '../takers';
 import {Rule, RuleHandler} from './rule-types';
 
 /**
@@ -10,9 +8,9 @@ import {Rule, RuleHandler} from './rule-types';
 export interface RuleIteratorState {
 
   /**
-   * The current tokenizer stage. A positive integer or -1 if stage is undefined.
+   * The index of the current tokenizer stage. A positive integer or -1 if stage is undefined.
    */
-  stage: number;
+  stageIndex: number;
 
   /**
    * The chunk that is being processed.
@@ -70,7 +68,7 @@ export function compileRuleIterator(rules: Rule[]): RuleIterator {
   const errorCallbackVar = createVar();
   const unrecognizedTokenCallbackVar = createVar();
 
-  const stageVar = createVar();
+  const stageIndexVar = createVar();
   const chunkVar = createVar();
   const offsetVar = createVar();
   const chunkOffsetVar = createVar();
@@ -84,7 +82,7 @@ export function compileRuleIterator(rules: Rule[]): RuleIterator {
 
   const code: Code = [
     'var ',
-    stageVar, '=', stateVar, '.stage,',
+    stageIndexVar, '=', stateVar, '.stageIndex,',
     chunkVar, '=', stateVar, '.chunk,',
     offsetVar, '=', stateVar, '.offset,',
     chunkOffsetVar, '=', stateVar, '.chunkOffset,',
@@ -123,7 +121,7 @@ export function compileRuleIterator(rules: Rule[]): RuleIterator {
 
       return [
         // Check if token can be applied on the current stage
-        stages ? ['if(', stages.map((stage, i) => [i === 0 ? '' : '||', stageVar, '===', uniqueStages.indexOf(stage)]), '){'] : '',
+        stages ? ['if(', stages.map((stage, i) => [i === 0 ? '' : '||', stageIndexVar, '===', uniqueStages.indexOf(stage)]), '){'] : '',
 
         // Take chars from the input string
         isTakerCodegen(taker) ? taker.factory(chunkVar, nextOffsetVar, takerResultVar) : [takerResultVar, '=', takerVar, '(', chunkVar, ',', nextOffsetVar, ');'],
@@ -141,10 +139,10 @@ export function compileRuleIterator(rules: Rule[]): RuleIterator {
         prevReaderVar, '=undefined;',
         '}',
 
-        stateVar, '.stage=', stageVar, ';',
+        stateVar, '.stageIndex=', stageIndexVar, ';',
         stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
-        rule.nextStage === undefined ? '' : [stageVar, '=', uniqueStages.indexOf(rule.nextStage), ';'],
+        rule.nextStage === undefined ? '' : [stageIndexVar, '=', uniqueStages.indexOf(rule.nextStage), ';'],
         prevReaderVar, '=', ruleVar, ';',
         nextOffsetVar, '=', takerResultVar, ';',
 
@@ -160,7 +158,7 @@ export function compileRuleIterator(rules: Rule[]): RuleIterator {
     // Emit trailing unconfirmed token
     'if(', prevReaderVar, '){',
     tokenCallbackVar, '(', prevReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', chunkOffsetVar, '+', nextOffsetVar, ');',
-    stateVar, '.stage=', stageVar, ';',
+    stateVar, '.stageIndex=', stageIndexVar, ';',
     stateVar, '.offset=', nextOffsetVar, ';',
     '}',
 

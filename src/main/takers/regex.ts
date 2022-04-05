@@ -1,4 +1,4 @@
-import {createVar} from '../code-utils';
+import {createVar} from '../code';
 import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
 import {compileInternalTaker} from './taker-utils';
 

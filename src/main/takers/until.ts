@@ -1,4 +1,4 @@
-import {createVar} from '../code-utils';
+import {createVar} from '../code';
 import {CharCodeCheckerTaker, CharCodeRangeTaker, createCharPredicate} from './char';
 import {never} from './never';
 import {none} from './none';

@@ -1,5 +1,5 @@
 import {InternalTaker, InternalTakerType, none, or, ResultCode, Taker, text} from '../../main';
-import {createOrTaker} from '../../main/takers/or';
+import {createOrTaker} from '../../main/takers';
 
 describe('or', () => {
 

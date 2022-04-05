@@ -5,7 +5,7 @@ import {
   createAllCharCodeRangeTaker,
   createAllGenericTaker,
   createAllRegexTaker
-} from '../../main/takers/all';
+} from '../../main/takers';
 
 const A = 'a'.charCodeAt(0);
 

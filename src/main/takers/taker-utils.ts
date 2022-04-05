@@ -1,5 +1,5 @@
-import {Code, Var} from '../code-types';
-import {compileFunction, createVar} from '../code-utils';
+import {Code, Var} from '../code';
+import {compileFunction, createVar} from '../code';
 import {
   CharCodeRange,
   CharCodeRangeLike,

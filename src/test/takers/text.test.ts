@@ -1,5 +1,5 @@
 import {InternalTaker, InternalTakerType, none, ResultCode, text} from '../../main';
-import {createCaseInsensitiveTextTaker, createCaseSensitiveTextTaker} from '../../main/takers/text';
+import {createCaseInsensitiveTextTaker, createCaseSensitiveTextTaker} from '../../main/takers';
 
 describe('text', () => {
 

@@ -6,7 +6,7 @@ import {
   createUntilGenericTaker,
   createUntilRegexTaker,
   until
-} from '../../main/takers/until';
+} from '../../main/takers';
 
 const B = 'b'.charCodeAt(0);
 

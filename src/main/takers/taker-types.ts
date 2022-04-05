@@ -1,4 +1,4 @@
-import {Code, Var} from '../code-types';
+import {Code, Var} from '../code';
 
 /**
  * The callback that must return `true` is given char code is appropriate, and must return `false` otherwise.

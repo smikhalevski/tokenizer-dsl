@@ -1,6 +1,6 @@
 import {InternalTakerType} from '../../main';
-import {createVar} from '../../main/code-utils';
-import {compileInternalTaker} from '../../main/takers/taker-utils';
+import {createVar} from '../../main/code';
+import {compileInternalTaker} from '../../main/takers';
 
 describe('compileInternalTaker', () => {
 

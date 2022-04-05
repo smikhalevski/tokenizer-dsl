@@ -1,5 +1,5 @@
-import {all, rule, text, RuleHandler} from '../main';
-import {compileRuleIterator, RuleIteratorState} from '../main/compileRuleIterator';
+import {all, rule, text} from '../../main';
+import {compileRuleIterator, RuleHandler, RuleIteratorState} from '../../main/rules';
 
 describe('compileRuleIterator', () => {
 
@@ -33,7 +33,7 @@ describe('compileRuleIterator', () => {
       chunk: 'abaabb',
       offset: 0,
       chunkOffset: 0,
-      stage: -1,
+      stageIndex: -1,
     };
 
     ruleIterator(state, false, handler);
@@ -51,7 +51,7 @@ describe('compileRuleIterator', () => {
       chunk: 'abaabb',
       offset: 6,
       chunkOffset: 0,
-      stage: -1,
+      stageIndex: -1,
     });
   });
 
@@ -63,7 +63,7 @@ describe('compileRuleIterator', () => {
       chunk: 'aaa',
       offset: 0,
       chunkOffset: 0,
-      stage: -1,
+      stageIndex: -1,
     };
 
     ruleIterator(state, true, handler);
@@ -79,7 +79,7 @@ describe('compileRuleIterator', () => {
       chunk: 'aaa',
       offset: 2,
       chunkOffset: 0,
-      stage: -1,
+      stageIndex: -1,
     });
   });
 
@@ -91,7 +91,7 @@ describe('compileRuleIterator', () => {
       chunk: 'aaa',
       offset: 0,
       chunkOffset: 0,
-      stage: -1,
+      stageIndex: -1,
     };
 
     ruleIterator(state, false, handler);
@@ -108,7 +108,7 @@ describe('compileRuleIterator', () => {
       chunk: 'aaa',
       offset: 3,
       chunkOffset: 0,
-      stage: -1,
+      stageIndex: -1,
     });
   });
 
@@ -120,7 +120,7 @@ describe('compileRuleIterator', () => {
       chunk: 'bbaaa',
       offset: 2,
       chunkOffset: 1000,
-      stage: -1,
+      stageIndex: -1,
     };
 
     ruleIterator(state, false, handler);
@@ -137,7 +137,7 @@ describe('compileRuleIterator', () => {
       chunk: 'bbaaa',
       offset: 5,
       chunkOffset: 1000,
-      stage: -1,
+      stageIndex: -1,
     });
   });
 
@@ -149,7 +149,7 @@ describe('compileRuleIterator', () => {
       chunk: 'bbaac',
       offset: 2,
       chunkOffset: 1000,
-      stage: -1,
+      stageIndex: -1,
     };
 
     ruleIterator(state, false, handler);
@@ -167,7 +167,7 @@ describe('compileRuleIterator', () => {
       chunk: 'bbaac',
       offset: 4,
       chunkOffset: 1000,
-      stage: -1,
+      stageIndex: -1,
     });
   });
 
@@ -181,7 +181,7 @@ describe('compileRuleIterator', () => {
       chunk: 'bbaaacceee',
       offset: 2,
       chunkOffset: 1000,
-      stage: -1,
+      stageIndex: -1,
     };
 
     ruleIterator(state, false, handler);
@@ -199,7 +199,7 @@ describe('compileRuleIterator', () => {
       chunk: 'bbaaacceee',
       offset: 5,
       chunkOffset: 1000,
-      stage: -1,
+      stageIndex: -1,
     });
   });
 
@@ -213,7 +213,7 @@ describe('compileRuleIterator', () => {
       chunk: 'ababbbb',
       offset: 0,
       chunkOffset: 0,
-      stage: ruleIterator.uniqueStages.indexOf('A'),
+      stageIndex: ruleIterator.uniqueStages.indexOf('A'),
     };
 
     ruleIterator(state, true, handler);
@@ -230,7 +230,7 @@ describe('compileRuleIterator', () => {
       chunk: 'ababbbb',
       offset: 3,
       chunkOffset: 0,
-      stage: 1,
+      stageIndex: 1,
     });
   });
 });

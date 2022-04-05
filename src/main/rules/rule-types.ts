@@ -1,4 +1,4 @@
-import {Taker} from './takers';
+import {Taker} from '../takers';
 
 /**
  * Defines how token is read from the input string.
