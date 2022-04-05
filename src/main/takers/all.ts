@@ -10,9 +10,9 @@ import {
   InternalTaker,
   InternalTakerType,
   ResultCode,
-  Taker,
+  TakerFunction,
   TakerCodeFactory,
-  TakerLike
+  Taker
 } from './taker-types';
 import {compileInternalTaker, isInternalTaker, isTakerCodegen, toCharCodes, toTaker} from './taker-utils';
 import {CaseSensitiveTextTaker} from './text';
@@ -40,7 +40,7 @@ export interface AllOptions {
  * @param taker The taker that takes chars.
  * @param options Taker options.
  */
-export function all(taker: TakerLike, options: AllOptions = {}): Taker {
+export function all(taker: Taker, options: AllOptions = {}): TakerFunction {
 
   let {
     minimumCount = 0,
@@ -223,7 +223,7 @@ export interface AllGenericTaker extends InternalTaker {
   type: InternalTakerType.ALL_GENERIC;
 }
 
-export function createAllGenericTaker(baseTaker: TakerLike, minimumCount: number, maximumCount: number): AllGenericTaker {
+export function createAllGenericTaker(baseTaker: Taker, minimumCount: number, maximumCount: number): AllGenericTaker {
 
   const baseTakerVar = createVar();
 

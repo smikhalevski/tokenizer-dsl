@@ -1,4 +1,4 @@
-import {InternalTaker, InternalTakerType, never, none, ResultCode, Taker, text} from '../../main';
+import {InternalTaker, InternalTakerType, never, none, ResultCode, TakerFunction, text} from '../../main';
 import {createSeqTaker, seq} from '../../main/takers';
 
 describe('seq', () => {
@@ -13,7 +13,7 @@ describe('seq', () => {
   });
 
   test('returns taker', () => {
-    const takerMock: Taker = () => 0;
+    const takerMock: TakerFunction = () => 0;
     expect(seq(takerMock)).toBe(takerMock);
   });
 

@@ -1,5 +1,5 @@
 import {none} from './none';
-import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
+import {InternalTaker, InternalTakerType, ResultCode, TakerFunction, TakerCodeFactory} from './taker-types';
 import {compileInternalTaker} from './taker-utils';
 
 /**
@@ -7,7 +7,7 @@ import {compileInternalTaker} from './taker-utils';
  *
  * @param charCount The number of chars to skip.
  */
-export function skip(charCount = 1): Taker {
+export function skip(charCount = 1): TakerFunction {
   charCount = Math.max(charCount | 0, 0);
 
   if (charCount === 0) {

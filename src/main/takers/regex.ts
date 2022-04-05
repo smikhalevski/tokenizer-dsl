@@ -1,5 +1,5 @@
 import {createVar} from '../code';
-import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
+import {InternalTaker, InternalTakerType, ResultCode, TakerFunction, TakerCodeFactory} from './taker-types';
 import {compileInternalTaker} from './taker-utils';
 
 /**
@@ -7,7 +7,7 @@ import {compileInternalTaker} from './taker-utils';
  *
  * @param re The `RegExp` to match.
  */
-export function regex(re: RegExp): Taker {
+export function regex(re: RegExp): TakerFunction {
   return createRegexTaker(re);
 }
 

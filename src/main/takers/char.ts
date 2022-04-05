@@ -8,7 +8,7 @@ import {
   InternalTaker,
   InternalTakerType,
   ResultCode,
-  Taker,
+  TakerFunction,
   TakerCodeFactory
 } from './taker-types';
 import {compileInternalTaker, toCharCodeRanges} from './taker-utils';
@@ -21,7 +21,7 @@ import {compileInternalTaker, toCharCodeRanges} from './taker-utils';
  *
  * @see {@link text}
  */
-export function char(charCode: CharCodeChecker | CharCodeRangeLike[]): Taker {
+export function char(charCode: CharCodeChecker | CharCodeRangeLike[]): TakerFunction {
   if (typeof charCode === 'function') {
     return createCharCodeCheckerTaker(charCode);
   }

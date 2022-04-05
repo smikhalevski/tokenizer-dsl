@@ -1,4 +1,4 @@
-import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory} from './taker-types';
+import {InternalTaker, InternalTakerType, TakerFunction, TakerCodeFactory} from './taker-types';
 import {compileInternalTaker} from './taker-utils';
 
 const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
@@ -12,4 +12,4 @@ export interface NoneTaker extends InternalTaker {
 /**
  * Taker that always returns the current offset.
  */
-export const none: Taker = compileInternalTaker<NoneTaker>(InternalTakerType.NONE, factory);
+export const none: TakerFunction = compileInternalTaker<NoneTaker>(InternalTakerType.NONE, factory);

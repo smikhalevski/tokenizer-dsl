@@ -2,7 +2,7 @@ import {Code} from '../code';
 import {createVar} from '../code';
 import {createCharCodeRangeTaker} from './char';
 import {none} from './none';
-import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory} from './taker-types';
+import {InternalTaker, InternalTakerType, ResultCode, TakerFunction, TakerCodeFactory} from './taker-types';
 import {compileInternalTaker, toCharCode, toCharCodes} from './taker-utils';
 
 export interface TextOptions {
@@ -22,7 +22,7 @@ export interface TextOptions {
  * @param options Taker options.
  * @see {@link char}
  */
-export function text(str: string, options: TextOptions = {}): Taker {
+export function text(str: string, options: TextOptions = {}): TakerFunction {
 
   const {caseInsensitive = false} = options;
 

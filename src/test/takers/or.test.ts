@@ -1,4 +1,4 @@
-import {InternalTaker, InternalTakerType, none, or, ResultCode, Taker, text} from '../../main';
+import {InternalTaker, InternalTakerType, none, or, ResultCode, TakerFunction, text} from '../../main';
 import {createOrTaker} from '../../main/takers';
 
 describe('or', () => {
@@ -8,7 +8,7 @@ describe('or', () => {
   });
 
   test('returns single taker', () => {
-    const takerMock: Taker = () => 0;
+    const takerMock: TakerFunction = () => 0;
     expect(or(takerMock)).toBe(takerMock);
   });
 

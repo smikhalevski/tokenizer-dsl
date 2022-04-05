@@ -1,4 +1,4 @@
-import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory} from './taker-types';
+import {InternalTaker, InternalTakerType, TakerFunction, TakerCodeFactory} from './taker-types';
 import {compileInternalTaker} from './taker-utils';
 
 /**
@@ -6,7 +6,7 @@ import {compileInternalTaker} from './taker-utils';
  *
  * @param offset The offset added to the input length.
  */
-export function end(offset = 0): Taker {
+export function end(offset = 0): TakerFunction {
   return createEndTaker(offset | 0);
 }
 

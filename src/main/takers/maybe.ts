@@ -1,7 +1,7 @@
 import {createVar} from '../code';
 import {never} from './never';
 import {none} from './none';
-import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory, TakerLike} from './taker-types';
+import {InternalTaker, InternalTakerType, ResultCode, TakerFunction, TakerCodeFactory, Taker} from './taker-types';
 import {compileInternalTaker, isTakerCodegen} from './taker-utils';
 
 /**
@@ -9,7 +9,7 @@ import {compileInternalTaker, isTakerCodegen} from './taker-utils';
  *
  * @param taker The taker which match must be considered optional.
  */
-export function maybe(taker: TakerLike): Taker {
+export function maybe(taker: Taker): TakerFunction {
   if (taker === never || taker === none) {
     return taker;
   }
@@ -20,7 +20,7 @@ export interface MaybeTaker extends InternalTaker {
   type: InternalTakerType.MAYBE;
 }
 
-export function createMaybeTaker(baseTaker: TakerLike): MaybeTaker {
+export function createMaybeTaker(baseTaker: Taker): MaybeTaker {
 
   const baseTakerVar = createVar();
 

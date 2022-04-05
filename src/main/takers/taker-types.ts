@@ -28,7 +28,7 @@ export const enum ResultCode {
  * };
  * ```
  */
-export type Taker = (input: string, offset: number) => number;
+export type TakerFunction = (input: string, offset: number) => number;
 
 /**
  * The factory that returns the code body of the taker function. The produced code assigns the taker result for
@@ -61,7 +61,7 @@ export interface TakerCodegen {
   bindings?: [Var, unknown][] | undefined;
 }
 
-export type TakerLike = Taker | TakerCodegen;
+export type Taker = TakerFunction | TakerCodegen;
 
 /**
  * The type of the taker function, used for internal taker optimizations.
@@ -98,6 +98,6 @@ export const enum InternalTakerType {
  *
  * @internal
  */
-export interface InternalTaker extends Taker, TakerCodegen {
+export interface InternalTaker extends TakerFunction, TakerCodegen {
   type: InternalTakerType;
 }

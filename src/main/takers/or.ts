@@ -2,7 +2,7 @@ import {Code, Var} from '../code';
 import {createVar} from '../code';
 import {never} from './never';
 import {none} from './none';
-import {InternalTaker, InternalTakerType, ResultCode, Taker, TakerCodeFactory, TakerLike} from './taker-types';
+import {InternalTaker, InternalTakerType, ResultCode, TakerFunction, TakerCodeFactory, Taker} from './taker-types';
 import {compileInternalTaker, isInternalTaker, isTakerCodegen, toTaker} from './taker-utils';
 
 /**
@@ -10,9 +10,9 @@ import {compileInternalTaker, isInternalTaker, isTakerCodegen, toTaker} from './
  *
  * @param takers Takers that are called.
  */
-export function or(...takers: TakerLike[]): Taker {
+export function or(...takers: Taker[]): TakerFunction {
 
-  const t: TakerLike[] = [];
+  const t: Taker[] = [];
 
   for (const taker of takers) {
     if (taker === none) {
@@ -40,10 +40,10 @@ export function or(...takers: TakerLike[]): Taker {
 
 export interface OrTaker extends InternalTaker {
   type: InternalTakerType.OR;
-  takers: readonly TakerLike[];
+  takers: readonly Taker[];
 }
 
-export function createOrTaker(takers: TakerLike[]): OrTaker {
+export function createOrTaker(takers: Taker[]): OrTaker {
 
   const takersLength = takers.length;
   const bindings: [Var, unknown][] = [];

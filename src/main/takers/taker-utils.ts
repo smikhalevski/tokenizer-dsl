@@ -4,17 +4,17 @@ import {
   CharCodeRange,
   CharCodeRangeLike,
   InternalTaker,
-  Taker,
+  TakerFunction,
   TakerCodeFactory,
   TakerCodegen,
-  TakerLike
+  Taker
 } from './taker-types';
 
-export function isInternalTaker<T extends InternalTaker>(taker: TakerLike | InternalTaker, type: T['type']): taker is T {
+export function isInternalTaker<T extends InternalTaker>(taker: Taker | InternalTaker, type: T['type']): taker is T {
   return 'type' in taker && taker.type === type;
 }
 
-export function isTakerCodegen(taker: TakerLike | InternalTaker): taker is TakerCodegen {
+export function isTakerCodegen(taker: Taker | InternalTaker): taker is TakerCodegen {
   return 'factory' in taker;
 }
 
@@ -66,7 +66,7 @@ export function compileInternalTaker<T extends InternalTaker>(type: T['type'], f
   return taker;
 }
 
-export function toTaker(taker: TakerLike): Taker {
+export function toTaker(taker: Taker): TakerFunction {
   if (typeof taker === 'function') {
     return taker;
   }

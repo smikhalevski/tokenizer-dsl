@@ -9,9 +9,9 @@ import {
   InternalTaker,
   InternalTakerType,
   ResultCode,
-  Taker,
+  TakerFunction,
   TakerCodeFactory,
-  TakerLike
+  Taker
 } from './taker-types';
 import {compileInternalTaker, isInternalTaker, isTakerCodegen} from './taker-utils';
 import {CaseSensitiveTextTaker} from './text';
@@ -32,7 +32,7 @@ export interface UntilOptions {
  * @param taker The taker that takes chars.
  * @param options Taker options.
  */
-export function until(taker: TakerLike, options: UntilOptions = {}): Taker {
+export function until(taker: Taker, options: UntilOptions = {}): TakerFunction {
 
   const {inclusive = false} = options;
 
@@ -159,7 +159,7 @@ export interface UntilGenericTaker extends InternalTaker {
   type: InternalTakerType.UNTIL_GENERIC;
 }
 
-export function createUntilGenericTaker(baseTaker: TakerLike, inclusive: boolean): UntilGenericTaker {
+export function createUntilGenericTaker(baseTaker: Taker, inclusive: boolean): UntilGenericTaker {
 
   const baseTakerVar = createVar();
 

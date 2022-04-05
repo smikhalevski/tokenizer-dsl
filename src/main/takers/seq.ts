@@ -2,7 +2,7 @@ import {Code, Var} from '../code';
 import {createVar} from '../code';
 import {never} from './never';
 import {none} from './none';
-import {InternalTaker, InternalTakerType, Taker, TakerCodeFactory, TakerLike} from './taker-types';
+import {InternalTaker, InternalTakerType, TakerFunction, TakerCodeFactory, Taker} from './taker-types';
 import {compileInternalTaker, isInternalTaker, isTakerCodegen, toTaker} from './taker-utils';
 
 /**
@@ -10,12 +10,12 @@ import {compileInternalTaker, isInternalTaker, isTakerCodegen, toTaker} from './
  *
  * @param takers Takers that are called.
  */
-export function seq(...takers: TakerLike[]): Taker {
+export function seq(...takers: Taker[]): TakerFunction {
   if (takers.includes(never)) {
     return never;
   }
 
-  const t: TakerLike[] = [];
+  const t: Taker[] = [];
 
   for (const taker of takers) {
     if (isInternalTaker<SeqTaker>(taker, InternalTakerType.SEQ)) {
@@ -40,10 +40,10 @@ export function seq(...takers: TakerLike[]): Taker {
 
 export interface SeqTaker extends InternalTaker {
   type: InternalTakerType.SEQ;
-  takers: TakerLike[];
+  takers: Taker[];
 }
 
-export function createSeqTaker(takers: TakerLike[]): SeqTaker {
+export function createSeqTaker(takers: Taker[]): SeqTaker {
 
   const takersLength = takers.length;
   const bindings: [Var, unknown][] = [];
