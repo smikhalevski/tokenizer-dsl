@@ -34,6 +34,15 @@ export function assembleCode(code: Code, vars: Var[] = []): string {
 /**
  * Compiles a function from the given code.
  *
+ * ```ts
+ * const myArg = Symbol();
+ * const myVar = Symbol();
+ *
+ * const myFn = compileFunction([myArg], ['return ', myArg, '+', myVar], [[myVar, 123]]);
+ *
+ * myFn(456); // → 579
+ * ```
+ *
  * @param argVars The list of function arguments.
  * @param code The body code of the function.
  * @param bindings The list of variable-value pairs that are bound to the output function.

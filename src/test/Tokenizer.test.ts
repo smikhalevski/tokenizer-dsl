@@ -6,7 +6,7 @@ describe('Tokenizer', () => {
   let errorCallbackMock = jest.fn();
   let unrecognizedTokenCallbackMock = jest.fn();
 
-  const handler: RuleHandler = {
+  const handler: RuleHandler<unknown> = {
     token: tokenCallbackMock,
     error: errorCallbackMock,
     unrecognizedToken: unrecognizedTokenCallbackMock,

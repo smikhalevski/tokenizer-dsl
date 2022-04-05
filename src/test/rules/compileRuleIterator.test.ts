@@ -7,7 +7,7 @@ describe('compileRuleIterator', () => {
   let errorCallbackMock = jest.fn();
   let unrecognizedTokenCallbackMock = jest.fn();
 
-  const handler: RuleHandler = {
+  const handler: RuleHandler<never> = {
     token: tokenCallbackMock,
     error: errorCallbackMock,
     unrecognizedToken: unrecognizedTokenCallbackMock,
@@ -188,7 +188,7 @@ describe('compileRuleIterator', () => {
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(1);
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 1002, 1005);
-    // tokenB is not triggered because no confirmation was given
+    // Token taken by ruleB is not emitted because no confirmation was given
 
     expect(errorCallbackMock).toHaveBeenCalledTimes(1);
     expect(errorCallbackMock).toHaveBeenNthCalledWith(1, ruleError, 1007, -777);

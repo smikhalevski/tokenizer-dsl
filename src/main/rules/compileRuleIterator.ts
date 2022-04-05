@@ -31,14 +31,14 @@ export interface RuleIteratorState {
 /**
  * The callback that reads tokens from the input defined by iterator state.
  */
-export interface RuleIterator {
+export interface RuleIterator<Stage> {
 
-  (state: RuleIteratorState, streaming: boolean, handler: RuleHandler): void;
+  (state: RuleIteratorState, streaming: boolean, handler: RuleHandler<Stage>): void;
 
   /**
    * The list of unique stages that are used by tokens that comprise this iterator.
    */
-  uniqueStages: readonly unknown[];
+  uniqueStages: readonly Stage[];
 }
 
 /**
@@ -46,9 +46,9 @@ export interface RuleIterator {
  *
  * @param rules The list of tokes that iterator can process.
  */
-export function compileRuleIterator(rules: Rule[]): RuleIterator {
+export function compileRuleIterator<Stage>(rules: Rule<Stage>[]): RuleIterator<Stage> {
 
-  const uniqueStages: unknown[] = [];
+  const uniqueStages: Stage[] = [];
 
   for (const rule of rules) {
     if (rule.stages) {
@@ -167,7 +167,7 @@ export function compileRuleIterator(rules: Rule[]): RuleIterator {
     unrecognizedTokenCallbackVar, '(', chunkOffsetVar, '+', nextOffsetVar, ');',
   ];
 
-  const ruleIterator = compileFunction<RuleIterator>([stateVar, streamingVar, handlerVar], code, bindings);
+  const ruleIterator = compileFunction<RuleIterator<Stage>>([stateVar, streamingVar, handlerVar], code, bindings);
 
   ruleIterator.uniqueStages = uniqueStages;
 

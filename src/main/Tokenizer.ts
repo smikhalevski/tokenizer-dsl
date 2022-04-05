@@ -1,6 +1,6 @@
 import {compileRuleIterator, Rule, RuleHandler, RuleIteratorState} from './rules';
 
-export class Tokenizer implements RuleIteratorState {
+export class Tokenizer<Stage> implements RuleIteratorState {
 
   public stageIndex;
   public chunk = '';
@@ -11,13 +11,13 @@ export class Tokenizer implements RuleIteratorState {
   private readonly initialStageIndex;
   private readonly ruleIterator;
 
-  public constructor(rules: Rule[], handler: RuleHandler, initialStage?: unknown) {
+  public constructor(rules: Rule<Stage>[], handler: RuleHandler<Stage>, initialStage?: Stage) {
     if (rules.length === 0) {
-      throw new Error('Tokens expected');
+      throw new Error('Rules expected');
     }
 
     const ruleIterator = this.ruleIterator = compileRuleIterator(rules);
-    this.stageIndex = this.initialStageIndex = ruleIterator.uniqueStages.indexOf(initialStage);
+    this.stageIndex = this.initialStageIndex = ruleIterator.uniqueStages.indexOf(initialStage as Stage);
     this.handler = handler;
   }
 
