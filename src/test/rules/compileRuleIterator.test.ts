@@ -1,4 +1,4 @@
-import {all, rule, text} from '../../main';
+import {all, createRule, text} from '../../main';
 import {compileRuleIterator, RuleHandler, RuleIteratorState} from '../../main/rules';
 
 describe('compileRuleIterator', () => {
@@ -7,7 +7,7 @@ describe('compileRuleIterator', () => {
   let errorCallbackMock = jest.fn();
   let unrecognizedTokenCallbackMock = jest.fn();
 
-  const handler: RuleHandler<never> = {
+  const handler: RuleHandler<never, void> = {
     token: tokenCallbackMock,
     error: errorCallbackMock,
     unrecognizedToken: unrecognizedTokenCallbackMock,
@@ -21,8 +21,8 @@ describe('compileRuleIterator', () => {
 
   test('emits tokens', () => {
 
-    const ruleA = rule(all(text('a')));
-    const ruleB = rule(all(text('b')));
+    const ruleA = createRule(all(text('a')));
+    const ruleB = createRule(all(text('b')));
 
     const ruleIterator = compileRuleIterator([
       ruleA,
@@ -56,7 +56,7 @@ describe('compileRuleIterator', () => {
   });
 
   test('reads a non-empty token from the string at chunk start in streaming mode', () => {
-    const ruleA = rule(text('a'));
+    const ruleA = createRule(text('a'));
     const ruleIterator = compileRuleIterator([ruleA]);
 
     const state: RuleIteratorState = {
@@ -84,7 +84,7 @@ describe('compileRuleIterator', () => {
   });
 
   test('reads a non-empty token from the string at chunk start in non-streaming mode', () => {
-    const ruleA = rule(text('a'));
+    const ruleA = createRule(text('a'));
     const ruleIterator = compileRuleIterator([ruleA]);
 
     const state: RuleIteratorState = {
@@ -113,7 +113,7 @@ describe('compileRuleIterator', () => {
   });
 
   test('reads a non-empty token from the string with offset in streaming mode', () => {
-    const ruleA = rule(text('a'));
+    const ruleA = createRule(text('a'));
     const ruleIterator = compileRuleIterator([ruleA]);
 
     const state: RuleIteratorState = {
@@ -142,7 +142,7 @@ describe('compileRuleIterator', () => {
   });
 
   test('triggers unrecognizedToken in non-streaming mode', () => {
-    const ruleA = rule(text('a'));
+    const ruleA = createRule(text('a'));
     const ruleIterator = compileRuleIterator([ruleA]);
 
     const state: RuleIteratorState = {
@@ -172,9 +172,9 @@ describe('compileRuleIterator', () => {
   });
 
   test('triggers error in streaming mode', () => {
-    const ruleA = rule(text('aaa'));
-    const ruleC = rule(text('cc'));
-    const ruleError = rule(() => -777);
+    const ruleA = createRule(text('aaa'));
+    const ruleC = createRule(text('cc'));
+    const ruleError = createRule(() => -777);
     const ruleIterator = compileRuleIterator([ruleA, ruleC, ruleError]);
 
     const state: RuleIteratorState = {
@@ -204,8 +204,8 @@ describe('compileRuleIterator', () => {
   });
 
   test('respects stages', () => {
-    const ruleA = rule(text('a'), ['A'], 'B');
-    const ruleB = rule(text('b'), ['B'], 'A');
+    const ruleA = createRule(text('a'), ['A'], 'B');
+    const ruleB = createRule(text('b'), ['B'], 'A');
 
     const ruleIterator = compileRuleIterator([ruleA, ruleB]);
 

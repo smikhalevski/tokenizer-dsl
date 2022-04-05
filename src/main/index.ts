@@ -12,6 +12,6 @@ export {text, TextOptions} from './takers/text';
 export {until, UntilOptions} from './takers/until';
 export * from './takers/taker-types';
 export {Code, Var} from './code';
-export {rule} from './rules/rule';
+export {createRule} from './rules/createRule';
 export {Rule, RuleHandler} from './rules/rule-types';
 export {Tokenizer} from './Tokenizer';

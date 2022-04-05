@@ -1,9 +1,14 @@
 import {Taker} from '../takers';
 
+export type StageProvider<S, C> = (input: string, offset: number, length: number, context: C) => S;
+
 /**
  * Defines how token is read from the input string.
+ *
+ * @template S The tokenizer stage type.
+ * @template C The context passed by tokenizer.
  */
-export interface Rule<Stage> {
+export interface Rule<S, C> {
 
   /**
    * The taker that takes chars from the string.
@@ -11,45 +16,51 @@ export interface Rule<Stage> {
   taker: Taker;
 
   /**
-   * The list of stages at which token can be used. If omitted then token is used on all stages. If an empty array
-   * then token is never used.
+   * The list of stages at which rule can be used. If omitted then rule is used on all stages. If an empty array
+   * then rule is never used.
    *
    * @default undefined
    */
-  stages: Stage[] | undefined;
+  stages: S[] | undefined;
 
   /**
-   * The stage which should be used for next token if this token has successfully read the token.
+   * Provides the stage to which tokenizer transitions if this rule successfully reads a token.
    *
    * If `undefined` the next stage is set to the current stage.
    *
    * @default undefined
    */
-  nextStage: Stage | undefined;
+  nextStage: StageProvider<S, C> | S | undefined;
 }
 
-export interface RuleHandler<Stage> {
+/**
+ * Handles tokens read from the input stream.
+ *
+ * @template S The tokenizer stage type.
+ * @template C The context passed by tokenizer.
+ */
+export interface RuleHandler<S, C> {
 
   /**
    * Triggered when a token was read from the input stream.
    *
-   * @param rule The token that was read.
-   * @param startOffset The absolute offset from the start of the input stream where the token starts.
-   * @param endOffset The absolute offset from the start of the input stream where the token ends.
+   * @param rule The rule that read the token.
+   * @param offset The absolute offset from the start of the input stream where the token starts.
+   * @param length The number of chars taken by the rule.
    */
-  token(rule: Rule<Stage>, startOffset: number, endOffset: number): void;
+  token(rule: Rule<S, C>, offset: number, length: number): void;
 
   /**
-   * Triggered when a taker returned an error code (a negative number, usually an integer <= -2).
+   * Triggered when the rule returned an error code.
    *
-   * @param rule The token that returned an error.
-   * @param offset The offset from which the token was read.
-   * @param errorCode The error code.
+   * @param rule The rule that returned an error.
+   * @param offset The offset at which the rule was used.
+   * @param errorCode The error code. A negative integer <= -2.
    */
-  error(rule: Rule<Stage>, offset: number, errorCode: number): void;
+  error(rule: Rule<S, C>, offset: number, errorCode: number): void;
 
   /**
-   * Triggered if the tokenizer failed to read detect the token in the input stream at the given offset.
+   * Triggered if there was no rule that could successfully read a token at the offset.
    *
    * @param offset The offset at which the unrecognized token starts.
    */

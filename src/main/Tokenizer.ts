@@ -1,6 +1,6 @@
 import {compileRuleIterator, Rule, RuleHandler, RuleIteratorState} from './rules';
 
-export class Tokenizer<Stage> implements RuleIteratorState {
+export class Tokenizer<S = never, C = never> implements RuleIteratorState {
 
   public stageIndex;
   public chunk = '';
@@ -11,13 +11,13 @@ export class Tokenizer<Stage> implements RuleIteratorState {
   private readonly initialStageIndex;
   private readonly ruleIterator;
 
-  public constructor(rules: Rule<Stage>[], handler: RuleHandler<Stage>, initialStage?: Stage) {
+  public constructor(rules: Rule<S, C>[], handler: RuleHandler<S, C>, initialStage?: S) {
     if (rules.length === 0) {
       throw new Error('Rules expected');
     }
 
     const ruleIterator = this.ruleIterator = compileRuleIterator(rules);
-    this.stageIndex = this.initialStageIndex = ruleIterator.uniqueStages.indexOf(initialStage as Stage);
+    this.stageIndex = this.initialStageIndex = ruleIterator.uniqueStages.indexOf(initialStage as S);
     this.handler = handler;
   }
 
@@ -25,7 +25,7 @@ export class Tokenizer<Stage> implements RuleIteratorState {
     this.chunk = this.chunk.slice(this.offset) + chunk;
     this.chunkOffset += this.offset;
     this.offset = 0;
-    this.ruleIterator(this, true, this.handler);
+    this.ruleIterator(this, true, this.handler, null as any /*MISSING CONTEXT HERE*/);
   }
 
   public end(chunk?: string): void {
@@ -34,7 +34,7 @@ export class Tokenizer<Stage> implements RuleIteratorState {
       this.chunkOffset += this.offset;
       this.offset = 0;
     }
-    this.ruleIterator(this, false, this.handler);
+    this.ruleIterator(this, false, this.handler, null as any /*MISSING CONTEXT HERE*/);
   }
 
   public reset(): void {

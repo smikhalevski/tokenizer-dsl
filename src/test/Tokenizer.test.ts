@@ -1,4 +1,4 @@
-import {all, char, rule, text, RuleHandler, Tokenizer} from '../main';
+import {all, char, createRule, text, RuleHandler, Tokenizer} from '../main';
 
 describe('Tokenizer', () => {
 
@@ -6,7 +6,7 @@ describe('Tokenizer', () => {
   let errorCallbackMock = jest.fn();
   let unrecognizedTokenCallbackMock = jest.fn();
 
-  const handler: RuleHandler<unknown> = {
+  const handler: RuleHandler<unknown, void> = {
     token: tokenCallbackMock,
     error: errorCallbackMock,
     unrecognizedToken: unrecognizedTokenCallbackMock,
@@ -19,8 +19,8 @@ describe('Tokenizer', () => {
   });
 
   test('reads streaming tokens', () => {
-    const ruleA = rule(text('a'));
-    const ruleB = rule(all(char(['b'.charCodeAt(0), 'B'.charCodeAt(0)])));
+    const ruleA = createRule(text('a'));
+    const ruleB = createRule(all(char(['b'.charCodeAt(0), 'B'.charCodeAt(0)])));
 
     const tokenizer = new Tokenizer([
       ruleA,
@@ -52,8 +52,8 @@ describe('Tokenizer', () => {
   });
 
   test('can be reset', () => {
-    const ruleA = rule(text('a'));
-    const ruleB = rule(all(char(['b'.charCodeAt(0), 'B'.charCodeAt(0)])));
+    const ruleA = createRule(text('a'));
+    const ruleB = createRule(all(char(['b'.charCodeAt(0), 'B'.charCodeAt(0)])));
 
     const tokenizer = new Tokenizer([
       ruleA,
