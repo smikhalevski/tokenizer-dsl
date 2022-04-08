@@ -1,9 +1,9 @@
-import {Code} from '../code';
-import {createVar} from '../code';
+import {Code, createVar} from '../code';
 import {createCharCodeRangeTaker} from './char';
+import {CASE_INSENSITIVE_TEXT_TYPE, CASE_SENSITIVE_TEXT_TYPE, InternalTaker} from './internal-taker-types';
 import {none} from './none';
-import {InternalTaker, InternalTakerType, ResultCode, TakerFunction, TakerCodeFactory} from './taker-types';
-import {compileInternalTaker, toCharCode, toCharCodes} from './taker-utils';
+import {NO_MATCH, Taker, TakerCodeFactory} from './taker-types';
+import {createInternalTaker, toCharCode, toCharCodes} from './taker-utils';
 
 export interface TextOptions {
 
@@ -22,7 +22,7 @@ export interface TextOptions {
  * @param options Taker options.
  * @see {@link char}
  */
-export function text(str: string, options: TextOptions = {}): TakerFunction {
+export function text(str: string, options: TextOptions = {}): Taker {
 
   const {caseInsensitive = false} = options;
 
@@ -48,7 +48,7 @@ export function text(str: string, options: TextOptions = {}): TakerFunction {
 }
 
 export interface CaseSensitiveTextTaker extends InternalTaker {
-  type: InternalTakerType.CASE_SENSITIVE_TEXT;
+  type: CASE_SENSITIVE_TEXT_TYPE;
   str: string;
 }
 
@@ -59,10 +59,10 @@ export function createCaseSensitiveTextTaker(str: string): CaseSensitiveTextTake
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
     resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
     toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, i > 0 ? '+' + i : '', ')===', charCode]),
-    '?', offsetVar, '+', str.length, ':' + ResultCode.NO_MATCH + ';',
+    '?', offsetVar, '+', str.length, ':' + NO_MATCH + ';',
   ];
 
-  const taker = compileInternalTaker<CaseSensitiveTextTaker>(InternalTakerType.CASE_SENSITIVE_TEXT, factory, [[strVar, str]]);
+  const taker = createInternalTaker<CaseSensitiveTextTaker>(CASE_SENSITIVE_TEXT_TYPE, factory, [[strVar, str]]);
 
   taker.str = str;
 
@@ -70,7 +70,7 @@ export function createCaseSensitiveTextTaker(str: string): CaseSensitiveTextTake
 }
 
 export interface CaseInsensitiveTextTaker extends InternalTaker {
-  type: InternalTakerType.CASE_INSENSITIVE_TEXT;
+  type: CASE_INSENSITIVE_TEXT_TYPE;
   str: string;
 }
 
@@ -106,12 +106,12 @@ export function createCaseInsensitiveTextTaker(str: string): CaseInsensitiveText
         );
       }
     }
-    code.push('?', offsetVar, ':' + ResultCode.NO_MATCH + ';');
+    code.push('?', offsetVar, ':' + NO_MATCH + ';');
 
     return code;
   };
 
-  const taker = compileInternalTaker<CaseInsensitiveTextTaker>(InternalTakerType.CASE_INSENSITIVE_TEXT, factory);
+  const taker = createInternalTaker<CaseInsensitiveTextTaker>(CASE_INSENSITIVE_TEXT_TYPE, factory);
 
   taker.str = str;
 

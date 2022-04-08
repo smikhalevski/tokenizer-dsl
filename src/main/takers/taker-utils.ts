@@ -1,16 +1,8 @@
-import {Code, Var} from '../code';
-import {compileFunction, createVar} from '../code';
-import {
-  CharCodeRange,
-  CharCodeRangeLike,
-  InternalTaker,
-  TakerFunction,
-  TakerCodeFactory,
-  TakerCodegen,
-  Taker
-} from './taker-types';
+import {Code, compileFunction, createVar, Var} from '../code';
+import {InternalTaker} from './internal-taker-types';
+import {CharCodeRange, CharCodeRangeLike, Taker, TakerCodeFactory, TakerCodegen, TakerFunction} from './taker-types';
 
-export function isInternalTaker<T extends InternalTaker>(taker: Taker | InternalTaker, type: T['type']): taker is T {
+export function isInternalTaker<T extends InternalTaker>(type: T['type'], taker: Taker | InternalTaker): taker is T {
   return 'type' in taker && taker.type === type;
 }
 
@@ -56,17 +48,15 @@ export function toCharCode(value: string | number): number {
  * @param bindings The optional variable bindings available inside the taker function.
  * @returns The taker function.
  */
-export function compileInternalTaker<T extends InternalTaker>(type: T['type'], factory: TakerCodeFactory, bindings?: [Var, unknown][]): T {
-  const taker = toTaker({factory, bindings}) as T;
-
-  taker.type = type;
-  taker.factory = factory;
-  taker.bindings = bindings;
-
-  return taker;
+export function createInternalTaker<T extends InternalTaker>(type: T['type'], factory: TakerCodeFactory, bindings?: [Var, unknown][]): T {
+  return {
+    type,
+    factory,
+    bindings,
+  } as T;
 }
 
-export function toTaker(taker: Taker): TakerFunction {
+export function toTakerFunction(taker: Taker): TakerFunction {
   if (typeof taker === 'function') {
     return taker;
   }

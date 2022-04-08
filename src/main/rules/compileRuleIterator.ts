@@ -1,5 +1,5 @@
 import {Code, compileFunction, createVar, Var} from '../code';
-import {isTakerCodegen, ResultCode} from '../takers';
+import {isTakerCodegen, NO_MATCH} from '../takers';
 import {Rule, RuleHandler} from './rule-types';
 
 /**
@@ -126,7 +126,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
         // Take chars from the input string
         isTakerCodegen(taker) ? taker.factory(chunkVar, nextOffsetVar, takerResultVar) : [takerResultVar, '=', takerVar, '(', chunkVar, ',', nextOffsetVar, ');'],
 
-        'if(', takerResultVar, '!==' + ResultCode.NO_MATCH + '&&', takerResultVar, '!==', nextOffsetVar, '){',
+        'if(', takerResultVar, '!==' + NO_MATCH + '&&', takerResultVar, '!==', nextOffsetVar, '){',
 
         // Emit error
         'if(', takerResultVar, '<0){',

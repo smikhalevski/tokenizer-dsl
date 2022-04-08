@@ -1,4 +1,4 @@
-import {InternalTaker, InternalTakerType, never, none, ResultCode, TakerFunction, text} from '../../main';
+import {InternalTaker, never, NO_MATCH, none, TakerFunction, text} from '../../main';
 import {createSeqTaker, seq} from '../../main/takers';
 
 describe('seq', () => {
@@ -18,7 +18,7 @@ describe('seq', () => {
   });
 
   test('returns SeqTaker', () => {
-    expect((seq(text('aaa'), text('bbb')) as InternalTaker).type).toBe(InternalTakerType.SEQ);
+    expect((seq(text('aaa'), text('bbb')) as InternalTaker).type).toBe(SEQ_TYPE);
   });
 });
 
@@ -27,10 +27,10 @@ describe('createSeqTaker', () => {
   test('fails if any of takers fail', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(4);
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+    takerMock.mockReturnValueOnce(NO_MATCH);
     takerMock.mockReturnValueOnce(5);
 
-    expect(createSeqTaker([takerMock, takerMock, takerMock])('aabbcc', 2)).toBe(ResultCode.NO_MATCH);
+    expect(createSeqTaker([takerMock, takerMock, takerMock])('aabbcc', 2)).toBe(NO_MATCH);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 

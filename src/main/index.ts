@@ -15,3 +15,4 @@ export {Code, Var} from './code';
 export {createRule} from './rules/createRule';
 export {Rule, RuleHandler} from './rules/rule-types';
 export {Tokenizer} from './Tokenizer';
+export {InternalTaker} from './takers';

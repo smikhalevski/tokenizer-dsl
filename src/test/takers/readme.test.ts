@@ -1,4 +1,4 @@
-import {all, char, maybe, or, ResultCode, seq, text} from '../../main';
+import {all, char, maybe, NO_MATCH, or, seq, text} from '../../main';
 
 test('readme example', () => {
 
@@ -35,7 +35,7 @@ test('readme example', () => {
       ),
   );
 
-  expect(takeNumber('', 0)).toBe(ResultCode.NO_MATCH);
+  expect(takeNumber('', 0)).toBe(NO_MATCH);
   expect(takeNumber('0', 0)).toBe(1);
 
   expect(takeNumber('00', 0)).toBe(1);

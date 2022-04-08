@@ -1,4 +1,4 @@
-import {InternalTaker, InternalTakerType, none, or, ResultCode, TakerFunction, text} from '../../main';
+import {InternalTaker, NO_MATCH, none, or, TakerFunction, text} from '../../main';
 import {createOrTaker} from '../../main/takers';
 
 describe('or', () => {
@@ -14,7 +14,7 @@ describe('or', () => {
 
   test('returns OrTaker', () => {
     const takerMock = jest.fn();
-    expect((or(takerMock, takerMock) as InternalTaker).type).toBe(InternalTakerType.OR);
+    expect((or(takerMock, takerMock) as InternalTaker).type).toBe(OR_TYPE);
   });
 });
 
@@ -22,7 +22,7 @@ describe('createOrTaker', () => {
 
   test('returns after the first match', () => {
     const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+    takerMock.mockReturnValueOnce(NO_MATCH);
     takerMock.mockReturnValueOnce(2);
     takerMock.mockReturnValueOnce(4);
 
@@ -30,17 +30,17 @@ describe('createOrTaker', () => {
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
-  test('returns ResultCode.NO_MATCH', () => {
+  test('returns NO_MATCH', () => {
     const takerMock = jest.fn();
-    takerMock.mockReturnValue(ResultCode.NO_MATCH);
+    takerMock.mockReturnValue(NO_MATCH);
 
-    expect(createOrTaker([takerMock, takerMock])('aabbcc', 2)).toBe(ResultCode.NO_MATCH);
+    expect(createOrTaker([takerMock, takerMock])('aabbcc', 2)).toBe(NO_MATCH);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
   test('returns error result', () => {
     const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+    takerMock.mockReturnValueOnce(NO_MATCH);
     takerMock.mockReturnValueOnce(-2);
     takerMock.mockReturnValueOnce(4);
 

@@ -1,4 +1,4 @@
-import {InternalTaker, InternalTakerType, none, ResultCode, text} from '../../main';
+import {InternalTaker, NO_MATCH, none, text} from '../../main';
 import {createCaseInsensitiveTextTaker, createCaseSensitiveTextTaker} from '../../main/takers';
 
 describe('text', () => {
@@ -8,12 +8,12 @@ describe('text', () => {
   });
 
   test('returns CaseSensitiveTextTaker', () => {
-    expect((text('aaa') as InternalTaker).type).toBe(InternalTakerType.CASE_SENSITIVE_TEXT);
-    expect((text('123', {caseInsensitive: true}) as InternalTaker).type).toBe(InternalTakerType.CASE_SENSITIVE_TEXT);
+    expect((text('aaa') as InternalTaker).type).toBe(CASE_SENSITIVE_TEXT_TYPE);
+    expect((text('123', {caseInsensitive: true}) as InternalTaker).type).toBe(CASE_SENSITIVE_TEXT_TYPE);
   });
 
   test('returns CaseInsensitiveTextTaker', () => {
-    expect((text('aaa', {caseInsensitive: true}) as InternalTaker).type).toBe(InternalTakerType.CASE_INSENSITIVE_TEXT);
+    expect((text('aaa', {caseInsensitive: true}) as InternalTaker).type).toBe(CASE_INSENSITIVE_TEXT_TYPE);
   });
 
   test('throws if text length is ambiguous', () => {
@@ -28,8 +28,8 @@ describe('createCaseSensitiveTextTaker', () => {
 
     expect(taker('aaaabc', 3)).toBe(6);
     expect(taker('aaaabcde', 3)).toBe(6);
-    expect(taker('aaaab', 3)).toBe(ResultCode.NO_MATCH);
-    expect(taker('aaaABC', 3)).toBe(ResultCode.NO_MATCH);
+    expect(taker('aaaab', 3)).toBe(NO_MATCH);
+    expect(taker('aaaABC', 3)).toBe(NO_MATCH);
   });
 });
 
@@ -40,6 +40,6 @@ describe('createCaseInsensitiveTextTaker', () => {
 
     expect(taker('AAAABC', 3)).toBe(6);
     expect(taker('AAAABCDE', 3)).toBe(6);
-    expect(taker('AAAAB', 3)).toBe(ResultCode.NO_MATCH);
+    expect(taker('AAAAB', 3)).toBe(NO_MATCH);
   });
 });

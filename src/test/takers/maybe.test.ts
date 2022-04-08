@@ -1,4 +1,4 @@
-import {InternalTaker, InternalTakerType, maybe, never, none, ResultCode, text} from '../../main';
+import {InternalTaker, maybe, never, NO_MATCH, none, text} from '../../main';
 import {createMaybeTaker} from '../../main/takers';
 
 describe('maybe', () => {
@@ -12,7 +12,7 @@ describe('maybe', () => {
   });
 
   test('returns MaybeTaker', () => {
-    expect((maybe(() => 0) as InternalTaker).type).toBe(InternalTakerType.MAYBE);
+    expect((maybe(() => 0) as InternalTaker).type).toBe(MAYBE_TYPE);
   });
 });
 
@@ -28,7 +28,7 @@ describe('createMaybeTaker', () => {
 
   test('returns offset if taker did not match', () => {
     const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+    takerMock.mockReturnValueOnce(NO_MATCH);
 
     expect(createMaybeTaker(takerMock)('aabbcc', 2)).toBe(2);
     expect(takerMock).toHaveBeenCalledTimes(1);

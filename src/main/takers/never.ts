@@ -1,15 +1,16 @@
-import {InternalTaker, InternalTakerType, ResultCode, TakerFunction, TakerCodeFactory} from './taker-types';
-import {compileInternalTaker} from './taker-utils';
+import {InternalTaker, NEVER_TYPE} from './internal-taker-types';
+import {NO_MATCH, Taker, TakerCodeFactory} from './taker-types';
+import {createInternalTaker} from './taker-utils';
 
 const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
-  resultVar, '=' + ResultCode.NO_MATCH + ';',
+  resultVar, '=' + NO_MATCH + ';',
 ];
 
 export interface NeverTaker extends InternalTaker {
-  type: InternalTakerType.NEVER;
+  type: NEVER_TYPE;
 }
 
 /**
- * Taker that always returns {@link ResultCode.NO_MATCH}.
+ * Taker that always returns {@link NO_MATCH}.
  */
-export const never: TakerFunction = compileInternalTaker<NeverTaker>(InternalTakerType.NEVER, factory);
+export const never: Taker = createInternalTaker<NeverTaker>(NEVER_TYPE, factory);

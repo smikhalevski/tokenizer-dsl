@@ -1,4 +1,4 @@
-import {all, char, InternalTaker, InternalTakerType, never, none, ResultCode, text} from '../../main';
+import {all, char, InternalTaker, never, NO_MATCH, none, text} from '../../main';
 import {
   createAllCaseSensitiveTextTaker,
   createAllCharCodeCheckerTaker,
@@ -6,6 +6,11 @@ import {
   createAllGenericTaker,
   createAllRegexTaker
 } from '../../main/takers';
+import {
+  ALL_CASE_SENSITIVE_TEXT_TYPE,
+  ALL_CHAR_CODE_CHECKER_TYPE, ALL_CHAR_CODE_RANGE_TYPE, ALL_GENERIC_TYPE,
+  MAYBE_TYPE
+} from '../../main/takers/internal-taker-types';
 
 const A = 'a'.charCodeAt(0);
 
@@ -22,12 +27,12 @@ describe('all', () => {
   });
 
   test('returns unlimited taker', () => {
-    expect((all(() => 0, {maximumCount: -1}) as InternalTaker).type).toBe(InternalTakerType.ALL_GENERIC);
-    expect((all(() => 0, {maximumCount: 0}) as InternalTaker).type).toBe(InternalTakerType.ALL_GENERIC);
+    expect((all(() => 0, {maximumCount: -1}) as InternalTaker).type).toBe(ALL_GENERIC_TYPE);
+    expect((all(() => 0, {maximumCount: 0}) as InternalTaker).type).toBe(ALL_GENERIC_TYPE);
   });
 
   test('returns MaybeTaker', () => {
-    expect((all(() => 0, {maximumCount: 1}) as InternalTaker).type).toBe(InternalTakerType.MAYBE);
+    expect((all(() => 0, {maximumCount: 1}) as InternalTaker).type).toBe(MAYBE_TYPE);
   });
 
   test('returns taker', () => {
@@ -36,16 +41,16 @@ describe('all', () => {
   });
 
   test('returns AllCharCodeCheckerTaker', () => {
-    expect((all(char(() => false)) as InternalTaker).type).toBe(InternalTakerType.ALL_CHAR_CODE_CHECKER);
+    expect((all(char(() => false)) as InternalTaker).type).toBe(ALL_CHAR_CODE_CHECKER_TYPE);
   });
 
   test('returns AllCaseSensitiveTextTaker', () => {
-    expect((all(text('a')) as InternalTaker).type).toBe(InternalTakerType.ALL_CHAR_CODE_RANGE);
-    expect((all(text('aaa')) as InternalTaker).type).toBe(InternalTakerType.ALL_CASE_SENSITIVE_TEXT);
+    expect((all(text('a')) as InternalTaker).type).toBe(ALL_CHAR_CODE_RANGE_TYPE);
+    expect((all(text('aaa')) as InternalTaker).type).toBe(ALL_CASE_SENSITIVE_TEXT_TYPE);
   });
 
   test('returns AllTaker', () => {
-    expect((all(() => 0) as InternalTaker).type).toBe(InternalTakerType.ALL_GENERIC);
+    expect((all(() => 0) as InternalTaker).type).toBe(ALL_GENERIC_TYPE);
   });
 });
 
@@ -53,7 +58,7 @@ describe('createAllCharCodeCheckerTaker', () => {
 
   test('takes sequential chars', () => {
     expect(createAllCharCodeCheckerTaker(() => true, 0, 0)('aaabbbccc', 2)).toBe(9);
-    expect(createAllCharCodeCheckerTaker(() => false, 1, 0)('aaabbbccc', 2)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeCheckerTaker(() => false, 1, 0)('aaabbbccc', 2)).toBe(NO_MATCH);
   });
 
   test('takes if count is sufficient', () => {
@@ -70,7 +75,7 @@ describe('createAllCharCodeCheckerTaker', () => {
     charCodeCheckerMock.mockReturnValueOnce(true);
     charCodeCheckerMock.mockReturnValueOnce(false);
 
-    expect(createAllCharCodeCheckerTaker(charCodeCheckerMock, 2, 0)('aaaa', 1)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeCheckerTaker(charCodeCheckerMock, 2, 0)('aaaa', 1)).toBe(NO_MATCH);
   });
 
   test('takes limited number of chars', () => {
@@ -88,11 +93,11 @@ describe('createAllCharCodeRangeTaker', () => {
     expect(createAllCharCodeRangeTaker([A], 2, 2)('aaaa', 0)).toBe(2);
     expect(createAllCharCodeRangeTaker([A], 2, 2)('aaaa', 1)).toBe(3);
     expect(createAllCharCodeRangeTaker([A], 2, 2)('aaaa', 2)).toBe(4);
-    expect(createAllCharCodeRangeTaker([A], 2, 2)('abbb', 0)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeRangeTaker([A], 2, 2)('abbb', 0)).toBe(NO_MATCH);
   });
 
   test('takes exact number of chars when length is insufficient', () => {
-    expect(createAllCharCodeRangeTaker([A], 2, 2)('aaaa', 3)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeRangeTaker([A], 2, 2)('aaaa', 3)).toBe(NO_MATCH);
   });
 
   test('takes maximum number of chars', () => {
@@ -109,17 +114,17 @@ describe('createAllCharCodeRangeTaker', () => {
     expect(createAllCharCodeRangeTaker([A], 1, 2)('aaaa', 0)).toBe(2);
     expect(createAllCharCodeRangeTaker([A], 1, 2)('aaaa', 1)).toBe(3);
     expect(createAllCharCodeRangeTaker([A], 1, 2)('aaaa', 3)).toBe(4);
-    expect(createAllCharCodeRangeTaker([A], 1, 2)('aaaa', 4)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeRangeTaker([A], 1, 2)('aaaa', 4)).toBe(NO_MATCH);
     expect(createAllCharCodeRangeTaker([A], 1, 2)('aabb', 1)).toBe(2);
-    expect(createAllCharCodeRangeTaker([A], 1, 2)('aabb', 2)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeRangeTaker([A], 1, 2)('aabb', 2)).toBe(NO_MATCH);
   });
 
   test('takes minimum number of chars', () => {
     expect(createAllCharCodeRangeTaker([A], 1, 0)('aaaa', 0)).toBe(4);
     expect(createAllCharCodeRangeTaker([A], 1, 0)('aaaa', 1)).toBe(4);
-    expect(createAllCharCodeRangeTaker([A], 1, 0)('aaaa', 4)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeRangeTaker([A], 1, 0)('aaaa', 4)).toBe(NO_MATCH);
     expect(createAllCharCodeRangeTaker([A], 1, 0)('aabb', 1)).toBe(2);
-    expect(createAllCharCodeRangeTaker([A], 1, 0)('aabb', 2)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCharCodeRangeTaker([A], 1, 0)('aabb', 2)).toBe(NO_MATCH);
   });
 
   test('takes unlimited number of chars', () => {
@@ -135,7 +140,7 @@ describe('createAllCaseSensitiveTextTaker', () => {
 
   test('takes sequential case-insensitive substrings', () => {
     expect(createAllCaseSensitiveTextTaker('abc', 0, 0)('abcabcabcd', 3)).toBe(9);
-    expect(createAllCaseSensitiveTextTaker('abc', 3, 0)('abcabcabcd', 3)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCaseSensitiveTextTaker('abc', 3, 0)('abcabcabcd', 3)).toBe(NO_MATCH);
   });
 
   test('takes if count is sufficient', () => {
@@ -143,7 +148,7 @@ describe('createAllCaseSensitiveTextTaker', () => {
   });
 
   test('does not take if count is insufficient', () => {
-    expect(createAllCaseSensitiveTextTaker('ab', 2, 0)('aabb', 1)).toBe(ResultCode.NO_MATCH);
+    expect(createAllCaseSensitiveTextTaker('ab', 2, 0)('aabb', 1)).toBe(NO_MATCH);
   });
 
   test('takes limited number of chars', () => {
@@ -159,7 +164,7 @@ describe('createAllRegexTaker', () => {
 
   test('takes sequential regex matches', () => {
     expect(createAllRegexTaker(/a/, 0, 0)('aaaaabaaa', 3)).toBe(5);
-    expect(createAllRegexTaker(/a/, 3, 0)('aaaaabaaa', 3)).toBe(ResultCode.NO_MATCH);
+    expect(createAllRegexTaker(/a/, 3, 0)('aaaaabaaa', 3)).toBe(NO_MATCH);
     expect(createAllRegexTaker(/a/, 0, 3)('aaaaa', 0)).toBe(3);
   });
 
@@ -168,7 +173,7 @@ describe('createAllRegexTaker', () => {
   });
 
   test('does not take if count is insufficient', () => {
-    expect(createAllRegexTaker(/ab/, 2, 0)('aabb', 1)).toBe(ResultCode.NO_MATCH);
+    expect(createAllRegexTaker(/ab/, 2, 0)('aabb', 1)).toBe(NO_MATCH);
   });
 
   test('takes limited number of chars', () => {
@@ -182,11 +187,11 @@ describe('createAllRegexTaker', () => {
 
 describe('createAllGenericTaker', () => {
 
-  test('takes until taker returns ResultCode.NO_MATCH', () => {
+  test('takes until taker returns NO_MATCH', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(3);
     takerMock.mockReturnValueOnce(4);
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+    takerMock.mockReturnValueOnce(NO_MATCH);
 
     expect(createAllGenericTaker(takerMock, 0, 0)('aabbcc', 2)).toBe(4);
     expect(takerMock).toHaveBeenCalledTimes(3);
@@ -211,12 +216,12 @@ describe('createAllGenericTaker', () => {
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
-  test('returns ResultCode.NO_MATCH if minimum matches was not reached', () => {
+  test('returns NO_MATCH if minimum matches was not reached', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(1);
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+    takerMock.mockReturnValueOnce(NO_MATCH);
 
-    expect(createAllGenericTaker(takerMock, 2, 0)('a', 0)).toBe(ResultCode.NO_MATCH);
+    expect(createAllGenericTaker(takerMock, 2, 0)('a', 0)).toBe(NO_MATCH);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -225,7 +230,7 @@ describe('createAllGenericTaker', () => {
     takerMock.mockReturnValueOnce(1);
     takerMock.mockReturnValueOnce(2);
     takerMock.mockReturnValueOnce(3);
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+    takerMock.mockReturnValueOnce(NO_MATCH);
 
     expect(createAllGenericTaker(takerMock, 2, 0)('aaa', 0)).toBe(3);
     expect(takerMock).toHaveBeenCalledTimes(4);
@@ -244,7 +249,7 @@ describe('createAllGenericTaker', () => {
   test('maximum does not affect the minimum', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValueOnce(1);
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+    takerMock.mockReturnValueOnce(NO_MATCH);
 
     expect(createAllGenericTaker(takerMock, 0, 2)('a', 0)).toBe(1);
     expect(takerMock).toHaveBeenCalledTimes(2);

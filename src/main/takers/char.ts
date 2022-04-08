@@ -1,17 +1,8 @@
-import {Code, Var} from '../code';
-import {createVar} from '../code';
+import {Code, createVar, Var} from '../code';
+import {CHAR_CODE_CHECKER_TYPE, CHAR_CODE_RANGE_TYPE, InternalTaker} from './internal-taker-types';
 import {none} from './none';
-import {
-  CharCodeChecker,
-  CharCodeRange,
-  CharCodeRangeLike,
-  InternalTaker,
-  InternalTakerType,
-  ResultCode,
-  TakerFunction,
-  TakerCodeFactory
-} from './taker-types';
-import {compileInternalTaker, toCharCodeRanges} from './taker-utils';
+import {CharCodeChecker, CharCodeRange, CharCodeRangeLike, NO_MATCH, Taker, TakerCodeFactory} from './taker-types';
+import {createInternalTaker, toCharCodeRanges} from './taker-utils';
 
 /**
  * Creates a taker that matches a single char by its code.
@@ -21,7 +12,7 @@ import {compileInternalTaker, toCharCodeRanges} from './taker-utils';
  *
  * @see {@link text}
  */
-export function char(charCode: CharCodeChecker | CharCodeRangeLike[]): TakerFunction {
+export function char(charCode: CharCodeChecker | CharCodeRangeLike[]): Taker {
   if (typeof charCode === 'function') {
     return createCharCodeCheckerTaker(charCode);
   }
@@ -34,7 +25,7 @@ export function char(charCode: CharCodeChecker | CharCodeRangeLike[]): TakerFunc
 }
 
 export interface CharCodeCheckerTaker extends InternalTaker {
-  type: InternalTakerType.CHAR_CODE_CHECKER;
+  type: CHAR_CODE_CHECKER_TYPE;
   charCodeChecker: CharCodeChecker;
 }
 
@@ -43,10 +34,10 @@ export function createCharCodeCheckerTaker(charCodeChecker: CharCodeChecker): Ch
   const charCodeCheckerVar = createVar();
 
   const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
-    resultVar, '=', charCodeCheckerVar, '(', inputVar, '.charCodeAt(', offsetVar, '))?', offsetVar, '+1:' + ResultCode.NO_MATCH + ';',
+    resultVar, '=', charCodeCheckerVar, '(', inputVar, '.charCodeAt(', offsetVar, '))?', offsetVar, '+1:' + NO_MATCH + ';',
   ];
 
-  const taker = compileInternalTaker<CharCodeCheckerTaker>(InternalTakerType.CHAR_CODE_CHECKER, factory, [[charCodeCheckerVar, charCodeChecker]]);
+  const taker = createInternalTaker<CharCodeCheckerTaker>(CHAR_CODE_CHECKER_TYPE, factory, [[charCodeCheckerVar, charCodeChecker]]);
 
   taker.charCodeChecker = charCodeChecker;
 
@@ -54,7 +45,7 @@ export function createCharCodeCheckerTaker(charCodeChecker: CharCodeChecker): Ch
 }
 
 export interface CharCodeRangeTaker extends InternalTaker {
-  type: InternalTakerType.CHAR_CODE_RANGE;
+  type: CHAR_CODE_RANGE_TYPE;
   charCodeRanges: CharCodeRange[];
 }
 
@@ -65,11 +56,11 @@ export function createCharCodeRangeTaker(charCodeRanges: CharCodeRange[]): CharC
 
     return [
       'var ', charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, ');',
-      resultVar, '=', createCharPredicate(charCodeVar, charCodeRanges), '?', offsetVar, '+1:' + ResultCode.NO_MATCH + ';',
+      resultVar, '=', createCharPredicate(charCodeVar, charCodeRanges), '?', offsetVar, '+1:' + NO_MATCH + ';',
     ];
   };
 
-  const taker = compileInternalTaker<CharCodeRangeTaker>(InternalTakerType.CHAR_CODE_RANGE, factory);
+  const taker = createInternalTaker<CharCodeRangeTaker>(CHAR_CODE_RANGE_TYPE, factory);
 
   taker.charCodeRanges = charCodeRanges;
 

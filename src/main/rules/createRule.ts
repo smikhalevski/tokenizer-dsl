@@ -1,4 +1,4 @@
-import {Taker, toTaker} from '../takers';
+import {Taker, toTakerFunction} from '../takers';
 import {Rule, StageProvider} from './rule-types';
 
 /**
@@ -13,7 +13,7 @@ import {Rule, StageProvider} from './rule-types';
  */
 export function createRule<S = never, C = void>(taker: Taker, stages?: S[], nextStage?: StageProvider<S, C> | S): Rule<S, C> {
   return {
-    taker: toTaker(taker),
+    taker: toTakerFunction(taker),
     stages,
     nextStage,
   };

@@ -1,16 +1,16 @@
-import {Code, Var} from '../code';
-import {createVar} from '../code';
+import {Code, createVar, Var} from '../code';
+import {InternalTaker, SEQ_TYPE} from './internal-taker-types';
 import {never} from './never';
 import {none} from './none';
-import {InternalTaker, InternalTakerType, TakerFunction, TakerCodeFactory, Taker} from './taker-types';
-import {compileInternalTaker, isInternalTaker, isTakerCodegen, toTaker} from './taker-utils';
+import {Taker, TakerCodeFactory} from './taker-types';
+import {createInternalTaker, isInternalTaker, isTakerCodegen, toTakerFunction} from './taker-utils';
 
 /**
  * Creates a taker that applies takers one after another.
  *
  * @param takers Takers that are called.
  */
-export function seq(...takers: Taker[]): TakerFunction {
+export function seq(...takers: Taker[]): Taker {
   if (takers.includes(never)) {
     return never;
   }
@@ -18,7 +18,7 @@ export function seq(...takers: Taker[]): TakerFunction {
   const t: Taker[] = [];
 
   for (const taker of takers) {
-    if (isInternalTaker<SeqTaker>(taker, InternalTakerType.SEQ)) {
+    if (isInternalTaker<SeqTaker>(SEQ_TYPE, taker)) {
       t.push(...taker.takers);
       continue;
     }
@@ -33,13 +33,13 @@ export function seq(...takers: Taker[]): TakerFunction {
     return none;
   }
   if (takersLength === 1) {
-    return toTaker(t[0]);
+    return toTakerFunction(t[0]);
   }
   return createSeqTaker(t);
 }
 
 export interface SeqTaker extends InternalTaker {
-  type: InternalTakerType.SEQ;
+  type: SEQ_TYPE;
   takers: Taker[];
 }
 
@@ -88,7 +88,7 @@ export function createSeqTaker(takers: Taker[]): SeqTaker {
     return code;
   };
 
-  const taker = compileInternalTaker<SeqTaker>(InternalTakerType.SEQ, factory, bindings);
+  const taker = createInternalTaker<SeqTaker>(SEQ_TYPE, factory, bindings);
 
   taker.takers = takers;
 

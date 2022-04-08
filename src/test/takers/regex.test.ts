@@ -1,10 +1,10 @@
-import {InternalTaker, InternalTakerType, ResultCode} from '../../main';
+import {InternalTaker, NO_MATCH} from '../../main';
 import {createRegexTaker, regex} from '../../main/takers';
 
 describe('regex', () => {
 
   test('returns RegexTaker', () => {
-    expect((regex(/abc/) as InternalTaker).type).toBe(InternalTakerType.REGEX);
+    expect((regex(/abc/) as InternalTaker).type).toBe(REGEX_TYPE);
   });
 });
 
@@ -15,8 +15,8 @@ describe('createRegexTaker', () => {
 
     expect(taker('aaaabc', 3)).toBe(6);
     expect(taker('aaaabcde', 3)).toBe(6);
-    expect(taker('aaaab', 3)).toBe(ResultCode.NO_MATCH);
-    expect(taker('aaaABC', 3)).toBe(ResultCode.NO_MATCH);
+    expect(taker('aaaab', 3)).toBe(NO_MATCH);
+    expect(taker('aaaABC', 3)).toBe(NO_MATCH);
   });
 
   test('starts from the given offset', () => {
@@ -28,6 +28,6 @@ describe('createRegexTaker', () => {
   test('ignores matches that do not start at offset', () => {
     const taker = createRegexTaker(/abc/);
 
-    expect(taker('aaaabcabc', 5)).toBe(ResultCode.NO_MATCH);
+    expect(taker('aaaabcabc', 5)).toBe(NO_MATCH);
   });
 });

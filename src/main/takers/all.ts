@@ -1,20 +1,23 @@
 import {createVar} from '../code';
 import {CharCodeCheckerTaker, CharCodeRangeTaker, createCharPredicate} from './char';
+import {
+  ALL_CASE_SENSITIVE_TEXT_TYPE,
+  ALL_CHAR_CODE_CHECKER_TYPE,
+  ALL_CHAR_CODE_RANGE_TYPE,
+  ALL_GENERIC_TYPE,
+  ALL_REGEX_TYPE,
+  CASE_SENSITIVE_TEXT_TYPE,
+  CHAR_CODE_CHECKER_TYPE,
+  CHAR_CODE_RANGE_TYPE,
+  InternalTaker,
+  REGEX_TYPE
+} from './internal-taker-types';
 import {createMaybeTaker} from './maybe';
 import {never} from './never';
 import {none} from './none';
 import {RegexTaker} from './regex';
-import {
-  CharCodeChecker,
-  CharCodeRange,
-  InternalTaker,
-  InternalTakerType,
-  ResultCode,
-  TakerFunction,
-  TakerCodeFactory,
-  Taker
-} from './taker-types';
-import {compileInternalTaker, isInternalTaker, isTakerCodegen, toCharCodes, toTaker} from './taker-utils';
+import {CharCodeChecker, CharCodeRange, NO_MATCH, Taker, TakerCodeFactory} from './taker-types';
+import {createInternalTaker, isInternalTaker, isTakerCodegen, toCharCodes, toTakerFunction} from './taker-utils';
 import {CaseSensitiveTextTaker} from './text';
 
 export interface AllOptions {
@@ -40,7 +43,7 @@ export interface AllOptions {
  * @param taker The taker that takes chars.
  * @param options Taker options.
  */
-export function all(taker: Taker, options: AllOptions = {}): TakerFunction {
+export function all(taker: Taker, options: AllOptions = {}): Taker {
 
   let {
     minimumCount = 0,
@@ -57,28 +60,28 @@ export function all(taker: Taker, options: AllOptions = {}): TakerFunction {
     return createMaybeTaker(taker);
   }
   if (minimumCount === 1 && maximumCount === 1) {
-    return toTaker(taker);
+    return toTakerFunction(taker);
   }
   if (taker === never || taker === none) {
     return taker;
   }
-  if (isInternalTaker<CharCodeCheckerTaker>(taker, InternalTakerType.CHAR_CODE_CHECKER)) {
+  if (isInternalTaker<CharCodeCheckerTaker>(CHAR_CODE_CHECKER_TYPE, taker)) {
     return createAllCharCodeCheckerTaker(taker.charCodeChecker, minimumCount, maximumCount);
   }
-  if (isInternalTaker<CharCodeRangeTaker>(taker, InternalTakerType.CHAR_CODE_RANGE)) {
+  if (isInternalTaker<CharCodeRangeTaker>(CHAR_CODE_RANGE_TYPE, taker)) {
     return createAllCharCodeRangeTaker(taker.charCodeRanges, minimumCount, maximumCount);
   }
-  if (isInternalTaker<CaseSensitiveTextTaker>(taker, InternalTakerType.CASE_SENSITIVE_TEXT)) {
+  if (isInternalTaker<CaseSensitiveTextTaker>(CASE_SENSITIVE_TEXT_TYPE, taker)) {
     return createAllCaseSensitiveTextTaker(taker.str, minimumCount, maximumCount);
   }
-  if (isInternalTaker<RegexTaker>(taker, InternalTakerType.REGEX)) {
+  if (isInternalTaker<RegexTaker>(REGEX_TYPE, taker)) {
     return createAllRegexTaker(taker.re, minimumCount, maximumCount);
   }
   return createAllGenericTaker(taker, minimumCount, maximumCount);
 }
 
 export interface AllCharCodeCheckerTaker extends InternalTaker {
-  type: InternalTakerType.ALL_CHAR_CODE_CHECKER;
+  type: ALL_CHAR_CODE_CHECKER_TYPE;
 }
 
 export function createAllCharCodeCheckerTaker(charCodeChecker: CharCodeChecker, minimumCount: number, maximumCount: number): AllCharCodeCheckerTaker {
@@ -104,16 +107,16 @@ export function createAllCharCodeCheckerTaker(charCodeChecker: CharCodeChecker, 
       '++', indexVar,
       '}',
       resultVar, '=',
-      minimumCount ? [takeCountVar, '<', minimumCount, '?' + ResultCode.NO_MATCH + ':', indexVar] : indexVar,
+      minimumCount ? [takeCountVar, '<', minimumCount, '?' + NO_MATCH + ':', indexVar] : indexVar,
       ';',
     ];
   };
 
-  return compileInternalTaker<AllCharCodeCheckerTaker>(InternalTakerType.ALL_CHAR_CODE_CHECKER, factory, [[charCodeCheckerVar, charCodeChecker]]);
+  return createInternalTaker<AllCharCodeCheckerTaker>(ALL_CHAR_CODE_CHECKER_TYPE, factory, [[charCodeCheckerVar, charCodeChecker]]);
 }
 
 export interface AllCharCodeRangeTaker extends InternalTaker {
-  type: InternalTakerType.ALL_CHAR_CODE_RANGE;
+  type: ALL_CHAR_CODE_RANGE_TYPE;
 }
 
 export function createAllCharCodeRangeTaker(charCodeRanges: CharCodeRange[], minimumCount: number, maximumCount: number): AllCharCodeRangeTaker {
@@ -142,16 +145,16 @@ export function createAllCharCodeRangeTaker(charCodeRanges: CharCodeRange[], min
       '++', indexVar,
       '}',
       resultVar, '=',
-      minimumCount ? [takeCountVar, '<', minimumCount, '?' + ResultCode.NO_MATCH + ':', indexVar] : indexVar,
+      minimumCount ? [takeCountVar, '<', minimumCount, '?' + NO_MATCH + ':', indexVar] : indexVar,
       ';'
     ];
   };
 
-  return compileInternalTaker<AllCharCodeRangeTaker>(InternalTakerType.ALL_CHAR_CODE_RANGE, factory);
+  return createInternalTaker<AllCharCodeRangeTaker>(ALL_CHAR_CODE_RANGE_TYPE, factory);
 }
 
 export interface AllCaseSensitiveTextTaker extends InternalTaker {
-  type: InternalTakerType.ALL_CASE_SENSITIVE_TEXT;
+  type: ALL_CASE_SENSITIVE_TEXT_TYPE;
 }
 
 export function createAllCaseSensitiveTextTaker(str: string, minimumCount: number, maximumCount: number): AllCaseSensitiveTextTaker {
@@ -179,16 +182,16 @@ export function createAllCaseSensitiveTextTaker(str: string, minimumCount: numbe
       indexVar, '+=', str.length,
       '}',
       resultVar, '=',
-      minimumCount ? [takeCountVar, '<', minimumCount, '?' + ResultCode.NO_MATCH + ':', indexVar] : indexVar,
+      minimumCount ? [takeCountVar, '<', minimumCount, '?' + NO_MATCH + ':', indexVar] : indexVar,
       ';',
     ];
   };
 
-  return compileInternalTaker<AllCaseSensitiveTextTaker>(InternalTakerType.ALL_CASE_SENSITIVE_TEXT, factory, [[strVar, str]]);
+  return createInternalTaker<AllCaseSensitiveTextTaker>(ALL_CASE_SENSITIVE_TEXT_TYPE, factory, [[strVar, str]]);
 }
 
 export interface AllRegexTaker extends InternalTaker {
-  type: InternalTakerType.ALL_REGEX;
+  type: ALL_REGEX_TYPE;
 }
 
 export function createAllRegexTaker(re: RegExp, minimumCount: number, maximumCount: number): AllRegexTaker {
@@ -212,15 +215,15 @@ export function createAllRegexTaker(re: RegExp, minimumCount: number, maximumCou
     return [
       reVar, '.lastIndex=', offsetVar, ';',
       'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
-      resultVar, '=', arrVar, '===null||', arrVar, '.index!==', offsetVar, '?' + ResultCode.NO_MATCH + ':', reVar, '.lastIndex;',
+      resultVar, '=', arrVar, '===null||', arrVar, '.index!==', offsetVar, '?' + NO_MATCH + ':', reVar, '.lastIndex;',
     ];
   };
 
-  return compileInternalTaker<AllRegexTaker>(InternalTakerType.ALL_REGEX, factory, [[reVar, re]]);
+  return createInternalTaker<AllRegexTaker>(ALL_REGEX_TYPE, factory, [[reVar, re]]);
 }
 
 export interface AllGenericTaker extends InternalTaker {
-  type: InternalTakerType.ALL_GENERIC;
+  type: ALL_GENERIC_TYPE;
 }
 
 export function createAllGenericTaker(baseTaker: Taker, minimumCount: number, maximumCount: number): AllGenericTaker {
@@ -249,11 +252,11 @@ export function createAllGenericTaker(baseTaker: Taker, minimumCount: number, ma
       minimumCount || maximumCount ? ['&&++', takeCountVar, maximumCount ? '<' + maximumCount : ''] : '',
       ')',
       resultVar, '=',
-      minimumCount ? [takeCountVar, '<', minimumCount, '?' + ResultCode.NO_MATCH + ':'] : '',
-      baseTakerResultVar, '===' + ResultCode.NO_MATCH + '?', indexVar, ':', baseTakerResultVar,
+      minimumCount ? [takeCountVar, '<', minimumCount, '?' + NO_MATCH + ':'] : '',
+      baseTakerResultVar, '===' + NO_MATCH + '?', indexVar, ':', baseTakerResultVar,
       ';',
     ];
   };
 
-  return compileInternalTaker<AllGenericTaker>(InternalTakerType.ALL_GENERIC, factory, isTakerCodegen(baseTaker) ? baseTaker.bindings : [[baseTakerVar, baseTaker]]);
+  return createInternalTaker<AllGenericTaker>(ALL_GENERIC_TYPE, factory, isTakerCodegen(baseTaker) ? baseTaker.bindings : [[baseTakerVar, baseTaker]]);
 }

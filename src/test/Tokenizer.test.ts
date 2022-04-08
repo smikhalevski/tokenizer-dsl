@@ -1,4 +1,4 @@
-import {all, char, createRule, text, RuleHandler, Tokenizer} from '../main';
+import {all, char, createRule, RuleHandler, text, Tokenizer} from '../main';
 
 describe('Tokenizer', () => {
 

@@ -1,18 +1,19 @@
 import {createVar} from '../code';
-import {InternalTaker, InternalTakerType, ResultCode, TakerFunction, TakerCodeFactory} from './taker-types';
-import {compileInternalTaker} from './taker-utils';
+import {InternalTaker, REGEX_TYPE} from './internal-taker-types';
+import {NO_MATCH, Taker, TakerCodeFactory} from './taker-types';
+import {createInternalTaker} from './taker-utils';
 
 /**
  * Creates taker that matches a substring.
  *
  * @param re The `RegExp` to match.
  */
-export function regex(re: RegExp): TakerFunction {
+export function regex(re: RegExp): Taker {
   return createRegexTaker(re);
 }
 
 export interface RegexTaker extends InternalTaker {
-  type: InternalTakerType.REGEX;
+  type: REGEX_TYPE;
   re: RegExp;
 }
 
@@ -28,11 +29,11 @@ export function createRegexTaker(re: RegExp): RegexTaker {
     return [
       reVar, '.lastIndex=', offsetVar, ';',
       'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
-      resultVar, '=', arrVar, '===null||', arrVar, '.index!==', offsetVar, '?' + ResultCode.NO_MATCH + ':', reVar, '.lastIndex;',
+      resultVar, '=', arrVar, '===null||', arrVar, '.index!==', offsetVar, '?' + NO_MATCH + ':', reVar, '.lastIndex;',
     ];
   };
 
-  const taker = compileInternalTaker<RegexTaker>(InternalTakerType.REGEX, factory, [[reVar, re]]);
+  const taker = createInternalTaker<RegexTaker>(REGEX_TYPE, factory, [[reVar, re]]);
 
   taker.re = re;
 

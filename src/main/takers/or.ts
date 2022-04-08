@@ -1,16 +1,16 @@
-import {Code, Var} from '../code';
-import {createVar} from '../code';
+import {Code, createVar, Var} from '../code';
+import {InternalTaker, OR_TYPE} from './internal-taker-types';
 import {never} from './never';
 import {none} from './none';
-import {InternalTaker, InternalTakerType, ResultCode, TakerFunction, TakerCodeFactory, Taker} from './taker-types';
-import {compileInternalTaker, isInternalTaker, isTakerCodegen, toTaker} from './taker-utils';
+import {NO_MATCH, Taker, TakerCodeFactory} from './taker-types';
+import {createInternalTaker, isInternalTaker, isTakerCodegen, toTakerFunction} from './taker-utils';
 
 /**
  * Returns the result of the first matched taker.
  *
  * @param takers Takers that are called.
  */
-export function or(...takers: Taker[]): TakerFunction {
+export function or(...takers: Taker[]): Taker {
 
   const t: Taker[] = [];
 
@@ -18,7 +18,7 @@ export function or(...takers: Taker[]): TakerFunction {
     if (taker === none) {
       break;
     }
-    if (isInternalTaker<OrTaker>(taker, InternalTakerType.OR)) {
+    if (isInternalTaker<OrTaker>(OR_TYPE, taker)) {
       t.push(...taker.takers);
       continue;
     }
@@ -33,13 +33,13 @@ export function or(...takers: Taker[]): TakerFunction {
     return none;
   }
   if (takersLength === 1) {
-    return toTaker(t[0]);
+    return toTakerFunction(t[0]);
   }
   return createOrTaker(t);
 }
 
 export interface OrTaker extends InternalTaker {
-  type: InternalTakerType.OR;
+  type: OR_TYPE;
   takers: readonly Taker[];
 }
 
@@ -72,7 +72,7 @@ export function createOrTaker(takers: Taker[]): OrTaker {
         code.push(resultVar, '=', bindings[j++][0], '(', inputVar, ',', offsetVar, ');');
       }
       if (i < takersLength - 1) {
-        code.push('if(', resultVar, '===' + ResultCode.NO_MATCH + '){');
+        code.push('if(', resultVar, '===' + NO_MATCH + '){');
         tailCode.push('}');
       }
     }
@@ -81,7 +81,7 @@ export function createOrTaker(takers: Taker[]): OrTaker {
     return code;
   };
 
-  const taker = compileInternalTaker<OrTaker>(InternalTakerType.OR, factory, bindings);
+  const taker = createInternalTaker<OrTaker>(OR_TYPE, factory, bindings);
 
   taker.takers = takers;
 

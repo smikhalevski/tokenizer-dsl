@@ -61,7 +61,7 @@ takeNumber(/*input*/ 'aaa123bbb', /*offset*/ 3);
   // → 6, because valid number starts at offset 3 and ends at 6
 ```
 
-If `input` string doesn't contain a valid number at an `offset` then `ResultCode.NO_MATCH === -1` is returned:
+If `input` string doesn't contain a valid number at an `offset` then `NO_MATCH === -1` is returned:
 
 ```ts
 takeNumber(/*input*/ 'aaa', /*offset*/ 0); // → -1

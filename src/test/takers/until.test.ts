@@ -1,4 +1,4 @@
-import {char, InternalTaker, InternalTakerType, never, none, regex, ResultCode, text} from '../../main';
+import {char, InternalTaker, never, NO_MATCH, none, regex, text} from '../../main';
 import {
   createUntilCaseSensitiveTextTaker,
   createUntilCharCodeCheckerTaker,
@@ -21,24 +21,24 @@ describe('until', () => {
   });
 
   test('returns UntilCaseSensitiveTextTaker', () => {
-    expect((until(text('a')) as InternalTaker).type).toBe(InternalTakerType.UNTIL_CASE_SENSITIVE_TEXT);
-    expect((until(text('aaa')) as InternalTaker).type).toBe(InternalTakerType.UNTIL_CASE_SENSITIVE_TEXT);
+    expect((until(text('a')) as InternalTaker).type).toBe(UNTIL_CASE_SENSITIVE_TEXT_TYPE);
+    expect((until(text('aaa')) as InternalTaker).type).toBe(UNTIL_CASE_SENSITIVE_TEXT_TYPE);
   });
 
   test('returns UntilCharCodeRangeTaker', () => {
-    expect((until(char([97, 98])) as InternalTaker).type).toBe(InternalTakerType.UNTIL_CHAR_CODE_RANGE);
+    expect((until(char([97, 98])) as InternalTaker).type).toBe(UNTIL_CHAR_CODE_RANGE_TYPE);
   });
 
   test('returns UntilCharCodeCheckerTaker', () => {
-    expect((until(char(() => false)) as InternalTaker).type).toBe(InternalTakerType.UNTIL_CHAR_CODE_CHECKER);
+    expect((until(char(() => false)) as InternalTaker).type).toBe(UNTIL_CHAR_CODE_CHECKER_TYPE);
   });
 
   test('returns UntilRegexTaker', () => {
-    expect((until(regex(/a/)) as InternalTaker).type).toBe(InternalTakerType.UNTIL_REGEX);
+    expect((until(regex(/a/)) as InternalTaker).type).toBe(UNTIL_REGEX_TYPE);
   });
 
   test('returns UntilCharCodeCheckerTaker', () => {
-    expect((until(() => 0) as InternalTaker).type).toBe(InternalTakerType.UNTIL_GENERIC);
+    expect((until(() => 0) as InternalTaker).type).toBe(UNTIL_GENERIC_TYPE);
   });
 });
 
@@ -76,7 +76,7 @@ describe('createUntilRegexTaker', () => {
   test('takes until regex is met', () => {
     expect(createUntilRegexTaker(/b/, false)('aaabbbaaabbb', 0)).toBe(3);
     expect(createUntilRegexTaker(/b/, false)('aaabbbaaabbb', 6)).toBe(9);
-    expect(createUntilRegexTaker(/c/, false)('aaabbbaaabbb', 6)).toBe(ResultCode.NO_MATCH);
+    expect(createUntilRegexTaker(/c/, false)('aaabbbaaabbb', 6)).toBe(NO_MATCH);
   });
 
   test('takes chars including matched substr', () => {
@@ -88,8 +88,8 @@ describe('createUntilGenericTaker', () => {
 
   test('advances taker by one char on each iteration', () => {
     const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+    takerMock.mockReturnValueOnce(NO_MATCH);
+    takerMock.mockReturnValueOnce(NO_MATCH);
     takerMock.mockReturnValueOnce(0);
 
     expect(createUntilGenericTaker(takerMock, false)('aaaa', 0)).toBe(2);
@@ -99,8 +99,8 @@ describe('createUntilGenericTaker', () => {
 
   test('takes inclusive', () => {
     const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
-    takerMock.mockReturnValueOnce(ResultCode.NO_MATCH);
+    takerMock.mockReturnValueOnce(NO_MATCH);
+    takerMock.mockReturnValueOnce(NO_MATCH);
     takerMock.mockReturnValueOnce(77);
 
     expect(createUntilGenericTaker(takerMock, true)('aaaa', 0)).toBe(77);
