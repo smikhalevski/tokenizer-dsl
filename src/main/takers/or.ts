@@ -2,8 +2,8 @@ import {Code, createVar, Var} from '../code';
 import {InternalTaker, OR_TYPE} from './internal-taker-types';
 import {never} from './never';
 import {none} from './none';
-import {NO_MATCH, Taker, TakerCodeFactory} from './taker-types';
-import {createInternalTaker, isInternalTaker, isTakerCodegen, toTakerFunction} from './taker-utils';
+import {NO_MATCH, Taker} from './taker-types';
+import {isInternalTaker, isTakerCodegen} from './taker-utils';
 
 /**
  * Returns the result of the first matched taker.
@@ -12,35 +12,35 @@ import {createInternalTaker, isInternalTaker, isTakerCodegen, toTakerFunction} f
  */
 export function or(...takers: Taker[]): Taker {
 
-  const t: Taker[] = [];
+  const children: Taker[] = [];
 
   for (const taker of takers) {
     if (taker === none) {
       break;
     }
     if (isInternalTaker<OrTaker>(OR_TYPE, taker)) {
-      t.push(...taker.takers);
+      children.push(...taker.takers);
       continue;
     }
     if (taker !== never) {
-      t.push(taker);
+      children.push(taker);
     }
   }
 
-  const takersLength = t.length;
+  const takersLength = children.length;
 
   if (takersLength === 0) {
     return none;
   }
   if (takersLength === 1) {
-    return toTakerFunction(t[0]);
+    return children[0];
   }
-  return createOrTaker(t);
+  return createOrTaker(children);
 }
 
 export interface OrTaker extends InternalTaker {
   type: OR_TYPE;
-  takers: readonly Taker[];
+  takers: Taker[];
 }
 
 export function createOrTaker(takers: Taker[]): OrTaker {
@@ -54,36 +54,39 @@ export function createOrTaker(takers: Taker[]): OrTaker {
         bindings.push(...taker.bindings);
       }
     } else {
-      bindings.push([createVar(), taker]);
+      const takerVar = createVar();
+      bindings.push([takerVar, taker]);
     }
   }
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+  return {
+    type: OR_TYPE,
+    bindings,
+    takers,
 
-    const code: Code[] = [];
-    const tailCode: Code[] = [];
+    factory(inputVar, offsetVar, resultVar) {
 
-    for (let i = 0, j = 0; i < takersLength; ++i) {
-      const taker = takers[i];
+      const code: Code[] = [];
 
-      if (isTakerCodegen(taker)) {
-        code.push(taker.factory(inputVar, offsetVar, resultVar));
-      } else {
-        code.push(resultVar, '=', bindings[j++][0], '(', inputVar, ',', offsetVar, ');');
+      for (let i = 0; i < takersLength; ++i) {
+        const taker = takers[i];
+
+        if (isTakerCodegen(taker)) {
+          code.push(taker.factory(inputVar, offsetVar, resultVar));
+        } else {
+          for (const binding of bindings) {
+            if (binding[1] === taker) {
+              code.push(resultVar, '=', binding[0], '(', inputVar, ',', offsetVar, ');');
+            }
+          }
+        }
+        if (i < takersLength - 1) {
+          code.push('if(', resultVar, '===', NO_MATCH, '){');
+        }
       }
-      if (i < takersLength - 1) {
-        code.push('if(', resultVar, '===' + NO_MATCH + '){');
-        tailCode.push('}');
-      }
-    }
-    code.push(tailCode);
+      code.push('}'.repeat(takersLength - 1));
 
-    return code;
+      return code;
+    },
   };
-
-  const taker = createInternalTaker<OrTaker>(OR_TYPE, factory, bindings);
-
-  taker.takers = takers;
-
-  return taker;
 }

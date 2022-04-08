@@ -1,7 +1,6 @@
 import {InternalTaker, SKIP_TYPE} from './internal-taker-types';
 import {none} from './none';
-import {NO_MATCH, Taker, TakerCodeFactory} from './taker-types';
-import {createInternalTaker} from './taker-utils';
+import {NO_MATCH, Taker} from './taker-types';
 
 /**
  * Creates taker that skips given number of chars.
@@ -23,14 +22,14 @@ export interface SkipTaker extends InternalTaker {
 }
 
 export function createSkipTaker(charCount: number): SkipTaker {
+  return {
+    type: SKIP_TYPE,
+    charCount,
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
-    resultVar, '=', offsetVar, '+', charCount, '<=', inputVar, '.length?', offsetVar, '+', charCount, ':' + NO_MATCH + ';',
-  ];
-
-  const taker = createInternalTaker<SkipTaker>(SKIP_TYPE, factory);
-
-  taker.charCount = charCount;
-
-  return taker;
+    factory(inputVar, offsetVar, resultVar) {
+      return [
+        resultVar, '=', offsetVar, '+', charCount, '<=', inputVar, '.length?', offsetVar, '+', charCount, ':', NO_MATCH, ';',
+      ];
+    },
+  };
 }

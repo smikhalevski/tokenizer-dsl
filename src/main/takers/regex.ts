@@ -1,7 +1,6 @@
 import {createVar} from '../code';
 import {InternalTaker, REGEX_TYPE} from './internal-taker-types';
-import {NO_MATCH, Taker, TakerCodeFactory} from './taker-types';
-import {createInternalTaker} from './taker-utils';
+import {NO_MATCH, Taker} from './taker-types';
 
 /**
  * Creates taker that matches a substring.
@@ -23,19 +22,19 @@ export function createRegexTaker(re: RegExp): RegexTaker {
 
   const reVar = createVar();
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
-    const arrVar = createVar();
+  return {
+    type: REGEX_TYPE,
+    bindings: [[reVar, re]],
+    re,
 
-    return [
-      reVar, '.lastIndex=', offsetVar, ';',
-      'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
-      resultVar, '=', arrVar, '===null||', arrVar, '.index!==', offsetVar, '?' + NO_MATCH + ':', reVar, '.lastIndex;',
-    ];
+    factory(inputVar, offsetVar, resultVar) {
+      const arrVar = createVar();
+
+      return [
+        reVar, '.lastIndex=', offsetVar, ';',
+        'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
+        resultVar, '=', arrVar, '===null||', arrVar, '.index!==', offsetVar, '?', NO_MATCH, ':', reVar, '.lastIndex;',
+      ];
+    }
   };
-
-  const taker = createInternalTaker<RegexTaker>(REGEX_TYPE, factory, [[reVar, re]]);
-
-  taker.re = re;
-
-  return taker;
 }

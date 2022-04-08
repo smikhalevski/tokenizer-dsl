@@ -2,8 +2,8 @@ import {Code, createVar} from '../code';
 import {createCharCodeRangeTaker} from './char';
 import {CASE_INSENSITIVE_TEXT_TYPE, CASE_SENSITIVE_TEXT_TYPE, InternalTaker} from './internal-taker-types';
 import {none} from './none';
-import {NO_MATCH, Taker, TakerCodeFactory} from './taker-types';
-import {createInternalTaker, toCharCode, toCharCodes} from './taker-utils';
+import {NO_MATCH, Taker} from './taker-types';
+import {toCharCode, toCharCodes} from './taker-utils';
 
 export interface TextOptions {
 
@@ -56,17 +56,19 @@ export function createCaseSensitiveTextTaker(str: string): CaseSensitiveTextTake
 
   const strVar = createVar();
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
-    resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
-    toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, i > 0 ? '+' + i : '', ')===', charCode]),
-    '?', offsetVar, '+', str.length, ':' + NO_MATCH + ';',
-  ];
+  return {
+    type: CASE_SENSITIVE_TEXT_TYPE,
+    bindings: [[strVar, str]],
+    str,
 
-  const taker = createInternalTaker<CaseSensitiveTextTaker>(CASE_SENSITIVE_TEXT_TYPE, factory, [[strVar, str]]);
-
-  taker.str = str;
-
-  return taker;
+    factory(inputVar, offsetVar, resultVar) {
+      return [
+        resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
+        toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, i > 0 ? '+' + i : '', ')===', charCode]),
+        '?', offsetVar, '+', str.length, ':', NO_MATCH, ';',
+      ];
+    },
+  };
 }
 
 export interface CaseInsensitiveTextTaker extends InternalTaker {
@@ -75,45 +77,43 @@ export interface CaseInsensitiveTextTaker extends InternalTaker {
 }
 
 export function createCaseInsensitiveTextTaker(str: string): CaseInsensitiveTextTaker {
+  return {
+    type: CASE_INSENSITIVE_TEXT_TYPE,
+    str,
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
+    factory(inputVar, offsetVar, resultVar) {
 
-    const charCodeVar = createVar();
+      const charCodeVar = createVar();
 
-    const lowerCharCodes = toCharCodes(str.toLowerCase());
-    const upperCharCodes = toCharCodes(str.toUpperCase());
+      const lowerCharCodes = toCharCodes(str.toLowerCase());
+      const upperCharCodes = toCharCodes(str.toUpperCase());
 
-    const charCount = lowerCharCodes.length;
+      const charCount = lowerCharCodes.length;
 
-    const code: Code[] = [
-      'var ', charCodeVar, ';',
-      resultVar, '=', offsetVar, '+', charCount - 1, '<', inputVar, '.length',
-    ];
+      const code: Code[] = [
+        'var ', charCodeVar, ';',
+        resultVar, '=', offsetVar, '+', charCount - 1, '<', inputVar, '.length',
+      ];
 
-    for (let i = 0; i < charCount; ++i) {
+      for (let i = 0; i < charCount; ++i) {
 
-      const lowerCharCode = lowerCharCodes[i];
-      const upperCharCode = upperCharCodes[i];
+        const lowerCharCode = lowerCharCodes[i];
+        const upperCharCode = upperCharCodes[i];
 
-      if (lowerCharCode === upperCharCode) {
-        code.push('&&', inputVar, '.charCodeAt(', offsetVar, '++)===', lowerCharCode);
-      } else {
-        code.push(
-            '&&(',
-            charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '++),',
-            charCodeVar, '===', lowerCharCode, '||', charCodeVar, '===', upperCharCode,
-            ')',
-        );
+        if (lowerCharCode === upperCharCode) {
+          code.push('&&', inputVar, '.charCodeAt(', offsetVar, '++)===', lowerCharCode);
+        } else {
+          code.push(
+              '&&(',
+              charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '++),',
+              charCodeVar, '===', lowerCharCode, '||', charCodeVar, '===', upperCharCode,
+              ')',
+          );
+        }
       }
-    }
-    code.push('?', offsetVar, ':' + NO_MATCH + ';');
+      code.push('?', offsetVar, ':', NO_MATCH, ';');
 
-    return code;
+      return code;
+    },
   };
-
-  const taker = createInternalTaker<CaseInsensitiveTextTaker>(CASE_INSENSITIVE_TEXT_TYPE, factory);
-
-  taker.str = str;
-
-  return taker;
 }

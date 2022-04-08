@@ -1,6 +1,5 @@
 import {END_TYPE, InternalTaker} from './internal-taker-types';
-import {Taker, TakerCodeFactory} from './taker-types';
-import {createInternalTaker} from './taker-utils';
+import {Taker} from './taker-types';
 
 /**
  * Creates taker that returns the input length plus the offset.
@@ -16,10 +15,13 @@ export interface EndTaker extends InternalTaker {
 }
 
 export function createEndTaker(offset: number): EndTaker {
+  return {
+    type: END_TYPE,
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => [
-    resultVar, '=', inputVar, '.length', offset === 0 ? '' : '+' + offset, ';',
-  ];
-
-  return createInternalTaker<EndTaker>(END_TYPE, factory);
+    factory(inputVar, offsetVar, resultVar) {
+      return [
+        resultVar, '=', inputVar, '.length', offset === 0 ? '' : '+' + offset, ';',
+      ];
+    },
+  };
 }

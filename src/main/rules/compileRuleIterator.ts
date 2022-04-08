@@ -126,7 +126,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
         // Take chars from the input string
         isTakerCodegen(taker) ? taker.factory(chunkVar, nextOffsetVar, takerResultVar) : [takerResultVar, '=', takerVar, '(', chunkVar, ',', nextOffsetVar, ');'],
 
-        'if(', takerResultVar, '!==' + NO_MATCH + '&&', takerResultVar, '!==', nextOffsetVar, '){',
+        'if(', takerResultVar, '!==', NO_MATCH, '&&', takerResultVar, '!==', nextOffsetVar, '){',
 
         // Emit error
         'if(', takerResultVar, '<0){',

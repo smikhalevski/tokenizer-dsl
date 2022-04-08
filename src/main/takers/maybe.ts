@@ -2,8 +2,8 @@ import {createVar} from '../code';
 import {InternalTaker, MAYBE_TYPE} from './internal-taker-types';
 import {never} from './never';
 import {none} from './none';
-import {NO_MATCH, Taker, TakerCodeFactory} from './taker-types';
-import {createInternalTaker, isTakerCodegen} from './taker-utils';
+import {NO_MATCH, Taker} from './taker-types';
+import {isTakerCodegen} from './taker-utils';
 
 /**
  * Creates taker that returns `taker` result or current offset if taker returned {@link NO_MATCH}.
@@ -21,19 +21,22 @@ export interface MaybeTaker extends InternalTaker {
   type: MAYBE_TYPE;
 }
 
-export function createMaybeTaker(baseTaker: Taker): MaybeTaker {
+export function createMaybeTaker(taker: Taker): MaybeTaker {
 
-  const baseTakerVar = createVar();
+  const takerVar = createVar();
 
-  const factory: TakerCodeFactory = (inputVar, offsetVar, resultVar) => {
-    const baseTakerResultVar = createVar();
+  return {
+    type: MAYBE_TYPE,
+    bindings: isTakerCodegen(taker) ? taker.bindings : [[takerVar, taker]],
 
-    return [
-      'var ', baseTakerResultVar, ';',
-      isTakerCodegen(baseTaker) ? baseTaker.factory(inputVar, offsetVar, baseTakerResultVar) : [baseTakerResultVar, '=', baseTakerVar, '(', inputVar, ',', offsetVar, ')', ';'],
-      resultVar, '=', baseTakerResultVar, '===' + NO_MATCH + '?', offsetVar, ':', baseTakerResultVar, ';',
-    ];
+    factory(inputVar, offsetVar, resultVar) {
+      const takerResultVar = createVar();
+
+      return [
+        'var ', takerResultVar, ';',
+        isTakerCodegen(taker) ? taker.factory(inputVar, offsetVar, takerResultVar) : [takerResultVar, '=', takerVar, '(', inputVar, ',', offsetVar, ')', ';'],
+        resultVar, '=', takerResultVar, '===', NO_MATCH, '?', offsetVar, ':', takerResultVar, ';',
+      ];
+    },
   };
-
-  return createInternalTaker<MaybeTaker>(MAYBE_TYPE, factory, isTakerCodegen(baseTaker) ? baseTaker.bindings : [[baseTakerVar, baseTaker]]);
 }
