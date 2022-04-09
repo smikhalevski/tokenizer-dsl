@@ -1,29 +1,51 @@
-import {assembleCode, compileFunction, createVar, Var} from '../../main/code';
+import {assembleCode, compileFunction, createVar, createVarRenamer, encodeLowerAlpha} from '../../main/code';
+
+describe('encodeLowerAlpha', () => {
+
+  test('encodes numbers as latin letters', () => {
+    expect(encodeLowerAlpha(0)).toBe('a');
+    expect(encodeLowerAlpha(25)).toBe('z');
+
+    expect(encodeLowerAlpha(26)).toBe('aa');
+    expect(encodeLowerAlpha(51)).toBe('az');
+
+    expect(encodeLowerAlpha(52)).toBe('ba');
+    expect(encodeLowerAlpha(Number.MAX_SAFE_INTEGER)).toBe('bktxhsoghkkf');
+  });
+
+  test('encodes floating numbers', () => {
+    expect(encodeLowerAlpha(10.7)).toBe('k');
+  });
+});
+
+describe('createVarRenamer', () => {
+
+  test('return unique name', () => {
+    const varRenamer = createVarRenamer();
+    const var1 = createVar();
+    const var2 = createVar();
+
+    expect(varRenamer(var1)).toBe('a');
+    expect(varRenamer(var2)).toBe('b');
+    expect(varRenamer(var1)).toBe('a');
+    expect(varRenamer(var2)).toBe('b');
+  })
+});
 
 describe('assembleCode', () => {
 
   test('assembles primitives', () => {
-    const vars: Var[] = [];
-
-    expect(assembleCode(true, vars)).toBe('true');
-    expect(assembleCode(false, vars)).toBe('false');
-    expect(assembleCode(123, vars)).toBe('123');
-    expect(assembleCode('abc', vars)).toBe('abc');
-    expect(vars.length).toBe(0);
+    expect(assembleCode(true, createVarRenamer())).toBe('true');
+    expect(assembleCode(false, createVarRenamer())).toBe('false');
+    expect(assembleCode(123, createVarRenamer())).toBe('123');
+    expect(assembleCode('abc', createVarRenamer())).toBe('abc');
   });
 
   test('assembles variables', () => {
     const aVar = createVar();
     const bVar = createVar();
 
-    expect(assembleCode([aVar, '=', bVar])).toBe('v0=v1');
-  });
-
-  test('uses vars to derive var name', () => {
-    const aVar = createVar();
-    const bVar = createVar();
-
-    expect(assembleCode([aVar, '=', bVar], [createVar(), createVar(), aVar, bVar])).toBe('v2=v3');
+    expect(assembleCode([aVar, '=', bVar, '+', aVar], createVarRenamer())).toBe('a=b+a');
   });
 });
 
@@ -58,6 +80,19 @@ describe('compileFunction', () => {
     const bound2Var = createVar();
 
     expect(compileFunction([], ['return ', bound1Var, '()+', bound2Var, '()'], [[bound1Var, () => 3], [bound2Var, () => 7]])()).toBe(10);
+  });
+
+  test('compiles a function with repeated bound vars', () => {
+    const boundVar = createVar();
+
+    expect(compileFunction([], ['return ', boundVar], [[boundVar, 111], [boundVar, 222]])()).toBe(222);
+  });
+
+  test('compiles a function with repeated bound values', () => {
+    const bound1Var = createVar();
+    const bound2Var = createVar();
+
+    expect(compileFunction([], ['return ', bound1Var, '===', bound2Var], [[bound1Var, 111], [bound2Var, 111]])()).toBe(true);
   });
 
   test('compiles a function with arguments and bound values', () => {

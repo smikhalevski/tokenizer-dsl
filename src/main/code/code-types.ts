@@ -7,3 +7,5 @@ export type Var = symbol;
  * The code fragment.
  */
 export type Code = Code[] | Var | string | number | boolean | null | undefined;
+
+export type Binding = [Var, unknown];

@@ -1,4 +1,6 @@
-import {Code, Var} from './code-types';
+import {Binding, Code, Var} from './code-types';
+
+export type VarRenamer = (v: Var) => string;
 
 /**
  * Creates the new variable placeholder.
@@ -11,20 +13,17 @@ export function createVar(): Var {
  * Assembles code fragment into a compilable code string.
  *
  * @param code The code fragment to assemble.
- * @param vars The mutable list of variables used in the code fragment. This list is populated with variables that were
- * met during the code assembly.
+ * @param varRenamer The callback that returns a variable name for a variable.
  * @returns The compilable string.
  */
-export function assembleCode(code: Code, vars: Var[] = []): string {
+export function assembleCode(code: Code, varRenamer: VarRenamer): string {
   if (typeof code === 'symbol') {
-    const varIndex = vars.indexOf(code);
-
-    return 'v' + (varIndex === -1 ? vars.push(code) - 1 : varIndex);
+    return varRenamer(code);
   }
   if (Array.isArray(code)) {
     let str = '';
     for (const childCode of code) {
-      str += assembleCode(childCode, vars);
+      str += assembleCode(childCode, varRenamer);
     }
     return str;
   }
@@ -48,45 +47,75 @@ export function assembleCode(code: Code, vars: Var[] = []): string {
  * @param bindings The list of variable-value pairs that are bound to the output function.
  * @returns The compiled function.
  */
-export function compileFunction<F extends Function>(argVars: Var[], code: Code, bindings?: [Var, unknown][]): F {
+export function compileFunction<F extends Function>(argVars: Var[], code: Code, bindings?: Binding[]): F {
+  const varRenamer = createVarRenamer();
 
-  if (!bindings || bindings.length === 0) {
-    const args = argVars.map((argVar, i) => 'v' + i);
-    args.push(assembleCode(code, argVars.slice(0)));
-    return Function.apply(undefined, args) as F;
+  if (!bindings || !bindings.length) {
+    return Function.apply(undefined, argVars.map(varRenamer).concat(assembleCode(code, varRenamer))) as F;
   }
 
-  const boundValuesVar = createVar();
-  const boundCode: Code[] = [];
-  const boundValues: unknown[] = [];
+  const fnCode: Code[] = [];
 
-  nextBinding: for (let i = 0; i < bindings.length; ++i) {
-    const boundVar = bindings[i][0];
+  // Array of bound values
+  const arr: unknown[] = [];
+  const arrVar = createVar();
 
-    for (let j = 0; j < i; ++j) {
-      if (boundVar === bindings[j][0]) {
-        continue nextBinding;
-      }
-    }
-    boundCode.push('var ', boundVar, '=', boundValuesVar, '[', i, '];');
-    boundValues.push(bindings[i][1]);
-  }
+  // Eliminate duplicated bound vars
+  const varMap = new Map(bindings);
 
-  boundCode.push('return function(');
+  // Eliminate duplicated bound values
+  const valueMap = inverseMap(varMap);
+
+  valueMap.forEach((valueVar, value) => {
+    fnCode.push('var ', valueVar, '=', arrVar, '[', arr.push(value) - 1, '];');
+  });
+
+  fnCode.push('return function(');
 
   for (let i = 0; i < argVars.length; ++i) {
     if (i > 0) {
-      boundCode.push(',');
+      fnCode.push(',');
     }
-    boundCode.push(argVars[i]);
+    fnCode.push(argVars[i]);
   }
 
-  boundCode.push('){', code, '}');
+  fnCode.push('){', code, '}');
 
-  const boundVars = [boundValuesVar];
-  boundVars.push(...argVars);
+  const source = assembleCode(fnCode, (v) => varRenamer(varMap.has(v) ? valueMap.get(varMap.get(v))! : v));
 
-  const source = assembleCode(boundCode, boundVars);
+  return Function.call(undefined, varRenamer(arrVar), source)(arr);
+}
 
-  return Function.call(undefined, 'v0', source)(boundValues);
+export function createVarRenamer(): VarRenamer {
+  const vars: Var[] = [];
+
+  return (v) => {
+    const varIndex = vars.indexOf(v);
+
+    return encodeLowerAlpha(varIndex === -1 ? vars.push(v) - 1 : varIndex);
+  };
+}
+
+/**
+ * Encodes a non-negative integer as a string of lower ASCII alpha characters (a-z).
+ *
+ * ```ts
+ * encodeLetters(100); // → 'cw'
+ * ```
+ *
+ * @param value The number to encode.
+ */
+export function encodeLowerAlpha(value: number): string {
+  let str = '';
+
+  do {
+    str = String.fromCharCode(97 /*a*/ + value % 26) + str;
+    value /= 26;
+  } while (--value >= 0);
+
+  return str;
+}
+
+function inverseMap<K, V>(map: Map<K, V>): Map<V, K> {
+  return new Map(Array.from(map).map(([k, v]) => [v, k]));
 }
