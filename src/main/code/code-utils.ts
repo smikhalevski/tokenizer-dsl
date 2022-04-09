@@ -1,5 +1,8 @@
 import {Binding, Code, Var} from './code-types';
 
+/**
+ * Returns the unique variable name.
+ */
 export type VarRenamer = (v: Var) => string;
 
 /**
@@ -36,10 +39,18 @@ export function assembleCode(code: Code, varRenamer: VarRenamer): string {
  * ```ts
  * const myArg = Symbol();
  * const myVar = Symbol();
+ * const myBoundVar = Symbol();
  *
- * const myFn = compileFunction([myArg], ['return ', myArg, '+', myVar], [[myVar, 123]]);
+ * const myFn = compileFunction(
+ *     [myArg],
+ *     [
+ *       'var ', myVar, '= 123;',
+ *       'return ', myVar, '+', myArg, '+', myBoundVar,
+ *     ],
+ *     [[myBoundVar, 456]],
+ * );
  *
- * myFn(456); // → 579
+ * myFn(789); // → 1368
  * ```
  *
  * @param argVars The list of function arguments.
@@ -100,7 +111,7 @@ export function createVarRenamer(): VarRenamer {
  * Encodes a non-negative integer as a string of lower ASCII alpha characters (a-z).
  *
  * ```ts
- * encodeLetters(100); // → 'cw'
+ * encodeLowerAlpha(100); // → 'cw'
  * ```
  *
  * @param value The number to encode.

@@ -29,7 +29,7 @@ describe('createVarRenamer', () => {
     expect(varRenamer(var2)).toBe('b');
     expect(varRenamer(var1)).toBe('a');
     expect(varRenamer(var2)).toBe('b');
-  })
+  });
 });
 
 describe('assembleCode', () => {
@@ -109,5 +109,20 @@ describe('compileFunction', () => {
           [bound2Var, (value: number) => value * 7],
         ])(5, 2)
     ).toBe(29);
+  });
+
+  test('docs', () => {
+
+    const myArg = Symbol();
+    const myVar = Symbol();
+    const myBoundVar = Symbol();
+
+    const myFn = compileFunction(
+        [myArg],
+        ['var ', myVar, '= 123;', 'return ', myVar, '+', myArg, '+', myBoundVar,],
+        [[myBoundVar, 456]],
+    );
+
+    expect(myFn(789)).toBe((1368));
   });
 });
