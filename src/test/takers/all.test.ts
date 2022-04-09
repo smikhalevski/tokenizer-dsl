@@ -1,14 +1,14 @@
-import {all, char, InternalTaker, never, NO_MATCH, none, text} from '../../main';
+import {all, InternalTaker, never, NO_MATCH, none, text} from '../../main';
 import {
   createAllCaseSensitiveTextTaker,
-  createAllCharCodeCheckerTaker,
   createAllCharCodeRangeTaker,
   createAllGenericTaker,
   createAllRegexTaker
 } from '../../main/takers';
 import {
   ALL_CASE_SENSITIVE_TEXT_TYPE,
-  ALL_CHAR_CODE_CHECKER_TYPE, ALL_CHAR_CODE_RANGE_TYPE, ALL_GENERIC_TYPE,
+  ALL_CHAR_CODE_RANGE_TYPE,
+  ALL_GENERIC_TYPE,
   MAYBE_TYPE
 } from '../../main/takers/internal-taker-types';
 
@@ -40,10 +40,6 @@ describe('all', () => {
     expect(all(baseTakerMock, {minimumCount: 1, maximumCount: 1})).toBe(baseTakerMock);
   });
 
-  test('returns AllCharCodeCheckerTaker', () => {
-    expect((all(char(() => false)) as InternalTaker).type).toBe(ALL_CHAR_CODE_CHECKER_TYPE);
-  });
-
   test('returns AllCaseSensitiveTextTaker', () => {
     expect((all(text('a')) as InternalTaker).type).toBe(ALL_CHAR_CODE_RANGE_TYPE);
     expect((all(text('aaa')) as InternalTaker).type).toBe(ALL_CASE_SENSITIVE_TEXT_TYPE);
@@ -51,39 +47,6 @@ describe('all', () => {
 
   test('returns AllTaker', () => {
     expect((all(() => 0) as InternalTaker).type).toBe(ALL_GENERIC_TYPE);
-  });
-});
-
-describe('createAllCharCodeCheckerTaker', () => {
-
-  test('takes sequential chars', () => {
-    expect(createAllCharCodeCheckerTaker(() => true, 0, 0)('aaabbbccc', 2)).toBe(9);
-    expect(createAllCharCodeCheckerTaker(() => false, 1, 0)('aaabbbccc', 2)).toBe(NO_MATCH);
-  });
-
-  test('takes if count is sufficient', () => {
-    const charCodeCheckerMock = jest.fn(() => false);
-    charCodeCheckerMock.mockReturnValueOnce(true);
-    charCodeCheckerMock.mockReturnValueOnce(true);
-    charCodeCheckerMock.mockReturnValueOnce(false);
-
-    expect(createAllCharCodeCheckerTaker(charCodeCheckerMock, 2, 0)('aaaa', 1)).toBe(3);
-  });
-
-  test('does not take if count is insufficient', () => {
-    const charCodeCheckerMock = jest.fn(() => false);
-    charCodeCheckerMock.mockReturnValueOnce(true);
-    charCodeCheckerMock.mockReturnValueOnce(false);
-
-    expect(createAllCharCodeCheckerTaker(charCodeCheckerMock, 2, 0)('aaaa', 1)).toBe(NO_MATCH);
-  });
-
-  test('takes limited number of chars', () => {
-    expect(createAllCharCodeCheckerTaker(() => true, 0, 2)('aaaa', 1)).toBe(3);
-  });
-
-  test('stops at string end', () => {
-    expect(createAllCharCodeCheckerTaker(() => true, 0, 0)('aaaa', 1)).toBe(4);
   });
 });
 

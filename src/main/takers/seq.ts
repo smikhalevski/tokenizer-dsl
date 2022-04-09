@@ -3,7 +3,7 @@ import {InternalTaker, SEQ_TYPE} from './internal-taker-types';
 import {never} from './never';
 import {none} from './none';
 import {Taker} from './taker-types';
-import {isInternalTaker, isTakerCodegen, toTakerFunction} from './taker-utils';
+import {isInternalTaker, isTakerCodegen} from './taker-utils';
 
 /**
  * Creates a taker that applies takers one after another.
@@ -34,7 +34,7 @@ export function seq(...takers: Taker[]): Taker {
     return none;
   }
   if (takersLength === 1) {
-    return toTakerFunction(flatTakers[0]);
+    return flatTakers[0];
   }
   return createSeqTaker(flatTakers);
 }

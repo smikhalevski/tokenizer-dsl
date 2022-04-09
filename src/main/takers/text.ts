@@ -3,7 +3,7 @@ import {createCharCodeRangeTaker} from './char';
 import {CASE_INSENSITIVE_TEXT_TYPE, CASE_SENSITIVE_TEXT_TYPE, InternalTaker} from './internal-taker-types';
 import {none} from './none';
 import {NO_MATCH, Taker} from './taker-types';
-import {toCharCode, toCharCodes} from './taker-utils';
+import {toCharCodes} from './taker-utils';
 
 export interface TextOptions {
 
@@ -42,7 +42,7 @@ export function text(str: string, options: TextOptions = {}): Taker {
     return createCaseInsensitiveTextTaker(str);
   }
   if (strLength === 1) {
-    return createCharCodeRangeTaker([toCharCode(str)]);
+    return createCharCodeRangeTaker([str.charCodeAt(0)]);
   }
   return createCaseSensitiveTextTaker(str);
 }
@@ -64,7 +64,7 @@ export function createCaseSensitiveTextTaker(str: string): CaseSensitiveTextTake
     factory(inputVar, offsetVar, resultVar) {
       return [
         resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
-        toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, i > 0 ? '+' + i : '', ')===', charCode]),
+        toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, '+', i, ')===', charCode]),
         '?', offsetVar, '+', str.length, ':', NO_MATCH, ';',
       ];
     },

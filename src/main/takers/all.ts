@@ -1,13 +1,11 @@
 import {createVar} from '../code';
-import {CharCodeCheckerTaker, CharCodeRangeTaker, createCharPredicate} from './char';
+import {CharCodeRangeTaker, createCharCodePredicate} from './char';
 import {
   ALL_CASE_SENSITIVE_TEXT_TYPE,
-  ALL_CHAR_CODE_CHECKER_TYPE,
   ALL_CHAR_CODE_RANGE_TYPE,
   ALL_GENERIC_TYPE,
   ALL_REGEX_TYPE,
   CASE_SENSITIVE_TEXT_TYPE,
-  CHAR_CODE_CHECKER_TYPE,
   CHAR_CODE_RANGE_TYPE,
   InternalTaker,
   REGEX_TYPE
@@ -16,7 +14,7 @@ import {createMaybeTaker} from './maybe';
 import {never} from './never';
 import {none} from './none';
 import {RegexTaker} from './regex';
-import {CharCodeChecker, CharCodeRange, NO_MATCH, Taker} from './taker-types';
+import {CharCodeRange, NO_MATCH, Taker} from './taker-types';
 import {isInternalTaker, isTakerCodegen, toCharCodes} from './taker-utils';
 import {CaseSensitiveTextTaker} from './text';
 
@@ -51,7 +49,7 @@ export function all(taker: Taker, options: AllOptions = {}): Taker {
   } = options;
 
   minimumCount = Math.max(minimumCount | 0, 0);
-  maximumCount = Math.max(maximumCount | 0, 0);
+  maximumCount = Math.max(maximumCount | 0, 0); // 0 = Infinity
 
   if (maximumCount > 0 && minimumCount > maximumCount) {
     return never;
@@ -65,9 +63,6 @@ export function all(taker: Taker, options: AllOptions = {}): Taker {
   if (taker === never || taker === none) {
     return taker;
   }
-  if (isInternalTaker<CharCodeCheckerTaker>(CHAR_CODE_CHECKER_TYPE, taker)) {
-    return createAllCharCodeCheckerTaker(taker.charCodeChecker, minimumCount, maximumCount);
-  }
   if (isInternalTaker<CharCodeRangeTaker>(CHAR_CODE_RANGE_TYPE, taker)) {
     return createAllCharCodeRangeTaker(taker.charCodeRanges, minimumCount, maximumCount);
   }
@@ -78,44 +73,6 @@ export function all(taker: Taker, options: AllOptions = {}): Taker {
     return createAllRegexTaker(taker.re, minimumCount, maximumCount);
   }
   return createAllGenericTaker(taker, minimumCount, maximumCount);
-}
-
-export interface AllCharCodeCheckerTaker extends InternalTaker {
-  type: ALL_CHAR_CODE_CHECKER_TYPE;
-}
-
-export function createAllCharCodeCheckerTaker(charCodeChecker: CharCodeChecker, minimumCount: number, maximumCount: number): AllCharCodeCheckerTaker {
-
-  const charCodeCheckerVar = createVar();
-
-  return {
-    type: ALL_CHAR_CODE_CHECKER_TYPE,
-    bindings: [[charCodeCheckerVar, charCodeChecker]],
-
-    factory(inputVar, offsetVar, resultVar) {
-
-      const inputLengthVar = createVar();
-      const takeCountVar = createVar();
-      const indexVar = createVar();
-
-      return [
-        'var ',
-        inputLengthVar, '=', inputVar, '.length,',
-        indexVar, '=', offsetVar,
-        minimumCount || maximumCount ? [',', takeCountVar, '=0'] : '',
-        ';',
-        'while(', indexVar, '<', inputLengthVar,
-        maximumCount ? ['&&', takeCountVar, '<', maximumCount] : '',
-        '&&', charCodeCheckerVar, '(', inputVar, '.charCodeAt(', indexVar, '))){',
-        minimumCount || maximumCount ? ['++', takeCountVar, ';'] : '',
-        '++', indexVar,
-        '}',
-        resultVar, '=',
-        minimumCount ? [takeCountVar, '<', minimumCount, '?', NO_MATCH, ':', indexVar] : indexVar,
-        ';',
-      ];
-    },
-  };
 }
 
 export interface AllCharCodeRangeTaker extends InternalTaker {
@@ -144,7 +101,7 @@ export function createAllCharCodeRangeTaker(charCodeRanges: CharCodeRange[], min
         maximumCount ? ['&&', takeCountVar, '<', maximumCount] : '',
         '&&(',
         charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, '),',
-        createCharPredicate(charCodeVar, charCodeRanges),
+        createCharCodePredicate(charCodeVar, charCodeRanges),
         ')){',
         minimumCount || maximumCount ? ['++', takeCountVar, ';'] : '',
         '++', indexVar,
@@ -184,7 +141,7 @@ export function createAllCaseSensitiveTextTaker(str: string, minimumCount: numbe
         'while(',
         indexVar, '+', str.length, '<=', inputLengthVar,
         maximumCount ? ['&&', takeCountVar, '<', maximumCount] : '',
-        toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', indexVar, i > 0 ? '+' + i : '', ')===', charCode]),
+        toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', indexVar, '+', i, ')===', charCode]),
         '){',
         minimumCount || maximumCount ? ['++', takeCountVar, ';'] : '',
         indexVar, '+=', str.length,

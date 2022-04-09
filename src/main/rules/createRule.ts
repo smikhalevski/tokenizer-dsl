@@ -1,5 +1,6 @@
-import {Taker, toTakerFunction} from '../takers';
+import {Taker} from '../takers';
 import {Rule, StageProvider} from './rule-types';
+import {toTakerFunction} from './rule-utils';
 
 /**
  * Creates the new rule that reads tokens.

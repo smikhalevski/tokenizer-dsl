@@ -1,13 +1,11 @@
 import {createVar} from '../code';
-import {CharCodeCheckerTaker, CharCodeRangeTaker, createCharPredicate} from './char';
+import {CharCodeRangeTaker, createCharCodePredicate} from './char';
 import {
   CASE_SENSITIVE_TEXT_TYPE,
-  CHAR_CODE_CHECKER_TYPE,
   CHAR_CODE_RANGE_TYPE,
   InternalTaker,
   REGEX_TYPE,
   UNTIL_CASE_SENSITIVE_TEXT_TYPE,
-  UNTIL_CHAR_CODE_CHECKER_TYPE,
   UNTIL_CHAR_CODE_RANGE_TYPE,
   UNTIL_GENERIC_TYPE,
   UNTIL_REGEX_TYPE
@@ -15,7 +13,7 @@ import {
 import {never} from './never';
 import {none} from './none';
 import {RegexTaker} from './regex';
-import {CharCodeChecker, CharCodeRange, NO_MATCH, Taker} from './taker-types';
+import {CharCodeRange, NO_MATCH, Taker} from './taker-types';
 import {isInternalTaker, isTakerCodegen} from './taker-utils';
 import {CaseSensitiveTextTaker} from './text';
 
@@ -56,9 +54,6 @@ export function until(taker: Taker, options: UntilOptions = {}): Taker {
   if (isInternalTaker<CaseSensitiveTextTaker>(CASE_SENSITIVE_TEXT_TYPE, taker)) {
     return createUntilCaseSensitiveTextTaker(taker.str, inclusive);
   }
-  if (isInternalTaker<CharCodeCheckerTaker>(CHAR_CODE_CHECKER_TYPE, taker)) {
-    return createUntilCharCodeCheckerTaker(taker.charCodeChecker, inclusive);
-  }
   return createUntilGenericTaker(taker, inclusive);
 }
 
@@ -83,7 +78,7 @@ export function createUntilCharCodeRangeTaker(charCodeRanges: CharCodeRange[], i
         charCodeVar,
         ';',
         'while(', indexVar, '<', inputLengthVar,
-        '&&(', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, '),!(', createCharPredicate(charCodeVar, charCodeRanges), '))',
+        '&&(', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, '),!(', createCharCodePredicate(charCodeVar, charCodeRanges), '))',
         ')++', indexVar, ';',
         resultVar, '=', indexVar, '===', inputLengthVar, '?', NO_MATCH, ':', indexVar, inclusive ? '+1;' : ';',
       ];
@@ -111,34 +106,6 @@ export function createUntilCaseSensitiveTextTaker(str: string, inclusive: boolea
         resultVar, '=', indexVar, '===-1?', NO_MATCH, ':', indexVar, inclusive ? '+' + str.length : '', ';',
       ];
     }
-  };
-}
-
-export interface UntilCharCodeCheckerTaker extends InternalTaker {
-  type: UNTIL_CHAR_CODE_CHECKER_TYPE;
-}
-
-export function createUntilCharCodeCheckerTaker(charCodeChecker: CharCodeChecker, inclusive: boolean): UntilCharCodeCheckerTaker {
-
-  const charCodeCheckerVar = createVar();
-
-  return {
-    type: UNTIL_CHAR_CODE_CHECKER_TYPE,
-    bindings: [[charCodeCheckerVar, charCodeChecker]],
-
-    factory(inputVar, offsetVar, resultVar) {
-
-      const inputLengthVar = createVar();
-      const indexVar = createVar();
-
-      return [
-        'var ',
-        inputLengthVar, '=', inputVar, '.length,',
-        indexVar, '=', offsetVar, ';',
-        'while(', indexVar, '<', inputLengthVar, '&&!', charCodeCheckerVar, '(', inputVar, '.charCodeAt(', indexVar, ')))++', indexVar, ';',
-        resultVar, '=', indexVar, '===', inputLengthVar, '?', NO_MATCH, ':', indexVar, inclusive ? '+1;' : ';',
-      ];
-    },
   };
 }
 

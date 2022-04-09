@@ -52,10 +52,7 @@ export type TakerCodeFactory = (inputVar: Var, offsetVar: Var, resultVar: Var) =
 export const NO_MATCH = -1;
 
 /**
- * The callback that must return `true` is given char code is appropriate, and must return `false` otherwise.
+ * A string containing chars that should be used as char codes, a char code integer value, or a tuple of two chars codes
+ * that describe a range.
  */
-export type CharCodeChecker = (charCode: number) => boolean;
-
-export type CharCodeRangeLike = number | string | [number | string, number | string];
-
-export type CharCodeRange = number | [number, number];
+export type CharCodeRange = string | number | [number, number];

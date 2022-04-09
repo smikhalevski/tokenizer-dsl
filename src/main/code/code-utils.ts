@@ -28,7 +28,7 @@ export function assembleCode(code: Code, vars: Var[] = []): string {
     }
     return str;
   }
-  return String(code);
+  return '' + code;
 }
 
 /**
