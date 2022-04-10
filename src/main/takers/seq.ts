@@ -1,9 +1,6 @@
-import {Code, createVar, Var} from '../code';
-import {InternalTaker, SEQ_TYPE} from './internal-taker-types';
-import {never} from './never';
-import {none} from './none';
-import {Taker} from './taker-types';
-import {isInternalTaker, isTakerCodegen} from './taker-utils';
+import {Binding, Code, createVar, Var} from '../code';
+import {InternalTaker, Qqq, Taker} from './taker-types';
+import {createQqq, createSymbol, createTakerCall} from './taker-utils';
 
 /**
  * Creates a taker that applies takers one after another.
@@ -11,85 +8,42 @@ import {isInternalTaker, isTakerCodegen} from './taker-utils';
  * @param takers Takers that are called.
  */
 export function seq(...takers: Taker[]): Taker {
-
-  if (takers.includes(never)) {
-    return never;
-  }
-
-  const flatTakers: Taker[] = [];
-
-  for (const taker of takers) {
-    if (isInternalTaker<SeqTaker>(SEQ_TYPE, taker)) {
-      flatTakers.push(...taker.takers);
-      continue;
-    }
-    if (taker !== none) {
-      flatTakers.push(taker);
-    }
-  }
-
-  const takersLength = flatTakers.length;
-
-  if (takersLength === 0) {
-    return none;
-  }
-  if (takersLength === 1) {
-    return flatTakers[0];
-  }
-  return createSeqTaker(flatTakers);
+  return new SeqTaker(takers);
 }
 
-export interface SeqTaker extends InternalTaker {
-  type: SEQ_TYPE;
-  takers: Taker[];
-}
+export const SEQ_TYPE = createSymbol();
 
-export function createSeqTaker(takers: Taker[]): SeqTaker {
+export class SeqTaker implements InternalTaker {
 
-  const takersLength = takers.length;
-  const bindings: [Var, unknown][] = [];
+  readonly type = SEQ_TYPE;
 
-  for (const taker of takers) {
-    if (isTakerCodegen(taker)) {
-      if (taker.bindings) {
-        bindings.push(...taker.bindings);
-      }
-    } else {
-      bindings.push([createVar(), taker]);
-    }
+  constructor(public takers: Taker[]) {
   }
 
-  return {
-    type: SEQ_TYPE,
-    bindings,
-    takers,
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+    const {takers} = this;
 
-    factory(inputVar, offsetVar, resultVar) {
+    const takersLength = takers.length;
+    const code: Code[] = [];
+    const bindings: Binding[] = [];
 
-      const code: Code[] = [];
-
-      let j = 0;
-
-      for (let i = 0; i < takersLength - 1; ++i) {
-        const taker = takers[i];
-        const takerResultVar = createVar();
-
-        code.push(
-            'var ', takerResultVar, ';',
-            isTakerCodegen(taker) ? taker.factory(inputVar, offsetVar, takerResultVar) : [takerResultVar, '=', bindings[j++][0], '(', inputVar, ',', offsetVar, ');'],
-            'if(', takerResultVar, '<0){', resultVar, '=', takerResultVar, '}else{'
-        );
-
-        offsetVar = takerResultVar;
-      }
-
-      const lastTaker = takers[takersLength - 1];
+    for (let i = 0; i < takersLength - 1; ++i) {
+      const taker = takers[i];
+      const takerResultVar = createVar();
 
       code.push(
-          isTakerCodegen(lastTaker) ? lastTaker.factory(inputVar, offsetVar, resultVar) : [resultVar, '=', bindings[j][0], '(', inputVar, ',', offsetVar, ');'],
-          '}'.repeat(takersLength - 1),
+          'var ', takerResultVar, ';',
+          createTakerCall(taker, inputVar, offsetVar, takerResultVar, bindings),
+          'if(', takerResultVar, '<0){', resultVar, '=', takerResultVar, '}else{'
       );
-      return code;
-    },
-  };
+
+      offsetVar = takerResultVar;
+    }
+
+    code.push(
+        createTakerCall(takers[takersLength - 1], inputVar, offsetVar, resultVar, bindings),
+        '}'.repeat(takersLength - 1),
+    );
+    return createQqq(code, bindings);
+  }
 }

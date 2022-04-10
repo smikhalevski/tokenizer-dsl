@@ -1,8 +1,6 @@
 import {Code, createVar, Var} from '../code';
-import {CHAR_CODE_RANGE_TYPE, InternalTaker} from './internal-taker-types';
-import {none} from './none';
-import {CharCodeRange, NO_MATCH, Taker} from './taker-types';
-import {toCharCodes} from './taker-utils';
+import {CharCodeRange, InternalTaker, NO_MATCH, Qqq, Taker} from './taker-types';
+import {createQqq, createSymbol, toCharCodes} from './taker-utils';
 
 /**
  * Creates a taker that matches a single char by its code.
@@ -12,31 +10,26 @@ import {toCharCodes} from './taker-utils';
  * @see {@link text}
  */
 export function char(charCodeRanges: CharCodeRange[]): Taker {
-  if (charCodeRanges.length === 0) {
-    return none;
+  return new CharCodeRangeTaker(charCodeRanges);
+}
+
+export const CHAR_CODE_RANGE_TYPE = createSymbol();
+
+export class CharCodeRangeTaker implements InternalTaker {
+
+  readonly type = CHAR_CODE_RANGE_TYPE;
+
+  constructor(public charCodeRanges: CharCodeRange[]) {
   }
-  return createCharCodeRangeTaker(charCodeRanges);
-}
 
-export interface CharCodeRangeTaker extends InternalTaker {
-  type: CHAR_CODE_RANGE_TYPE;
-  charCodeRanges: CharCodeRange[];
-}
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+    const charCodeVar = createVar();
 
-export function createCharCodeRangeTaker(charCodeRanges: CharCodeRange[]): CharCodeRangeTaker {
-  return {
-    type: CHAR_CODE_RANGE_TYPE,
-    charCodeRanges,
-
-    factory(inputVar, offsetVar, resultVar) {
-      const charCodeVar = createVar();
-
-      return [
-        'var ', charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, ');',
-        resultVar, '=', createCharCodePredicate(charCodeVar, charCodeRanges), '?', offsetVar, '+1:', NO_MATCH, ';',
-      ];
-    }
-  };
+    return createQqq([
+      'var ', charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, ');',
+      resultVar, '=', createCharCodePredicate(charCodeVar, this.charCodeRanges), '?', offsetVar, '+1:', NO_MATCH, ';',
+    ]);
+  }
 }
 
 export function createCharCodePredicate(charCodeVar: Var, charCodeRanges: CharCodeRange[]): Code {

@@ -1,4 +1,5 @@
 import {Taker} from './taker-types';
+import {createQqq} from './taker-utils';
 
 /**
  * The singleton taker that always returns the current offset.
@@ -6,8 +7,8 @@ import {Taker} from './taker-types';
 export const none: Taker = {
 
   factory(inputVar, offsetVar, resultVar) {
-    return [
+    return createQqq([
       resultVar, '=', offsetVar, ';',
-    ];
+    ]);
   }
 };

@@ -1,5 +1,5 @@
-import {Code, compileFunction, createVar, Var} from '../code';
-import {isTakerCodegen, NO_MATCH} from '../takers';
+import {Binding, Code, compileFunction, createVar} from '../code';
+import {createTakerCall, NO_MATCH} from '../takers';
 import {Rule, RuleHandler} from './rule-types';
 
 /**
@@ -78,7 +78,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
   const chunkLengthVar = createVar();
   const takerResultVar = createVar();
 
-  const bindings: [Var, unknown][] = [];
+  const bindings: Binding[] = [];
 
   const code: Code = [
     'var ',
@@ -100,31 +100,22 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
 
     rules.map((rule) => {
 
-      const {taker, stages} = rule;
+      const {stages} = rule;
 
       if (stages?.length === 0) {
         return '';
       }
 
       const ruleVar = createVar();
-      const takerVar = createVar();
 
       bindings.push([ruleVar, rule]);
-
-      if (isTakerCodegen(taker)) {
-        if (taker.bindings) {
-          bindings.push(...taker.bindings);
-        }
-      } else {
-        bindings.push([takerVar, taker]);
-      }
 
       return [
         // Check if token can be applied on the current stage
         stages ? ['if(', stages.map((stage, i) => [i === 0 ? '' : '||', stageIndexVar, '===', uniqueStages.indexOf(stage)]), '){'] : '',
 
         // Take chars from the input string
-        isTakerCodegen(taker) ? taker.factory(chunkVar, nextOffsetVar, takerResultVar) : [takerResultVar, '=', takerVar, '(', chunkVar, ',', nextOffsetVar, ');'],
+        createTakerCall(rule.taker, chunkVar, nextOffsetVar, takerResultVar, bindings),
 
         'if(', takerResultVar, '!==', NO_MATCH, '&&', takerResultVar, '!==', nextOffsetVar, '){',
 

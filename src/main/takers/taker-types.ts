@@ -1,4 +1,4 @@
-import {Code, Var} from '../code';
+import {Binding, Code, Var} from '../code';
 
 export type Taker = TakerFunction | TakerCodegen;
 
@@ -31,7 +31,6 @@ export type TakerFunction = (input: string, offset: number) => number;
  */
 export interface TakerCodegen {
   factory: TakerCodeFactory;
-  bindings?: [Var, unknown][] | undefined;
 }
 
 /**
@@ -44,8 +43,9 @@ export interface TakerCodegen {
  * };
  * ```
  */
-export type TakerCodeFactory = (inputVar: Var, offsetVar: Var, resultVar: Var) => Code;
+export type TakerCodeFactory = (inputVar: Var, offsetVar: Var, resultVar: Var) => Qqq;
 
+export type Qqq = { code: Code, bindings?: Binding[] | undefined };
 /**
  * OK return code that means that taker didn't match any chars.
  */
@@ -56,3 +56,12 @@ export const NO_MATCH = -1;
  * that describe a range.
  */
 export type CharCodeRange = string | number | [number, number];
+
+/**
+ * Taker that is a subject for internal optimizations.
+ *
+ * @internal
+ */
+export interface InternalTaker extends TakerCodegen {
+  type: symbol;
+}

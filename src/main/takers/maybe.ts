@@ -1,9 +1,6 @@
-import {createVar} from '../code';
-import {InternalTaker, MAYBE_TYPE} from './internal-taker-types';
-import {never} from './never';
-import {none} from './none';
-import {NO_MATCH, Taker} from './taker-types';
-import {isTakerCodegen} from './taker-utils';
+import {Binding, createVar, Var} from '../code';
+import {InternalTaker, NO_MATCH, Qqq, Taker} from './taker-types';
+import {createQqq, createSymbol, createTakerCall} from './taker-utils';
 
 /**
  * Creates taker that returns `taker` result or current offset if taker returned {@link NO_MATCH}.
@@ -11,32 +8,30 @@ import {isTakerCodegen} from './taker-utils';
  * @param taker The taker which match must be considered optional.
  */
 export function maybe(taker: Taker): Taker {
-  if (taker === never || taker === none) {
-    return taker;
+  return new MaybeTaker(taker);
+}
+
+export const MAYBE_TYPE = createSymbol();
+
+export class MaybeTaker implements InternalTaker {
+
+  readonly type = MAYBE_TYPE;
+
+  constructor(public taker: Taker) {
   }
-  return createMaybeTaker(taker);
-}
 
-export interface MaybeTaker extends InternalTaker {
-  type: MAYBE_TYPE;
-}
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
 
-export function createMaybeTaker(taker: Taker): MaybeTaker {
+    const bindings: Binding[] = [];
+    const takerResultVar = createVar();
 
-  const takerVar = createVar();
-
-  return {
-    type: MAYBE_TYPE,
-    bindings: isTakerCodegen(taker) ? taker.bindings : [[takerVar, taker]],
-
-    factory(inputVar, offsetVar, resultVar) {
-      const takerResultVar = createVar();
-
-      return [
-        'var ', takerResultVar, ';',
-        isTakerCodegen(taker) ? taker.factory(inputVar, offsetVar, takerResultVar) : [takerResultVar, '=', takerVar, '(', inputVar, ',', offsetVar, ')', ';'],
-        resultVar, '=', takerResultVar, '===', NO_MATCH, '?', offsetVar, ':', takerResultVar, ';',
-      ];
-    },
-  };
+    return createQqq(
+        [
+          'var ', takerResultVar, ';',
+          createTakerCall(this.taker, inputVar, offsetVar, takerResultVar, bindings),
+          resultVar, '=', takerResultVar, '===', NO_MATCH, '?', offsetVar, ':', takerResultVar, ';',
+        ],
+        bindings,
+    );
+  }
 }

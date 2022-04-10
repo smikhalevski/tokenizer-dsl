@@ -1,9 +1,8 @@
-import {Code, createVar} from '../code';
-import {createCharCodeRangeTaker} from './char';
-import {CASE_INSENSITIVE_TEXT_TYPE, CASE_SENSITIVE_TEXT_TYPE, InternalTaker} from './internal-taker-types';
+import {Code, createVar, Var} from '../code';
+import {CharCodeRangeTaker} from './char';
 import {none} from './none';
-import {NO_MATCH, Taker} from './taker-types';
-import {toCharCodes} from './taker-utils';
+import {InternalTaker, NO_MATCH, Qqq, Taker} from './taker-types';
+import {createQqq, createSymbol, toCharCodes} from './taker-utils';
 
 export interface TextOptions {
 
@@ -39,81 +38,78 @@ export function text(str: string, options: TextOptions = {}): Taker {
     if (strUpper.length !== strLower.length) {
       throw new Error('Unsupported char');
     }
-    return createCaseInsensitiveTextTaker(str);
+    return new CaseInsensitiveTextTaker(str);
   }
   if (strLength === 1) {
-    return createCharCodeRangeTaker([str.charCodeAt(0)]);
+    return new CharCodeRangeTaker([str.charCodeAt(0)]);
   }
-  return createCaseSensitiveTextTaker(str);
+  return new CaseSensitiveTextTaker(str);
 }
 
-export interface CaseSensitiveTextTaker extends InternalTaker {
-  type: CASE_SENSITIVE_TEXT_TYPE;
-  str: string;
+export const CASE_SENSITIVE_TEXT_TYPE = createSymbol();
+export const CASE_INSENSITIVE_TEXT_TYPE = createSymbol();
+
+export class CaseSensitiveTextTaker implements InternalTaker {
+
+  readonly type = CASE_SENSITIVE_TEXT_TYPE;
+
+  constructor(public str: string) {
+  }
+
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+    const {str} = this;
+    const strVar = createVar();
+    return createQqq(
+        [
+          resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
+          toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, '+', i, ')===', charCode]),
+          '?', offsetVar, '+', str.length, ':', NO_MATCH, ';',
+        ],
+        [[strVar, str]],
+    );
+  }
 }
 
-export function createCaseSensitiveTextTaker(str: string): CaseSensitiveTextTaker {
+export class CaseInsensitiveTextTaker implements InternalTaker {
 
-  const strVar = createVar();
+  readonly type = CASE_INSENSITIVE_TEXT_TYPE;
 
-  return {
-    type: CASE_SENSITIVE_TEXT_TYPE,
-    bindings: [[strVar, str]],
-    str,
+  constructor(public str: string) {
+  }
 
-    factory(inputVar, offsetVar, resultVar) {
-      return [
-        resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
-        toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, '+', i, ')===', charCode]),
-        '?', offsetVar, '+', str.length, ':', NO_MATCH, ';',
-      ];
-    },
-  };
-}
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+    const {str} = this;
 
-export interface CaseInsensitiveTextTaker extends InternalTaker {
-  type: CASE_INSENSITIVE_TEXT_TYPE;
-  str: string;
-}
+    const charCodeVar = createVar();
 
-export function createCaseInsensitiveTextTaker(str: string): CaseInsensitiveTextTaker {
-  return {
-    type: CASE_INSENSITIVE_TEXT_TYPE,
-    str,
+    const lowerCharCodes = toCharCodes(str.toLowerCase());
+    const upperCharCodes = toCharCodes(str.toUpperCase());
 
-    factory(inputVar, offsetVar, resultVar) {
+    const charCount = lowerCharCodes.length;
 
-      const charCodeVar = createVar();
+    const code: Code[] = [
+      'var ', charCodeVar, ';',
+      resultVar, '=', offsetVar, '+', charCount - 1, '<', inputVar, '.length',
+    ];
 
-      const lowerCharCodes = toCharCodes(str.toLowerCase());
-      const upperCharCodes = toCharCodes(str.toUpperCase());
+    for (let i = 0; i < charCount; ++i) {
 
-      const charCount = lowerCharCodes.length;
+      const lowerCharCode = lowerCharCodes[i];
+      const upperCharCode = upperCharCodes[i];
 
-      const code: Code[] = [
-        'var ', charCodeVar, ';',
-        resultVar, '=', offsetVar, '+', charCount - 1, '<', inputVar, '.length',
-      ];
-
-      for (let i = 0; i < charCount; ++i) {
-
-        const lowerCharCode = lowerCharCodes[i];
-        const upperCharCode = upperCharCodes[i];
-
-        if (lowerCharCode === upperCharCode) {
-          code.push('&&', inputVar, '.charCodeAt(', offsetVar, '++)===', lowerCharCode);
-        } else {
-          code.push(
-              '&&(',
-              charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '++),',
-              charCodeVar, '===', lowerCharCode, '||', charCodeVar, '===', upperCharCode,
-              ')',
-          );
-        }
+      if (lowerCharCode === upperCharCode) {
+        code.push('&&', inputVar, '.charCodeAt(', offsetVar, '++)===', lowerCharCode);
+      } else {
+        code.push(
+            '&&(',
+            charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '++),',
+            charCodeVar, '===', lowerCharCode, '||', charCodeVar, '===', upperCharCode,
+            ')',
+        );
       }
-      code.push('?', offsetVar, ':', NO_MATCH, ';');
+    }
+    code.push('?', offsetVar, ':', NO_MATCH, ';');
 
-      return code;
-    },
-  };
+    return createQqq(code);
+  }
 }

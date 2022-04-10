@@ -1,9 +1,6 @@
-import {Code, createVar, Var} from '../code';
-import {InternalTaker, OR_TYPE} from './internal-taker-types';
-import {never} from './never';
-import {none} from './none';
-import {NO_MATCH, Taker} from './taker-types';
-import {isInternalTaker, isTakerCodegen} from './taker-utils';
+import {Binding, Code, Var} from '../code';
+import {InternalTaker, NO_MATCH, Qqq, Taker} from './taker-types';
+import {createQqq, createSymbol, createTakerCall} from './taker-utils';
 
 /**
  * Returns the result of the first matched taker.
@@ -11,82 +8,35 @@ import {isInternalTaker, isTakerCodegen} from './taker-utils';
  * @param takers Takers that are called.
  */
 export function or(...takers: Taker[]): Taker {
-
-  const children: Taker[] = [];
-
-  for (const taker of takers) {
-    if (taker === none) {
-      break;
-    }
-    if (isInternalTaker<OrTaker>(OR_TYPE, taker)) {
-      children.push(...taker.takers);
-      continue;
-    }
-    if (taker !== never) {
-      children.push(taker);
-    }
-  }
-
-  const takersLength = children.length;
-
-  if (takersLength === 0) {
-    return none;
-  }
-  if (takersLength === 1) {
-    return children[0];
-  }
-  return createOrTaker(children);
+  return new OrTaker(takers);
 }
 
-export interface OrTaker extends InternalTaker {
-  type: OR_TYPE;
-  takers: Taker[];
-}
+export const OR_TYPE = createSymbol();
 
-export function createOrTaker(takers: Taker[]): OrTaker {
+export class OrTaker implements InternalTaker {
 
-  const takersLength = takers.length;
-  const bindings: [Var, unknown][] = [];
+  readonly type = OR_TYPE;
 
-  for (const taker of takers) {
-    if (isTakerCodegen(taker)) {
-      if (taker.bindings) {
-        bindings.push(...taker.bindings);
-      }
-    } else {
-      const takerVar = createVar();
-      bindings.push([takerVar, taker]);
-    }
+  constructor(public takers: Taker[]) {
   }
 
-  return {
-    type: OR_TYPE,
-    bindings,
-    takers,
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+    const {takers} = this;
 
-    factory(inputVar, offsetVar, resultVar) {
+    const takersLength = takers.length;
+    const code: Code[] = [];
+    const bindings: Binding[] = [];
 
-      const code: Code[] = [];
+    for (let i = 0; i < takersLength; ++i) {
+      const taker = takers[i];
 
-      for (let i = 0; i < takersLength; ++i) {
-        const taker = takers[i];
-
-        if (isTakerCodegen(taker)) {
-          code.push(taker.factory(inputVar, offsetVar, resultVar));
-        } else {
-          for (const binding of bindings) {
-            if (binding[1] === taker) {
-              code.push(resultVar, '=', binding[0], '(', inputVar, ',', offsetVar, ');');
-            }
-          }
-        }
-        if (i < takersLength - 1) {
-          code.push('if(', resultVar, '===', NO_MATCH, '){');
-        }
+      code.push(createTakerCall(taker, inputVar, offsetVar, resultVar, bindings));
+      if (i < takersLength - 1) {
+        code.push('if(', resultVar, '===', NO_MATCH, '){');
       }
-      code.push('}'.repeat(takersLength - 1));
+    }
+    code.push('}'.repeat(takersLength - 1));
 
-      return code;
-    },
-  };
+    return createQqq(code, bindings);
+  }
 }

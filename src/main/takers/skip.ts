@@ -1,6 +1,6 @@
-import {InternalTaker, SKIP_TYPE} from './internal-taker-types';
-import {none} from './none';
-import {NO_MATCH, Taker} from './taker-types';
+import {Var} from '../code';
+import {InternalTaker, NO_MATCH, Qqq, Taker} from './taker-types';
+import {createQqq, createSymbol} from './taker-utils';
 
 /**
  * Creates taker that skips given number of chars.
@@ -8,28 +8,22 @@ import {NO_MATCH, Taker} from './taker-types';
  * @param charCount The number of chars to skip.
  */
 export function skip(charCount = 1): Taker {
-  charCount = Math.max(charCount | 0, 0);
+  return new SkipTaker(charCount);
+}
 
-  if (charCount === 0) {
-    return none;
+export const SKIP_TYPE = createSymbol();
+
+export class SkipTaker implements InternalTaker {
+
+  readonly type = SKIP_TYPE;
+
+  constructor(public charCount: number) {
   }
-  return createSkipTaker(charCount);
-}
 
-export interface SkipTaker extends InternalTaker {
-  type: SKIP_TYPE;
-  charCount: number;
-}
-
-export function createSkipTaker(charCount: number): SkipTaker {
-  return {
-    type: SKIP_TYPE,
-    charCount,
-
-    factory(inputVar, offsetVar, resultVar) {
-      return [
-        resultVar, '=', offsetVar, '+', charCount, '<=', inputVar, '.length?', offsetVar, '+', charCount, ':', NO_MATCH, ';',
-      ];
-    },
-  };
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+    const {charCount} = this;
+    return createQqq([
+      resultVar, '=', offsetVar, '+', charCount, '<=', inputVar, '.length?', offsetVar, '+', charCount, ':', NO_MATCH, ';',
+    ]);
+  }
 }

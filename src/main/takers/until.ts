@@ -1,21 +1,11 @@
-import {createVar} from '../code';
-import {CharCodeRangeTaker, createCharCodePredicate} from './char';
-import {
-  CASE_SENSITIVE_TEXT_TYPE,
-  CHAR_CODE_RANGE_TYPE,
-  InternalTaker,
-  REGEX_TYPE,
-  UNTIL_CASE_SENSITIVE_TEXT_TYPE,
-  UNTIL_CHAR_CODE_RANGE_TYPE,
-  UNTIL_GENERIC_TYPE,
-  UNTIL_REGEX_TYPE
-} from './internal-taker-types';
+import {Binding, createVar, Var} from '../code';
+import {CHAR_CODE_RANGE_TYPE, CharCodeRangeTaker, createCharCodePredicate} from './char';
 import {never} from './never';
 import {none} from './none';
-import {RegexTaker} from './regex';
-import {CharCodeRange, NO_MATCH, Taker} from './taker-types';
-import {isInternalTaker, isTakerCodegen} from './taker-utils';
-import {CaseSensitiveTextTaker} from './text';
+import {REGEX_TYPE, RegexTaker} from './regex';
+import {CharCodeRange, InternalTaker, NO_MATCH, Qqq, Taker} from './taker-types';
+import {createQqq, createSymbol, createTakerCall, isInternalTaker} from './taker-utils';
+import {CASE_SENSITIVE_TEXT_TYPE, CaseSensitiveTextTaker} from './text';
 
 export interface UntilOptions {
 
@@ -41,130 +31,125 @@ export function until(taker: Taker, options: UntilOptions = {}): Taker {
     return taker;
   }
   if (isInternalTaker<RegexTaker>(REGEX_TYPE, taker)) {
-    return createUntilRegexTaker(taker.re, inclusive);
+    return new UntilRegexTaker(taker.re, inclusive);
   }
   if (isInternalTaker<CharCodeRangeTaker>(CHAR_CODE_RANGE_TYPE, taker)) {
     const {charCodeRanges} = taker;
 
     if (charCodeRanges.length === 1 && typeof charCodeRanges[0] === 'number') {
-      return createUntilCaseSensitiveTextTaker(String.fromCharCode(charCodeRanges[0]), inclusive);
+      return new UntilCaseSensitiveTextTaker(String.fromCharCode(charCodeRanges[0]), inclusive);
     }
-    return createUntilCharCodeRangeTaker(charCodeRanges, inclusive);
+    return new UntilCharCodeRangeTaker(charCodeRanges, inclusive);
   }
   if (isInternalTaker<CaseSensitiveTextTaker>(CASE_SENSITIVE_TEXT_TYPE, taker)) {
-    return createUntilCaseSensitiveTextTaker(taker.str, inclusive);
+    return new UntilCaseSensitiveTextTaker(taker.str, inclusive);
   }
-  return createUntilGenericTaker(taker, inclusive);
+  return new UntilGenericTaker(taker, inclusive);
 }
 
-export interface UntilCharCodeRangeTaker extends InternalTaker {
-  type: UNTIL_CHAR_CODE_RANGE_TYPE;
+export const UNTIL_CASE_SENSITIVE_TEXT_TYPE = createSymbol();
+export const UNTIL_CHAR_CODE_RANGE_TYPE = createSymbol();
+export const UNTIL_REGEX_TYPE = createSymbol();
+export const UNTIL_GENERIC_TYPE = createSymbol();
+
+export class UntilCharCodeRangeTaker implements InternalTaker {
+
+  readonly type = UNTIL_CHAR_CODE_RANGE_TYPE;
+
+  constructor(public charCodeRanges: CharCodeRange[], public inclusive: boolean) {
+  }
+
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+
+    const inputLengthVar = createVar();
+    const indexVar = createVar();
+    const charCodeVar = createVar();
+
+    return createQqq([
+      'var ',
+      inputLengthVar, '=', inputVar, '.length,',
+      indexVar, '=', offsetVar, ',',
+      charCodeVar,
+      ';',
+      'while(', indexVar, '<', inputLengthVar,
+      '&&(', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, '),!(', createCharCodePredicate(charCodeVar, this.charCodeRanges), '))',
+      ')++', indexVar, ';',
+      resultVar, '=', indexVar, '===', inputLengthVar, '?', NO_MATCH, ':', indexVar, this.inclusive ? '+1;' : ';',
+    ]);
+  }
 }
 
-export function createUntilCharCodeRangeTaker(charCodeRanges: CharCodeRange[], inclusive: boolean): UntilCharCodeRangeTaker {
-  return {
-    type: UNTIL_CHAR_CODE_RANGE_TYPE,
+export class UntilCaseSensitiveTextTaker implements InternalTaker {
 
-    factory(inputVar, offsetVar, resultVar) {
+  readonly type = UNTIL_CASE_SENSITIVE_TEXT_TYPE;
 
-      const inputLengthVar = createVar();
-      const indexVar = createVar();
-      const charCodeVar = createVar();
+  constructor(public str: string, public inclusive: boolean) {
+  }
 
-      return [
-        'var ',
-        inputLengthVar, '=', inputVar, '.length,',
-        indexVar, '=', offsetVar, ',',
-        charCodeVar,
-        ';',
-        'while(', indexVar, '<', inputLengthVar,
-        '&&(', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, '),!(', createCharCodePredicate(charCodeVar, charCodeRanges), '))',
-        ')++', indexVar, ';',
-        resultVar, '=', indexVar, '===', inputLengthVar, '?', NO_MATCH, ':', indexVar, inclusive ? '+1;' : ';',
-      ];
-    }
-  };
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+
+    const strVar = createVar();
+    const indexVar = createVar();
+
+    return createQqq(
+        [
+          'var ', indexVar, '=', inputVar, '.indexOf(', strVar, ',', offsetVar, ');',
+          resultVar, '=', indexVar, '===-1?', NO_MATCH, ':', indexVar, this.inclusive ? '+' + this.str.length : '', ';',
+        ],
+        [[strVar, this.str]],
+    );
+  }
 }
 
-export interface UntilCaseSensitiveTextTaker extends InternalTaker {
-  type: UNTIL_CASE_SENSITIVE_TEXT_TYPE;
+export class UntilRegexTaker implements InternalTaker {
+
+  readonly type = UNTIL_REGEX_TYPE;
+  re;
+
+  constructor(re: RegExp, public inclusive: boolean) {
+    this.re = RegExp(re.source, re.flags.replace(/[yg]/, '') + 'g');
+  }
+
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+
+    const reVar = createVar();
+    const arrVar = createVar();
+
+    return createQqq(
+        [
+          reVar, '.lastIndex=', offsetVar, ';',
+          'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
+          resultVar, '=', arrVar, '===null?', NO_MATCH, ':', this.inclusive ? [reVar, '.lastIndex'] : [arrVar, '.index'], ';',
+        ],
+        [[reVar, this.re]],
+    );
+  }
 }
 
-export function createUntilCaseSensitiveTextTaker(str: string, inclusive: boolean): UntilCaseSensitiveTextTaker {
+export class UntilGenericTaker implements InternalTaker {
 
-  const strVar = createVar();
+  readonly type = UNTIL_GENERIC_TYPE;
 
-  return {
-    type: UNTIL_CASE_SENSITIVE_TEXT_TYPE,
-    bindings: [[strVar, str]],
+  constructor(public taker: Taker, public inclusive: boolean) {
+  }
 
-    factory(inputVar, offsetVar, resultVar) {
-      const indexVar = createVar();
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
 
-      return [
-        'var ', indexVar, '=', inputVar, '.indexOf(', strVar, ',', offsetVar, ');',
-        resultVar, '=', indexVar, '===-1?', NO_MATCH, ':', indexVar, inclusive ? '+' + str.length : '', ';',
-      ];
-    }
-  };
-}
+    const bindings: Binding[] = [];
+    const inputLengthVar = createVar();
+    const indexVar = createVar();
+    const takerResultVar = createVar();
 
-export interface UntilRegexTaker extends InternalTaker {
-  type: UNTIL_REGEX_TYPE;
-}
-
-export function createUntilRegexTaker(re: RegExp, inclusive: boolean): UntilRegexTaker {
-
-  re = RegExp(re.source, re.flags.replace(/[yg]/, '') + 'g');
-
-  const reVar = createVar();
-
-  return {
-    type: UNTIL_REGEX_TYPE,
-    bindings: [[reVar, re]],
-
-    factory(inputVar, offsetVar, resultVar) {
-
-      const arrVar = createVar();
-
-      return [
-        reVar, '.lastIndex=', offsetVar, ';',
-        'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
-        resultVar, '=', arrVar, '===null?', NO_MATCH, ':', inclusive ? [reVar, '.lastIndex'] : [arrVar, '.index'], ';',
-      ];
-    },
-  };
-}
-
-export interface UntilGenericTaker extends InternalTaker {
-  type: UNTIL_GENERIC_TYPE;
-}
-
-export function createUntilGenericTaker(taker: Taker, inclusive: boolean): UntilGenericTaker {
-
-  const takerVar = createVar();
-
-  return {
-    type: UNTIL_GENERIC_TYPE,
-    bindings: isTakerCodegen(taker) ? taker.bindings : [[takerVar, taker]],
-
-    factory(inputVar, offsetVar, resultVar) {
-
-      const inputLengthVar = createVar();
-      const indexVar = createVar();
-      const takerResultVar = createVar();
-
-      return [
-        'var ',
-        inputLengthVar, '=', inputVar, '.length,',
-        indexVar, '=', offsetVar, ',',
-        takerResultVar, '=', NO_MATCH, ';',
-        'while(', indexVar, '<', inputLengthVar, '&&', takerResultVar, '===', NO_MATCH, '){',
-        isTakerCodegen(taker) ? taker.factory(inputVar, indexVar, takerResultVar) : [takerResultVar, '=', takerVar, '(', inputVar, ',', indexVar, ');'],
-        '++', indexVar,
-        '}',
-        resultVar, '=', takerResultVar, '<', 0, '?', takerResultVar, ':', inclusive ? takerResultVar : [indexVar, '-1'], ';',
-      ];
-    },
-  };
+    return createQqq([
+      'var ',
+      inputLengthVar, '=', inputVar, '.length,',
+      indexVar, '=', offsetVar, ',',
+      takerResultVar, '=', NO_MATCH, ';',
+      'while(', indexVar, '<', inputLengthVar, '&&', takerResultVar, '===', NO_MATCH, '){',
+      createTakerCall(this.taker, inputVar, indexVar, takerResultVar, bindings),
+      '++', indexVar,
+      '}',
+      resultVar, '=', takerResultVar, '<', 0, '?', takerResultVar, ':', this.inclusive ? takerResultVar : [indexVar, '-1'], ';',
+    ]);
+  }
 }

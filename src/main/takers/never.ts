@@ -1,4 +1,5 @@
 import {NO_MATCH, Taker} from './taker-types';
+import {createQqq} from './taker-utils';
 
 /**
  * The singleton taker that always returns {@link NO_MATCH}.
@@ -6,8 +7,8 @@ import {NO_MATCH, Taker} from './taker-types';
 export const never: Taker = {
 
   factory(inputVar, offsetVar, resultVar) {
-    return [
-      resultVar, '=', NO_MATCH, ';',
-    ];
+    return createQqq([
+      resultVar, '=', NO_MATCH, ';'
+    ]);
   }
 };

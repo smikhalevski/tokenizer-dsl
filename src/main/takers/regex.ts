@@ -1,6 +1,6 @@
-import {createVar} from '../code';
-import {InternalTaker, REGEX_TYPE} from './internal-taker-types';
-import {NO_MATCH, Taker} from './taker-types';
+import {createVar, Var} from '../code';
+import {InternalTaker, NO_MATCH, Qqq, Taker} from './taker-types';
+import {createQqq, createSymbol} from './taker-utils';
 
 /**
  * Creates taker that matches a substring.
@@ -8,33 +8,32 @@ import {NO_MATCH, Taker} from './taker-types';
  * @param re The `RegExp` to match.
  */
 export function regex(re: RegExp): Taker {
-  return createRegexTaker(re);
+  return new RegexTaker(re);
 }
 
-export interface RegexTaker extends InternalTaker {
-  type: REGEX_TYPE;
-  re: RegExp;
-}
+export const REGEX_TYPE = createSymbol();
 
-export function createRegexTaker(re: RegExp): RegexTaker {
+export class RegexTaker implements InternalTaker {
 
-  re = RegExp(re.source, re.flags.replace(/[yg]/, '') + (re.sticky !== undefined ? 'y' : 'g'));
+  readonly type = REGEX_TYPE;
+  re;
 
-  const reVar = createVar();
+  constructor(re: RegExp) {
+    this.re = RegExp(re.source, re.flags.replace(/[yg]/, '') + (re.sticky !== undefined ? 'y' : 'g'));
+  }
 
-  return {
-    type: REGEX_TYPE,
-    bindings: [[reVar, re]],
-    re,
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
 
-    factory(inputVar, offsetVar, resultVar) {
-      const arrVar = createVar();
+    const reVar = createVar();
+    const arrVar = createVar();
 
-      return [
-        reVar, '.lastIndex=', offsetVar, ';',
-        'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
-        resultVar, '=', arrVar, '===null||', arrVar, '.index!==', offsetVar, '?', NO_MATCH, ':', reVar, '.lastIndex;',
-      ];
-    }
-  };
+    return createQqq(
+        [
+          reVar, '.lastIndex=', offsetVar, ';',
+          'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
+          resultVar, '=', arrVar, '===null||', arrVar, '.index!==', offsetVar, '?', NO_MATCH, ':', reVar, '.lastIndex;',
+        ],
+        [[reVar, this.re]],
+    );
+  }
 }

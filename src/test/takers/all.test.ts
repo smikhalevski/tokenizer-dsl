@@ -1,16 +1,12 @@
 import {all, InternalTaker, never, NO_MATCH, none, text} from '../../main';
 import {
+  ALL_CASE_SENSITIVE_TEXT_TYPE, ALL_CHAR_CODE_RANGE_TYPE,
+  ALL_GENERIC_TYPE,
   createAllCaseSensitiveTextTaker,
   createAllCharCodeRangeTaker,
   createAllGenericTaker,
-  createAllRegexTaker
+  createAllRegexTaker, MAYBE_TYPE
 } from '../../main/takers';
-import {
-  ALL_CASE_SENSITIVE_TEXT_TYPE,
-  ALL_CHAR_CODE_RANGE_TYPE,
-  ALL_GENERIC_TYPE,
-  MAYBE_TYPE
-} from '../../main/takers/internal-taker-types';
 
 const A = 'a'.charCodeAt(0);
 
