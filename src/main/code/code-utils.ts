@@ -66,15 +66,13 @@ export function compileFunction<F extends Function>(argVars: Var[], code: Code, 
   }
 
   const fnCode: Code[] = [];
-
-  // Array of bound values
   const arr: unknown[] = [];
   const arrVar = createVar();
 
-  // Eliminate duplicated bound vars
+  // Dedupe bound vars
   const varMap = new Map(bindings);
 
-  // Eliminate duplicated bound values
+  // Dedupe bound values
   const valueMap = inverseMap(varMap);
 
   valueMap.forEach((valueVar, value) => {
@@ -92,19 +90,15 @@ export function compileFunction<F extends Function>(argVars: Var[], code: Code, 
 
   fnCode.push('){', code, '}');
 
-  const source = assembleCode(fnCode, (v) => varRenamer(varMap.has(v) ? valueMap.get(varMap.get(v))! : v));
+  const fnSrc = assembleCode(fnCode, (v) => varRenamer(varMap.has(v) ? valueMap.get(varMap.get(v))! : v));
 
-  return Function.call(undefined, varRenamer(arrVar), source)(arr);
+  return Function.call(undefined, varRenamer(arrVar), fnSrc)(arr);
 }
 
 export function createVarRenamer(): VarRenamer {
-  const vars: Var[] = [];
+  const varMap = new Map<Var, string>();
 
-  return (v) => {
-    const varIndex = vars.indexOf(v);
-
-    return encodeLowerAlpha(varIndex === -1 ? vars.push(v) - 1 : varIndex);
-  };
+  return (v) => varMap.get(v) || varMap.set(v, encodeLowerAlpha(varMap.size)).get(v)!;
 }
 
 /**
