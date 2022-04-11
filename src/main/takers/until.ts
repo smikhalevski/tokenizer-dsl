@@ -23,7 +23,7 @@ export interface UntilOptions {
  * @param taker The taker that takes chars.
  * @param options Taker options.
  */
-export function until(taker: Taker, options: UntilOptions = {}): Taker {
+export function until<C = any>(taker: Taker<C>, options: UntilOptions = {}): Taker<C> {
 
   const {inclusive = false} = options;
 
@@ -52,7 +52,7 @@ export class UntilCharCodeRangeTaker implements TakerCodegen {
   constructor(public charCodeRanges: CharCodeRange[], public inclusive: boolean) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
 
     const inputLengthVar = createVar();
     const indexVar = createVar();
@@ -77,7 +77,7 @@ export class UntilCaseSensitiveTextTaker implements TakerCodegen {
   constructor(public str: string, public inclusive: boolean) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
 
     const strVar = createVar();
     const indexVar = createVar();
@@ -100,7 +100,7 @@ export class UntilRegexTaker implements TakerCodegen {
     this.re = RegExp(re.source, re.flags.replace(/[yg]/, '') + 'g');
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
 
     const reVar = createVar();
     const arrVar = createVar();
@@ -116,12 +116,12 @@ export class UntilRegexTaker implements TakerCodegen {
   }
 }
 
-export class UntilTaker implements TakerCodegen {
+export class UntilTaker<C> implements TakerCodegen {
 
-  constructor(public taker: Taker, public inclusive: boolean) {
+  constructor(public taker: Taker<C>, public inclusive: boolean) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
 
     const bindings: Binding[] = [];
     const inputLengthVar = createVar();
@@ -135,7 +135,7 @@ export class UntilTaker implements TakerCodegen {
           indexVar, '=', offsetVar, ',',
           takerResultVar, '=', NO_MATCH, ';',
           'while(', indexVar, '<', inputLengthVar, '&&', takerResultVar, '===', NO_MATCH, '){',
-          createTakerCallCode(this.taker, inputVar, indexVar, takerResultVar, bindings),
+          createTakerCallCode(this.taker, inputVar, indexVar, contextVar, takerResultVar, bindings),
           '++', indexVar,
           '}',
           resultVar, '=', takerResultVar, '<', 0, '?', takerResultVar, ':', this.inclusive ? takerResultVar : [indexVar, '-1'], ';',

@@ -11,7 +11,7 @@ import {Rule, StageProvider} from './rule-types';
  * `undefined` the next stage is set to the current stage.
  * @returns The tokenization rule definition.
  */
-export function createRule<S = never, C = void>(taker: Taker, stages?: S[], nextStage?: StageProvider<S, C> | S): Rule<S, C> {
+export function createRule<S = any, C = any>(taker: Taker<C>, stages?: S[], nextStage?: StageProvider<S, C> | S): Rule<S, C> {
   return {
     taker: toTakerFunction(taker),
     stages,

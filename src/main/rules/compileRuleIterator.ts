@@ -63,6 +63,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
   const stateVar = createVar();
   const streamingVar = createVar();
   const handlerVar = createVar();
+  const contextVar = createVar();
 
   const tokenCallbackVar = createVar();
   const errorCallbackVar = createVar();
@@ -115,7 +116,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
         stages ? ['if(', stages.map((stage, i) => [i === 0 ? '' : '||', stageIndexVar, '===', uniqueStages.indexOf(stage)]), '){'] : '',
 
         // Take chars from the input string
-        createTakerCallCode(rule.taker, chunkVar, nextOffsetVar, takerResultVar, bindings),
+        createTakerCallCode(rule.taker, chunkVar, nextOffsetVar, contextVar, takerResultVar, bindings),
 
         'if(', takerResultVar, '!==', NO_MATCH, '&&', takerResultVar, '!==', nextOffsetVar, '){',
 
@@ -158,7 +159,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
     unrecognizedTokenCallbackVar, '(', chunkOffsetVar, '+', nextOffsetVar, ');',
   ];
 
-  const ruleIterator = compileFunction<RuleIterator<S, C>>([stateVar, streamingVar, handlerVar], code, bindings);
+  const ruleIterator = compileFunction<RuleIterator<S, C>>([stateVar, streamingVar, handlerVar, contextVar], code, bindings);
 
   ruleIterator.uniqueStages = uniqueStages;
 

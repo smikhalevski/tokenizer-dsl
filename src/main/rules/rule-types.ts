@@ -1,4 +1,4 @@
-import {TakerFunction} from '../takers';
+import {Taker} from '../takers';
 
 export type StageProvider<S, C> = (input: string, offset: number, length: number, context: C) => S;
 
@@ -13,7 +13,7 @@ export interface Rule<S, C> {
   /**
    * The taker that takes chars from the string.
    */
-  taker: TakerFunction;
+  taker: Taker<C>;
 
   /**
    * The list of stages at which rule can be used. If omitted then rule is used on all stages. If an empty array

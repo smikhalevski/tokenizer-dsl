@@ -1,4 +1,4 @@
-import {NO_MATCH, none, or, OrTaker, TakerFunction, text, toTakerFunction} from '../../main/takers';
+import {NO_MATCH, none, or, OrTaker, Taker, text, toTakerFunction} from '../../main/takers';
 
 describe('or', () => {
 
@@ -7,7 +7,7 @@ describe('or', () => {
   });
 
   test('returns single taker', () => {
-    const takerMock: TakerFunction = () => 0;
+    const takerMock: Taker<any> = () => 0;
     expect(or(takerMock)).toBe(takerMock);
   });
 

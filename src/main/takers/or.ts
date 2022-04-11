@@ -9,9 +9,9 @@ import {createCodeBindings, createTakerCallCode} from './taker-utils';
  *
  * @param takers Takers that are called.
  */
-export function or(...takers: Taker[]): Taker {
+export function or<C = any>(...takers: Taker<C>[]): Taker<C> {
 
-  const children: Taker[] = [];
+  const children: Taker<C>[] = [];
 
   for (const taker of takers) {
     if (taker === none) {
@@ -35,12 +35,12 @@ export function or(...takers: Taker[]): Taker {
   return new OrTaker(children);
 }
 
-export class OrTaker implements TakerCodegen {
+export class OrTaker<C> implements TakerCodegen {
 
-  constructor(public takers: Taker[]) {
+  constructor(public takers: Taker<C>[]) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const {takers} = this;
 
     const takersLength = takers.length;
@@ -50,7 +50,7 @@ export class OrTaker implements TakerCodegen {
     for (let i = 0; i < takersLength; ++i) {
       const taker = takers[i];
 
-      code.push(createTakerCallCode(taker, inputVar, offsetVar, resultVar, bindings));
+      code.push(createTakerCallCode(taker, inputVar, offsetVar, contextVar, resultVar, bindings));
       if (i < takersLength - 1) {
         code.push('if(', resultVar, '===', NO_MATCH, '){');
       }

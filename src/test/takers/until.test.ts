@@ -88,7 +88,7 @@ describe('UntilTaker', () => {
 
     expect(toTakerFunction(new UntilTaker(takerMock, false))('aaaa', 0)).toBe(2);
     expect(takerMock).toHaveBeenCalledTimes(3);
-    expect(takerMock).toHaveBeenNthCalledWith(3, 'aaaa', 2);
+    expect(takerMock).toHaveBeenNthCalledWith(3, 'aaaa', 2, undefined);
   });
 
   test('takes inclusive', () => {
@@ -99,7 +99,7 @@ describe('UntilTaker', () => {
 
     expect(toTakerFunction(new UntilTaker(takerMock, true))('aaaa', 0)).toBe(77);
     expect(takerMock).toHaveBeenCalledTimes(3);
-    expect(takerMock).toHaveBeenNthCalledWith(3, 'aaaa', 2);
+    expect(takerMock).toHaveBeenNthCalledWith(3, 'aaaa', 2, undefined);
   });
 
   test('can use inline takers', () => {

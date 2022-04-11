@@ -1,4 +1,5 @@
 import {Code, createVar, Var} from '../code';
+import {die} from '../utils';
 import {CharCodeRangeTaker} from './char';
 import {none} from './none';
 import {CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
@@ -21,7 +22,7 @@ export interface TextOptions {
  * @param options Taker options.
  * @see {@link char}
  */
-export function text(str: string, options: TextOptions = {}): Taker {
+export function text(str: string, options: TextOptions = {}): Taker<any> {
 
   const {caseInsensitive = false} = options;
 
@@ -34,7 +35,7 @@ export function text(str: string, options: TextOptions = {}): Taker {
 
   if (caseInsensitive && strUpper !== strLower) {
     if (strUpper.length !== strLower.length) {
-      throw new Error('Unsupported char');
+      die('Unsupported char');
     }
     return new CaseInsensitiveTextTaker(str);
   }
@@ -49,7 +50,7 @@ export class CaseSensitiveTextTaker implements TakerCodegen {
   constructor(public str: string) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const {str} = this;
 
     const strVar = createVar();
@@ -70,7 +71,7 @@ export class CaseInsensitiveTextTaker implements TakerCodegen {
   constructor(public str: string) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const {str} = this;
 
     const charCodeVar = createVar();

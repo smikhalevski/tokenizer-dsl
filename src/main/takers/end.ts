@@ -9,7 +9,7 @@ import {createCodeBindings} from './taker-utils';
  *
  * @see {@link skip}
  */
-export function end(offset = 0): Taker {
+export function end(offset = 0): Taker<any> {
   return new EndTaker(offset);
 }
 
@@ -18,7 +18,7 @@ export class EndTaker implements TakerCodegen {
   constructor(public offset: number) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const {offset} = this;
 
     return createCodeBindings([

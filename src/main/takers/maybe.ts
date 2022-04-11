@@ -9,19 +9,19 @@ import {createCodeBindings, createTakerCallCode} from './taker-utils';
  *
  * @param taker The taker which match must be considered optional.
  */
-export function maybe(taker: Taker): Taker {
+export function maybe<C = any>(taker: Taker<C>): Taker<C> {
   if (taker === none || taker === never) {
     return none;
   }
   return new MaybeTaker(taker);
 }
 
-export class MaybeTaker implements TakerCodegen {
+export class MaybeTaker<C> implements TakerCodegen {
 
-  constructor(public taker: Taker) {
+  constructor(public taker: Taker<C>) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
 
     const bindings: Binding[] = [];
     const takerResultVar = createVar();
@@ -29,7 +29,7 @@ export class MaybeTaker implements TakerCodegen {
     return createCodeBindings(
         [
           'var ', takerResultVar, ';',
-          createTakerCallCode(this.taker, inputVar, offsetVar, takerResultVar, bindings),
+          createTakerCallCode(this.taker, inputVar, offsetVar, contextVar, takerResultVar, bindings),
           resultVar, '=', takerResultVar, '===', NO_MATCH, '?', offsetVar, ':', takerResultVar, ';',
         ],
         bindings,

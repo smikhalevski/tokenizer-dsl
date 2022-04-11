@@ -35,7 +35,7 @@ test('readme example', () => {
       ),
   );
 
-  const takeNumber = toTakerFunction(numberTaker);
+  const takeNumber = toTakerFunction<void>(numberTaker);
 
   expect(takeNumber('', 0)).toBe(NO_MATCH);
   expect(takeNumber('0', 0)).toBe(1);

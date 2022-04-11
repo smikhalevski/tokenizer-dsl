@@ -1,6 +1,6 @@
 import {Binding, Code, Var} from '../code';
 
-export type Taker = TakerFunction | TakerCodegen;
+export type Taker<C> = TakerFunction<C> | TakerCodegen;
 
 /**
  * Takes the string `input` and the offset in this string `offset` and returns the new offset in `input` if taker
@@ -13,7 +13,7 @@ export type Taker = TakerFunction | TakerCodegen;
  * };
  * ```
  */
-export type TakerFunction = (input: string, offset: number) => number;
+export type TakerFunction<C> = (input: string, offset: number, context: C) => number;
 
 /**
  * Factory that returns the taker code and values for variables that must be bound to the taker.
@@ -25,7 +25,7 @@ export interface TakerCodegen {
    * `inputVar` and `offsetVar` to `resultVar`. The produced code must be a semicolon-terminated statement.
    *
    * ```ts
-   * const abcTakerCodegenFactory: TakerCodegenFactory = (inputVar, offsetVar, resultVar) => {
+   * const abcTakerCodegenFactory: TakerCodegenFactory = (inputVar, offsetVar, contextVar, resultVar) => {
    *   const abcVar = Symbol();
    *   return {
    *     code: [resultVar, '=', inputVar, '.startsWith(', abcVar, ',', offsetVar, ')?', offsetVar, '+3:', NO_MATCH, ';'],
@@ -34,7 +34,7 @@ export interface TakerCodegen {
    * };
    * ```
    */
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings;
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings;
 }
 
 export interface CodeBindings {

@@ -31,7 +31,7 @@ export interface AllOptions {
  * @param taker The taker that takes chars.
  * @param options Taker options.
  */
-export function all(taker: Taker, options: AllOptions = {}): Taker {
+export function all<C = any>(taker: Taker<C>, options: AllOptions = {}): Taker<C> {
 
   let {
     minimumCount = 0,
@@ -70,7 +70,7 @@ export class AllCharCodeRangeTaker implements TakerCodegen {
   constructor(public charCodeRanges: CharCodeRange[], public minimumCount: number, public maximumCount: number) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const {charCodeRanges, minimumCount, maximumCount} = this;
 
     const inputLengthVar = createVar();
@@ -106,7 +106,7 @@ export class AllCaseSensitiveTextTaker implements TakerCodegen {
   constructor(public str: string, public minimumCount: number, public maximumCount: number) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const {str, minimumCount, maximumCount} = this;
 
     const strVar = createVar();
@@ -155,7 +155,7 @@ export class AllRegexTaker implements TakerCodegen {
     );
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
 
     const reVar = createVar();
     const arrVar = createVar();
@@ -171,12 +171,12 @@ export class AllRegexTaker implements TakerCodegen {
   }
 }
 
-export class AllTaker implements TakerCodegen {
+export class AllTaker<C> implements TakerCodegen {
 
-  constructor(public taker: Taker, public minimumCount: number, public maximumCount: number) {
+  constructor(public taker: Taker<C>, public minimumCount: number, public maximumCount: number) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const {taker, minimumCount, maximumCount} = this;
 
     const bindings: Binding[] = [];
@@ -195,7 +195,7 @@ export class AllTaker implements TakerCodegen {
           ';',
           'do{',
           indexVar, '=', takerResultVar, ';',
-          createTakerCallCode(taker, inputVar, indexVar, takerResultVar, bindings),
+          createTakerCallCode(taker, inputVar, indexVar, contextVar, takerResultVar, bindings),
           '}while(',
           takerResultVar, '>', indexVar,
           minimumCount || maximumCount ? ['&&++', takeCountVar, maximumCount ? '<' + maximumCount : ''] : '',

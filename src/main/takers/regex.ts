@@ -7,7 +7,7 @@ import {createCodeBindings} from './taker-utils';
  *
  * @param re The `RegExp` to match.
  */
-export function regex(re: RegExp): Taker {
+export function regex(re: RegExp): Taker<any> {
   return new RegexTaker(re);
 }
 
@@ -19,7 +19,7 @@ export class RegexTaker implements TakerCodegen {
     this.re = RegExp(re.source, re.flags.replace(/[yg]/, '') + (re.sticky !== undefined ? 'y' : 'g'));
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
 
     const reVar = createVar();
     const arrVar = createVar();

@@ -9,7 +9,7 @@ import {createCodeBindings} from './taker-utils';
  *
  * @see {@link end}
  */
-export function skip(charCount: number): Taker {
+export function skip(charCount: number): Taker<any> {
   return new SkipTaker(charCount);
 }
 
@@ -18,7 +18,7 @@ export class SkipTaker implements TakerCodegen {
   constructor(public charCount: number) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const {charCount} = this;
     return createCodeBindings([
       resultVar, '=', offsetVar, '+', charCount, '<=', inputVar, '.length?', offsetVar, '+', charCount, ':', NO_MATCH, ';',

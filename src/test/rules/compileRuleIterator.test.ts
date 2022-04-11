@@ -36,7 +36,7 @@ describe('compileRuleIterator', () => {
       stageIndex: -1,
     };
 
-    ruleIterator(state, false, handler);
+    ruleIterator(state, false, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(4);
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
@@ -66,7 +66,7 @@ describe('compileRuleIterator', () => {
       stageIndex: -1,
     };
 
-    ruleIterator(state, true, handler);
+    ruleIterator(state, true, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(2);
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
@@ -94,7 +94,7 @@ describe('compileRuleIterator', () => {
       stageIndex: -1,
     };
 
-    ruleIterator(state, false, handler);
+    ruleIterator(state, false, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
@@ -123,7 +123,7 @@ describe('compileRuleIterator', () => {
       stageIndex: -1,
     };
 
-    ruleIterator(state, false, handler);
+    ruleIterator(state, false, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 1002, 1003);
@@ -152,7 +152,7 @@ describe('compileRuleIterator', () => {
       stageIndex: -1,
     };
 
-    ruleIterator(state, false, handler);
+    ruleIterator(state, false, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(2);
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 1002, 1003);
@@ -184,7 +184,7 @@ describe('compileRuleIterator', () => {
       stageIndex: -1,
     };
 
-    ruleIterator(state, false, handler);
+    ruleIterator(state, false, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(1);
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 1002, 1005);
@@ -216,7 +216,7 @@ describe('compileRuleIterator', () => {
       stageIndex: ruleIterator.uniqueStages.indexOf('A'),
     };
 
-    ruleIterator(state, true, handler);
+    ruleIterator(state, true, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);

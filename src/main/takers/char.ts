@@ -13,7 +13,7 @@ export type CharCodeRange = number | [number, number];
  *
  * @see {@link text}
  */
-export function char(ranges: (string | number | [number, number])[]): Taker {
+export function char(ranges: (string | number | [number, number])[]): Taker<any> {
   const charCodeRanges: CharCodeRange[] = [];
 
   for (const range of ranges) {
@@ -36,7 +36,7 @@ export class CharCodeRangeTaker implements TakerCodegen {
   constructor(public charCodeRanges: CharCodeRange[]) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const charCodeVar = createVar();
 
     return createCodeBindings([

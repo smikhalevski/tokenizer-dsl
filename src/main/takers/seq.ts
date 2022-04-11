@@ -9,9 +9,9 @@ import {createCodeBindings, createTakerCallCode} from './taker-utils';
  *
  * @param takers Takers that are called.
  */
-export function seq(...takers: Taker[]): Taker {
+export function seq<C = any>(...takers: Taker<C>[]): Taker<C> {
 
-  const children: Taker[] = [];
+  const children: Taker<C>[] = [];
 
   for (const taker of takers) {
     if (taker instanceof SeqTaker) {
@@ -35,12 +35,12 @@ export function seq(...takers: Taker[]): Taker {
   return new SeqTaker(children);
 }
 
-export class SeqTaker implements TakerCodegen {
+export class SeqTaker<C> implements TakerCodegen {
 
-  constructor(public takers: Taker[]) {
+  constructor(public takers: Taker<C>[]) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
+  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const {takers} = this;
 
     const takersLength = takers.length;
@@ -53,7 +53,7 @@ export class SeqTaker implements TakerCodegen {
 
       code.push(
           'var ', takerResultVar, ';',
-          createTakerCallCode(taker, inputVar, offsetVar, takerResultVar, bindings),
+          createTakerCallCode(taker, inputVar, offsetVar, contextVar, takerResultVar, bindings),
           'if(', takerResultVar, '<0){', resultVar, '=', takerResultVar, '}else{'
       );
 
@@ -61,7 +61,7 @@ export class SeqTaker implements TakerCodegen {
     }
 
     code.push(
-        createTakerCallCode(takers[takersLength - 1], inputVar, offsetVar, resultVar, bindings),
+        createTakerCallCode(takers[takersLength - 1], inputVar, offsetVar, contextVar, resultVar, bindings),
         '}'.repeat(takersLength - 1),
     );
     return createCodeBindings(code, bindings);

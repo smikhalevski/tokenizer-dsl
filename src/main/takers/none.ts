@@ -7,9 +7,9 @@ import {createCodeBindings} from './taker-utils';
  * @see {@link skip}
  * @see {@link end}
  */
-export const none: Taker = {
+export const none: Taker<any> = {
 
-  factory(inputVar, offsetVar, resultVar) {
+  factory(inputVar, offsetVar, contextVar, resultVar) {
     return createCodeBindings([
       resultVar, '=', offsetVar, ';',
     ]);

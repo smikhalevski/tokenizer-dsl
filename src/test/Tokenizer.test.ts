@@ -25,7 +25,7 @@ describe('Tokenizer', () => {
     const tokenizer = new Tokenizer([
       ruleA,
       ruleB,
-    ], handler);
+    ], handler, undefined);
 
     tokenizer.write('aabbb');
 
@@ -58,7 +58,7 @@ describe('Tokenizer', () => {
     const tokenizer = new Tokenizer([
       ruleA,
       ruleB,
-    ], handler);
+    ], handler, undefined);
 
     tokenizer.end('aab');
 

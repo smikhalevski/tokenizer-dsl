@@ -4,9 +4,9 @@ import {createCodeBindings} from './taker-utils';
 /**
  * The singleton taker that always returns {@link NO_MATCH}.
  */
-export const never: Taker = {
+export const never: Taker<any> = {
 
-  factory(inputVar, offsetVar, resultVar) {
+  factory(inputVar, offsetVar, contextVar, resultVar) {
     return createCodeBindings([
       resultVar, '=', NO_MATCH, ';'
     ]);
