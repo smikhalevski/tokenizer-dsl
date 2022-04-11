@@ -25,8 +25,8 @@ export function assembleCode(code: Code, varRenamer: VarRenamer): string {
   }
   if (Array.isArray(code)) {
     let str = '';
-    for (const childCode of code) {
-      str += assembleCode(childCode, varRenamer);
+    for (let i = 0; i < code.length; ++i) {
+      str += assembleCode(code[i], varRenamer);
     }
     return str;
   }

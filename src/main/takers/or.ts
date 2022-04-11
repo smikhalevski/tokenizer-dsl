@@ -1,6 +1,6 @@
 import {Binding, Code, Var} from '../code';
-import {InternalTaker, NO_MATCH, Qqq, Taker} from './taker-types';
-import {createQqq, createSymbol, createTakerCall} from './taker-utils';
+import {InternalTaker, NO_MATCH, CodeBindings, Taker} from './taker-types';
+import {createCodeBindings, createTakerType, createTakerCall} from './taker-utils';
 
 /**
  * Returns the result of the first matched taker.
@@ -11,7 +11,7 @@ export function or(...takers: Taker[]): Taker {
   return new OrTaker(takers);
 }
 
-export const OR_TYPE = createSymbol();
+export const OR_TYPE = createTakerType();
 
 export class OrTaker implements InternalTaker {
 
@@ -20,7 +20,7 @@ export class OrTaker implements InternalTaker {
   constructor(public takers: Taker[]) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
     const {takers} = this;
 
     const takersLength = takers.length;
@@ -37,6 +37,6 @@ export class OrTaker implements InternalTaker {
     }
     code.push('}'.repeat(takersLength - 1));
 
-    return createQqq(code, bindings);
+    return createCodeBindings(code, bindings);
   }
 }

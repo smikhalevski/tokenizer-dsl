@@ -1,5 +1,5 @@
 import {NO_MATCH, Taker} from './taker-types';
-import {createQqq} from './taker-utils';
+import {createCodeBindings} from './taker-utils';
 
 /**
  * The singleton taker that always returns {@link NO_MATCH}.
@@ -7,7 +7,7 @@ import {createQqq} from './taker-utils';
 export const never: Taker = {
 
   factory(inputVar, offsetVar, resultVar) {
-    return createQqq([
+    return createCodeBindings([
       resultVar, '=', NO_MATCH, ';'
     ]);
   }

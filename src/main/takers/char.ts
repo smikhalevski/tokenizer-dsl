@@ -1,6 +1,6 @@
 import {Code, createVar, Var} from '../code';
-import {CharCodeRange, InternalTaker, NO_MATCH, Qqq, Taker} from './taker-types';
-import {createQqq, createSymbol, toCharCodes} from './taker-utils';
+import {CharCodeRange, InternalTaker, NO_MATCH, CodeBindings, Taker} from './taker-types';
+import {createCodeBindings, createTakerType, toCharCodes} from './taker-utils';
 
 /**
  * Creates a taker that matches a single char by its code.
@@ -13,7 +13,7 @@ export function char(charCodeRanges: CharCodeRange[]): Taker {
   return new CharCodeRangeTaker(charCodeRanges);
 }
 
-export const CHAR_CODE_RANGE_TYPE = createSymbol();
+export const CHAR_CODE_RANGE_TYPE = createTakerType();
 
 export class CharCodeRangeTaker implements InternalTaker {
 
@@ -22,10 +22,10 @@ export class CharCodeRangeTaker implements InternalTaker {
   constructor(public charCodeRanges: CharCodeRange[]) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
     const charCodeVar = createVar();
 
-    return createQqq([
+    return createCodeBindings([
       'var ', charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, ');',
       resultVar, '=', createCharCodePredicate(charCodeVar, this.charCodeRanges), '?', offsetVar, '+1:', NO_MATCH, ';',
     ]);

@@ -1,5 +1,5 @@
 import {Taker} from './taker-types';
-import {createQqq} from './taker-utils';
+import {createCodeBindings} from './taker-utils';
 
 /**
  * The singleton taker that always returns the current offset.
@@ -7,7 +7,7 @@ import {createQqq} from './taker-utils';
 export const none: Taker = {
 
   factory(inputVar, offsetVar, resultVar) {
-    return createQqq([
+    return createCodeBindings([
       resultVar, '=', offsetVar, ';',
     ]);
   }

@@ -1,8 +1,8 @@
 import {Code, createVar, Var} from '../code';
 import {CharCodeRangeTaker} from './char';
 import {none} from './none';
-import {InternalTaker, NO_MATCH, Qqq, Taker} from './taker-types';
-import {createQqq, createSymbol, toCharCodes} from './taker-utils';
+import {InternalTaker, NO_MATCH, CodeBindings, Taker} from './taker-types';
+import {createCodeBindings, createTakerType, toCharCodes} from './taker-utils';
 
 export interface TextOptions {
 
@@ -46,8 +46,8 @@ export function text(str: string, options: TextOptions = {}): Taker {
   return new CaseSensitiveTextTaker(str);
 }
 
-export const CASE_SENSITIVE_TEXT_TYPE = createSymbol();
-export const CASE_INSENSITIVE_TEXT_TYPE = createSymbol();
+export const CASE_SENSITIVE_TEXT_TYPE = createTakerType();
+export const CASE_INSENSITIVE_TEXT_TYPE = createTakerType();
 
 export class CaseSensitiveTextTaker implements InternalTaker {
 
@@ -56,10 +56,10 @@ export class CaseSensitiveTextTaker implements InternalTaker {
   constructor(public str: string) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
     const {str} = this;
     const strVar = createVar();
-    return createQqq(
+    return createCodeBindings(
         [
           resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
           toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, '+', i, ')===', charCode]),
@@ -77,7 +77,7 @@ export class CaseInsensitiveTextTaker implements InternalTaker {
   constructor(public str: string) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
     const {str} = this;
 
     const charCodeVar = createVar();
@@ -110,6 +110,6 @@ export class CaseInsensitiveTextTaker implements InternalTaker {
     }
     code.push('?', offsetVar, ':', NO_MATCH, ';');
 
-    return createQqq(code);
+    return createCodeBindings(code);
   }
 }

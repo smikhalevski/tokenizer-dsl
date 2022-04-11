@@ -1,5 +1,5 @@
 import {Binding, Code, createVar, Var} from '../code';
-import {InternalTaker, Qqq, Taker, TakerCodegen} from './taker-types';
+import {InternalTaker, CodeBindings, Taker, TakerCodegen} from './taker-types';
 
 export function isInternalTaker<T extends InternalTaker>(type: T['type'], taker: Taker | InternalTaker): taker is T {
   return 'type' in taker && taker.type === type;
@@ -31,10 +31,10 @@ export function createTakerCall(taker: Taker, inputVar: Var, offsetVar: Var, ret
   return [returnVar, '=', takerVar, '(', inputVar, ',', offsetVar, ')', ';'];
 }
 
-export function createQqq(code: Code, bindings?: Binding[]): Qqq {
+export function createCodeBindings(code: Code, bindings?: Binding[]): CodeBindings {
   return {code, bindings};
 }
 
-export function createSymbol() {
+export function createTakerType() {
   return Symbol();
 }

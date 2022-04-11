@@ -4,14 +4,14 @@ import {MaybeTaker} from './maybe';
 import {never} from './never';
 import {none} from './none';
 import {REGEX_TYPE, RegexTaker} from './regex';
-import {CharCodeRange, InternalTaker, NO_MATCH, Qqq, Taker} from './taker-types';
-import {createQqq, createSymbol, createTakerCall, isInternalTaker, toCharCodes} from './taker-utils';
+import {CharCodeRange, InternalTaker, NO_MATCH, CodeBindings, Taker} from './taker-types';
+import {createCodeBindings, createTakerType, createTakerCall, isInternalTaker, toCharCodes} from './taker-utils';
 import {CASE_SENSITIVE_TEXT_TYPE, CaseSensitiveTextTaker} from './text';
 
-export const ALL_CHAR_CODE_RANGE_TYPE = createSymbol();
-export const ALL_CASE_SENSITIVE_TEXT_TYPE = createSymbol();
-export const ALL_REGEX_TYPE = createSymbol();
-export const ALL_GENERIC_TYPE = createSymbol();
+export const ALL_CHAR_CODE_RANGE_TYPE = createTakerType();
+export const ALL_CASE_SENSITIVE_TEXT_TYPE = createTakerType();
+export const ALL_REGEX_TYPE = createTakerType();
+export const ALL_GENERIC_TYPE = createTakerType();
 
 export interface AllOptions {
 
@@ -77,7 +77,7 @@ export class AllCharCodeRangeTaker implements InternalTaker {
   constructor(public charCodeRanges: CharCodeRange[], public minimumCount: number, public maximumCount: number) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
     const {charCodeRanges, minimumCount, maximumCount} = this;
 
     const inputLengthVar = createVar();
@@ -85,7 +85,7 @@ export class AllCharCodeRangeTaker implements InternalTaker {
     const charCodeVar = createVar();
     const takeCountVar = createVar();
 
-    return createQqq([
+    return createCodeBindings([
       'var ',
       inputLengthVar, '=', inputVar, '.length,',
       indexVar, '=', offsetVar, ',',
@@ -115,7 +115,7 @@ export class AllCaseSensitiveTextTaker implements InternalTaker {
   constructor(public str: string, public minimumCount: number, public maximumCount: number) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
     const {str, minimumCount, maximumCount} = this;
 
     const strVar = createVar();
@@ -123,7 +123,7 @@ export class AllCaseSensitiveTextTaker implements InternalTaker {
     const indexVar = createVar();
     const takeCountVar = createVar();
 
-    return createQqq(
+    return createCodeBindings(
         [
           'var ',
           inputLengthVar, '=', inputVar, '.length,',
@@ -165,12 +165,12 @@ export class AllRegexTaker implements InternalTaker {
     );
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
 
     const reVar = createVar();
     const arrVar = createVar();
 
-    return createQqq(
+    return createCodeBindings(
         [
           reVar, '.lastIndex=', offsetVar, ';',
           'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
@@ -188,7 +188,7 @@ export class AllGenericTaker implements InternalTaker {
   constructor(public taker: Taker, public minimumCount: number, public maximumCount: number) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
     const {taker, minimumCount, maximumCount} = this;
 
     const bindings: Binding[] = [];
@@ -197,7 +197,7 @@ export class AllGenericTaker implements InternalTaker {
     const takerResultVar = createVar();
     const takeCountVar = createVar();
 
-    return createQqq(
+    return createCodeBindings(
         [
           'var ',
           inputLengthVar, '=', inputVar, '.length,',

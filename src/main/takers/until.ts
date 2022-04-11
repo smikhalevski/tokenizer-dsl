@@ -3,8 +3,8 @@ import {CHAR_CODE_RANGE_TYPE, CharCodeRangeTaker, createCharCodePredicate} from 
 import {never} from './never';
 import {none} from './none';
 import {REGEX_TYPE, RegexTaker} from './regex';
-import {CharCodeRange, InternalTaker, NO_MATCH, Qqq, Taker} from './taker-types';
-import {createQqq, createSymbol, createTakerCall, isInternalTaker} from './taker-utils';
+import {CharCodeRange, InternalTaker, NO_MATCH, CodeBindings, Taker} from './taker-types';
+import {createCodeBindings, createTakerType, createTakerCall, isInternalTaker} from './taker-utils';
 import {CASE_SENSITIVE_TEXT_TYPE, CaseSensitiveTextTaker} from './text';
 
 export interface UntilOptions {
@@ -47,10 +47,10 @@ export function until(taker: Taker, options: UntilOptions = {}): Taker {
   return new UntilGenericTaker(taker, inclusive);
 }
 
-export const UNTIL_CASE_SENSITIVE_TEXT_TYPE = createSymbol();
-export const UNTIL_CHAR_CODE_RANGE_TYPE = createSymbol();
-export const UNTIL_REGEX_TYPE = createSymbol();
-export const UNTIL_GENERIC_TYPE = createSymbol();
+export const UNTIL_CASE_SENSITIVE_TEXT_TYPE = createTakerType();
+export const UNTIL_CHAR_CODE_RANGE_TYPE = createTakerType();
+export const UNTIL_REGEX_TYPE = createTakerType();
+export const UNTIL_GENERIC_TYPE = createTakerType();
 
 export class UntilCharCodeRangeTaker implements InternalTaker {
 
@@ -59,13 +59,13 @@ export class UntilCharCodeRangeTaker implements InternalTaker {
   constructor(public charCodeRanges: CharCodeRange[], public inclusive: boolean) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
 
     const inputLengthVar = createVar();
     const indexVar = createVar();
     const charCodeVar = createVar();
 
-    return createQqq([
+    return createCodeBindings([
       'var ',
       inputLengthVar, '=', inputVar, '.length,',
       indexVar, '=', offsetVar, ',',
@@ -86,12 +86,12 @@ export class UntilCaseSensitiveTextTaker implements InternalTaker {
   constructor(public str: string, public inclusive: boolean) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
 
     const strVar = createVar();
     const indexVar = createVar();
 
-    return createQqq(
+    return createCodeBindings(
         [
           'var ', indexVar, '=', inputVar, '.indexOf(', strVar, ',', offsetVar, ');',
           resultVar, '=', indexVar, '===-1?', NO_MATCH, ':', indexVar, this.inclusive ? '+' + this.str.length : '', ';',
@@ -110,12 +110,12 @@ export class UntilRegexTaker implements InternalTaker {
     this.re = RegExp(re.source, re.flags.replace(/[yg]/, '') + 'g');
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
 
     const reVar = createVar();
     const arrVar = createVar();
 
-    return createQqq(
+    return createCodeBindings(
         [
           reVar, '.lastIndex=', offsetVar, ';',
           'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
@@ -133,14 +133,14 @@ export class UntilGenericTaker implements InternalTaker {
   constructor(public taker: Taker, public inclusive: boolean) {
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
 
     const bindings: Binding[] = [];
     const inputLengthVar = createVar();
     const indexVar = createVar();
     const takerResultVar = createVar();
 
-    return createQqq([
+    return createCodeBindings([
       'var ',
       inputLengthVar, '=', inputVar, '.length,',
       indexVar, '=', offsetVar, ',',

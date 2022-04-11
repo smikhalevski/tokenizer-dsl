@@ -1,6 +1,6 @@
 import {createVar, Var} from '../code';
-import {InternalTaker, NO_MATCH, Qqq, Taker} from './taker-types';
-import {createQqq, createSymbol} from './taker-utils';
+import {InternalTaker, NO_MATCH, CodeBindings, Taker} from './taker-types';
+import {createCodeBindings, createTakerType} from './taker-utils';
 
 /**
  * Creates taker that matches a substring.
@@ -11,7 +11,7 @@ export function regex(re: RegExp): Taker {
   return new RegexTaker(re);
 }
 
-export const REGEX_TYPE = createSymbol();
+export const REGEX_TYPE = createTakerType();
 
 export class RegexTaker implements InternalTaker {
 
@@ -22,12 +22,12 @@ export class RegexTaker implements InternalTaker {
     this.re = RegExp(re.source, re.flags.replace(/[yg]/, '') + (re.sticky !== undefined ? 'y' : 'g'));
   }
 
-  factory(inputVar: Var, offsetVar: Var, resultVar: Var): Qqq {
+  factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
 
     const reVar = createVar();
     const arrVar = createVar();
 
-    return createQqq(
+    return createCodeBindings(
         [
           reVar, '.lastIndex=', offsetVar, ';',
           'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
