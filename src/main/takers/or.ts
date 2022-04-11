@@ -1,4 +1,6 @@
 import {Binding, Code, Var} from '../code';
+import {never} from './never';
+import {none} from './none';
 import {CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
 import {createCodeBindings, createTakerCallCode} from './taker-utils';
 
@@ -8,7 +10,29 @@ import {createCodeBindings, createTakerCallCode} from './taker-utils';
  * @param takers Takers that are called.
  */
 export function or(...takers: Taker[]): Taker {
-  return new OrTaker(takers);
+
+  const children: Taker[] = [];
+
+  for (const taker of takers) {
+    if (taker === none) {
+      break;
+    }
+    if (taker instanceof OrTaker) {
+      children.push(...taker.takers);
+      continue;
+    }
+    if (taker !== never) {
+      children.push(taker);
+    }
+  }
+  if (children.length === 0) {
+    return none;
+  }
+  if (children.length === 1) {
+    return children[0];
+  }
+
+  return new OrTaker(children);
 }
 
 export class OrTaker implements TakerCodegen {

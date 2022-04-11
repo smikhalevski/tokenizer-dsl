@@ -46,9 +46,3 @@ export interface CodeBindings {
  * OK return code that means that taker didn't match any chars.
  */
 export const NO_MATCH = -1;
-
-/**
- * A string containing chars that should be used as char codes, a char code integer value, or a tuple of two chars codes
- * that describe a range.
- */
-export type CharCodeRange = string | number | [number, number];

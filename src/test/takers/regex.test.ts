@@ -1,33 +1,30 @@
-import {TakerCodegen, NO_MATCH} from '../../main';
-import {createRegexTaker, regex} from '../../main/takers';
+import {NO_MATCH} from '../../main';
+import {toTakerFunction} from '../../main/rules';
+import {regex, RegexTaker} from '../../main/takers';
 
 describe('regex', () => {
 
   test('returns RegexTaker', () => {
-    expect((regex(/abc/) as TakerCodegen).type).toBe(REGEX_TYPE);
+    expect(regex(/abc/)).toBeInstanceOf(RegexTaker);
   });
 });
 
-describe('createRegexTaker', () => {
+describe('RegexTaker', () => {
 
   test('takes text', () => {
-    const taker = createRegexTaker(/abc/);
+    const take = toTakerFunction(new RegexTaker(/abc/));
 
-    expect(taker('aaaabc', 3)).toBe(6);
-    expect(taker('aaaabcde', 3)).toBe(6);
-    expect(taker('aaaab', 3)).toBe(NO_MATCH);
-    expect(taker('aaaABC', 3)).toBe(NO_MATCH);
+    expect(take('aaaabc', 3)).toBe(6);
+    expect(take('aaaabcde', 3)).toBe(6);
+    expect(take('aaaab', 3)).toBe(NO_MATCH);
+    expect(take('aaaABC', 3)).toBe(NO_MATCH);
   });
 
   test('starts from the given offset', () => {
-    const taker = createRegexTaker(/abc/);
-
-    expect(taker('aaaabcabc', 6)).toBe(9);
+    expect(toTakerFunction(new RegexTaker(/abc/))('aaaabcabc', 6)).toBe(9);
   });
 
   test('ignores matches that do not start at offset', () => {
-    const taker = createRegexTaker(/abc/);
-
-    expect(taker('aaaabcabc', 5)).toBe(NO_MATCH);
+    expect(toTakerFunction(new RegexTaker(/abc/))('aaaabcabc', 5)).toBe(NO_MATCH);
   });
 });

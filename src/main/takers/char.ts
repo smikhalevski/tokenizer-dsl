@@ -1,15 +1,33 @@
 import {Code, createVar, Var} from '../code';
-import {CharCodeRange, CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
+import {none} from './none';
+import {CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
 import {createCodeBindings, toCharCodes} from './taker-utils';
+
+export type CharCodeRange = number | [number, number];
 
 /**
  * Creates a taker that matches a single char by its code.
  *
- * @param charCodeRanges An array of char codes, or tuples of lower/upper char codes that define an inclusive range of codes.
+ * @param ranges An array of char codes, or tuples of lower/upper char codes that define an inclusive range of codes.
+ * If a string is provided then any char from the string would fit.
  *
  * @see {@link text}
  */
-export function char(charCodeRanges: CharCodeRange[]): Taker {
+export function char(ranges: (string | number | [number, number])[]): Taker {
+  const charCodeRanges: CharCodeRange[] = [];
+
+  for (const range of ranges) {
+
+    if (typeof range === 'string') {
+      charCodeRanges.push(...toCharCodes(range));
+    } else {
+      charCodeRanges.push(range);
+    }
+  }
+  if (charCodeRanges.length === 0) {
+    return none;
+  }
+
   return new CharCodeRangeTaker(charCodeRanges);
 }
 
@@ -32,17 +50,16 @@ export function createCharPredicateCode(charCodeVar: Var, charCodeRanges: CharCo
   const code: Code[] = [];
 
   for (let i = 0; i < charCodeRanges.length; ++i) {
-    const value = charCodeRanges[i];
+    const range = charCodeRanges[i];
 
-    if (typeof value === 'string') {
-      code.push(createCharPredicateCode(charCodeVar, toCharCodes(value)));
-      continue;
+    if (i > 0) {
+      code.push('||');
     }
-    if (typeof value === 'number') {
-      code.push('||', charCodeVar, '===', value | 0);
+    if (typeof range === 'number') {
+      code.push(charCodeVar, '===', range);
     } else {
-      code.push('||', charCodeVar, '>=', value[0] | 0, '&&', charCodeVar, '<=', value[1] | 0);
+      code.push(charCodeVar, '>=', range[0], '&&', charCodeVar, '<=', range[1]);
     }
   }
-  return code.slice(1);
+  return code;
 }

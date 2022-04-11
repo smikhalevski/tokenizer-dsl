@@ -1,5 +1,6 @@
-import {TakerCodegen, never, NO_MATCH, none, TakerFunction, text} from '../../main';
-import {createSeqTaker, seq} from '../../main/takers';
+import {never, NO_MATCH, none, TakerFunction, text} from '../../main';
+import {toTakerFunction} from '../../main/rules';
+import {seq, SeqTaker} from '../../main/takers';
 
 describe('seq', () => {
 
@@ -18,11 +19,11 @@ describe('seq', () => {
   });
 
   test('returns SeqTaker', () => {
-    expect((seq(text('aaa'), text('bbb')) as TakerCodegen).type).toBe(SEQ_TYPE);
+    expect(seq(text('aaa'), text('bbb'))).toBeInstanceOf(SeqTaker);
   });
 });
 
-describe('createSeqTaker', () => {
+describe('SeqTaker', () => {
 
   test('fails if any of takers fail', () => {
     const takerMock = jest.fn();
@@ -30,12 +31,12 @@ describe('createSeqTaker', () => {
     takerMock.mockReturnValueOnce(NO_MATCH);
     takerMock.mockReturnValueOnce(5);
 
-    expect(createSeqTaker([takerMock, takerMock, takerMock])('aabbcc', 2)).toBe(NO_MATCH);
+    expect(toTakerFunction(new SeqTaker([takerMock, takerMock, takerMock]))('aabbcc', 2)).toBe(NO_MATCH);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
   test('allows takers to return the same offset', () => {
-    expect(createSeqTaker([() => 2, () => 4])('aabbcc', 2)).toBe(4);
+    expect(toTakerFunction(new SeqTaker([() => 2, () => 4]))('aabbcc', 2)).toBe(4);
   });
 
   test('returns error result', () => {
@@ -44,11 +45,11 @@ describe('createSeqTaker', () => {
     takerMock.mockReturnValueOnce(-2);
     takerMock.mockReturnValueOnce(5);
 
-    expect(createSeqTaker([takerMock, takerMock, takerMock])('aabbcc', 2)).toBe(-2);
+    expect(toTakerFunction(new SeqTaker([takerMock, takerMock, takerMock]))('aabbcc', 2)).toBe(-2);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
   test('can use inline takers', () => {
-    expect(createSeqTaker([text('aa'), text('bb')])('aabbcc', 0)).toBe(4);
+    expect(toTakerFunction(new SeqTaker([text('aa'), text('bb')]))('aabbcc', 0)).toBe(4);
   });
 });

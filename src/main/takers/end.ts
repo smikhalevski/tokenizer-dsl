@@ -6,6 +6,8 @@ import {createCodeBindings} from './taker-utils';
  * Creates taker that returns the input length plus the offset.
  *
  * @param offset The offset added to the input length.
+ *
+ * @see {@link skip}
  */
 export function end(offset = 0): Taker {
   return new EndTaker(offset);

@@ -1,5 +1,6 @@
-import {TakerCodegen, NO_MATCH, none, text} from '../../main';
-import {createCaseInsensitiveTextTaker, createCaseSensitiveTextTaker} from '../../main/takers';
+import {NO_MATCH, none, text} from '../../main';
+import {toTakerFunction} from '../../main/rules';
+import {CaseInsensitiveTextTaker, CaseSensitiveTextTaker} from '../../main/takers';
 
 describe('text', () => {
 
@@ -8,12 +9,12 @@ describe('text', () => {
   });
 
   test('returns CaseSensitiveTextTaker', () => {
-    expect((text('aaa') as TakerCodegen).type).toBe(CASE_SENSITIVE_TEXT_TYPE);
-    expect((text('123', {caseInsensitive: true}) as TakerCodegen).type).toBe(CASE_SENSITIVE_TEXT_TYPE);
+    expect(text('aaa')).toBeInstanceOf(CaseSensitiveTextTaker);
+    expect(text('123', {caseInsensitive: true})).toBeInstanceOf(CaseSensitiveTextTaker);
   });
 
   test('returns CaseInsensitiveTextTaker', () => {
-    expect((text('aaa', {caseInsensitive: true}) as TakerCodegen).type).toBe(CASE_INSENSITIVE_TEXT_TYPE);
+    expect(text('aaa', {caseInsensitive: true})).toBeInstanceOf(CaseInsensitiveTextTaker);
   });
 
   test('throws if text length is ambiguous', () => {
@@ -21,25 +22,25 @@ describe('text', () => {
   });
 });
 
-describe('createCaseSensitiveTextTaker', () => {
+describe('CaseSensitiveTextTaker', () => {
 
   test('takes case-sensitive text', () => {
-    const taker = createCaseSensitiveTextTaker('abc');
+    const take = toTakerFunction(new CaseSensitiveTextTaker('abc'));
 
-    expect(taker('aaaabc', 3)).toBe(6);
-    expect(taker('aaaabcde', 3)).toBe(6);
-    expect(taker('aaaab', 3)).toBe(NO_MATCH);
-    expect(taker('aaaABC', 3)).toBe(NO_MATCH);
+    expect(take('aaaabc', 3)).toBe(6);
+    expect(take('aaaabcde', 3)).toBe(6);
+    expect(take('aaaab', 3)).toBe(NO_MATCH);
+    expect(take('aaaABC', 3)).toBe(NO_MATCH);
   });
 });
 
-describe('createCaseInsensitiveTextTaker', () => {
+describe('CaseInsensitiveTextTaker', () => {
 
   test('takes case-insensitive text', () => {
-    const taker = createCaseInsensitiveTextTaker('abc');
+    const take = toTakerFunction(new CaseInsensitiveTextTaker('abc'));
 
-    expect(taker('AAAABC', 3)).toBe(6);
-    expect(taker('AAAABCDE', 3)).toBe(6);
-    expect(taker('AAAAB', 3)).toBe(NO_MATCH);
+    expect(take('AAAABC', 3)).toBe(6);
+    expect(take('AAAABCDE', 3)).toBe(6);
+    expect(take('AAAAB', 3)).toBe(NO_MATCH);
   });
 });

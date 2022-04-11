@@ -25,9 +25,7 @@ export function text(str: string, options: TextOptions = {}): Taker {
 
   const {caseInsensitive = false} = options;
 
-  const strLength = str.length;
-
-  if (strLength === 0) {
+  if (str.length === 0) {
     return none;
   }
 
@@ -40,7 +38,7 @@ export function text(str: string, options: TextOptions = {}): Taker {
     }
     return new CaseInsensitiveTextTaker(str);
   }
-  if (strLength === 1) {
+  if (str.length === 1) {
     return new CharCodeRangeTaker([str.charCodeAt(0)]);
   }
   return new CaseSensitiveTextTaker(str);

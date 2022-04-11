@@ -1,9 +1,9 @@
 import {Binding, createVar, Var} from '../code';
-import {CharCodeRangeTaker, createCharPredicateCode} from './char';
+import {CharCodeRange, CharCodeRangeTaker, createCharPredicateCode} from './char';
 import {never} from './never';
 import {none} from './none';
 import {RegexTaker} from './regex';
-import {CharCodeRange, CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
+import {CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
 import {createCodeBindings, createTakerCallCode} from './taker-utils';
 import {CaseSensitiveTextTaker} from './text';
 
@@ -44,7 +44,7 @@ export function until(taker: Taker, options: UntilOptions = {}): Taker {
   if (taker instanceof CaseSensitiveTextTaker) {
     return new UntilCaseSensitiveTextTaker(taker.str, inclusive);
   }
-  return new UntilGenericTaker(taker, inclusive);
+  return new UntilTaker(taker, inclusive);
 }
 
 export class UntilCharCodeRangeTaker implements TakerCodegen {
@@ -116,7 +116,7 @@ export class UntilRegexTaker implements TakerCodegen {
   }
 }
 
-export class UntilGenericTaker implements TakerCodegen {
+export class UntilTaker implements TakerCodegen {
 
   constructor(public taker: Taker, public inclusive: boolean) {
   }
@@ -128,16 +128,19 @@ export class UntilGenericTaker implements TakerCodegen {
     const indexVar = createVar();
     const takerResultVar = createVar();
 
-    return createCodeBindings([
-      'var ',
-      inputLengthVar, '=', inputVar, '.length,',
-      indexVar, '=', offsetVar, ',',
-      takerResultVar, '=', NO_MATCH, ';',
-      'while(', indexVar, '<', inputLengthVar, '&&', takerResultVar, '===', NO_MATCH, '){',
-      createTakerCallCode(this.taker, inputVar, indexVar, takerResultVar, bindings),
-      '++', indexVar,
-      '}',
-      resultVar, '=', takerResultVar, '<', 0, '?', takerResultVar, ':', this.inclusive ? takerResultVar : [indexVar, '-1'], ';',
-    ]);
+    return createCodeBindings(
+        [
+          'var ',
+          inputLengthVar, '=', inputVar, '.length,',
+          indexVar, '=', offsetVar, ',',
+          takerResultVar, '=', NO_MATCH, ';',
+          'while(', indexVar, '<', inputLengthVar, '&&', takerResultVar, '===', NO_MATCH, '){',
+          createTakerCallCode(this.taker, inputVar, indexVar, takerResultVar, bindings),
+          '++', indexVar,
+          '}',
+          resultVar, '=', takerResultVar, '<', 0, '?', takerResultVar, ':', this.inclusive ? takerResultVar : [indexVar, '-1'], ';',
+        ],
+        bindings,
+    );
   }
 }

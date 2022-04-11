@@ -6,8 +6,10 @@ import {createCodeBindings} from './taker-utils';
  * Creates taker that skips given number of chars.
  *
  * @param charCount The number of chars to skip.
+ *
+ * @see {@link end}
  */
-export function skip(charCount = 1): Taker {
+export function skip(charCount: number): Taker {
   return new SkipTaker(charCount);
 }
 

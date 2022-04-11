@@ -1,24 +1,24 @@
 import {Binding, createVar, Var} from '../code';
-import {CharCodeRangeTaker, createCharPredicateCode} from './char';
+import {CharCodeRange, CharCodeRangeTaker, createCharPredicateCode} from './char';
 import {MaybeTaker} from './maybe';
 import {never} from './never';
 import {none} from './none';
 import {RegexTaker} from './regex';
-import {CharCodeRange, CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
+import {CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
 import {createCodeBindings, createTakerCallCode, toCharCodes} from './taker-utils';
 import {CaseSensitiveTextTaker} from './text';
 
 export interface AllOptions {
 
   /**
-   * The minimum number of matches to consider success.
+   * The minimum number of matches to consider success. Must be a finite non-negative number, otherwise set to 0.
    *
    * @default 0
    */
   minimumCount?: number;
 
   /**
-   * The maximum number of matches to read. `Infinity` and non-positive numbers are treated as unlimited.
+   * The maximum number of matches to read. Must be a finite non-negative number, otherwise treated as unlimited.
    *
    * @default 0
    */
@@ -62,7 +62,7 @@ export function all(taker: Taker, options: AllOptions = {}): Taker {
   if (taker instanceof RegexTaker) {
     return new AllRegexTaker(taker.re, minimumCount, maximumCount);
   }
-  return new AllGenericTaker(taker, minimumCount, maximumCount);
+  return new AllTaker(taker, minimumCount, maximumCount);
 }
 
 export class AllCharCodeRangeTaker implements TakerCodegen {
@@ -171,7 +171,7 @@ export class AllRegexTaker implements TakerCodegen {
   }
 }
 
-export class AllGenericTaker implements TakerCodegen {
+export class AllTaker implements TakerCodegen {
 
   constructor(public taker: Taker, public minimumCount: number, public maximumCount: number) {
   }

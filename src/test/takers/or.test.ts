@@ -1,5 +1,6 @@
-import {TakerCodegen, NO_MATCH, none, or, TakerFunction, text} from '../../main';
-import {createOrTaker} from '../../main/takers';
+import {NO_MATCH, none, or, TakerFunction, text} from '../../main';
+import {toTakerFunction} from '../../main/rules';
+import {OrTaker} from '../../main/takers';
 
 describe('or', () => {
 
@@ -14,11 +15,11 @@ describe('or', () => {
 
   test('returns OrTaker', () => {
     const takerMock = jest.fn();
-    expect((or(takerMock, takerMock) as TakerCodegen).type).toBe(OR_TYPE);
+    expect(or(takerMock, takerMock)).toBeInstanceOf(OrTaker);
   });
 });
 
-describe('createOrTaker', () => {
+describe('OrTaker', () => {
 
   test('returns after the first match', () => {
     const takerMock = jest.fn();
@@ -26,7 +27,7 @@ describe('createOrTaker', () => {
     takerMock.mockReturnValueOnce(2);
     takerMock.mockReturnValueOnce(4);
 
-    expect(createOrTaker([takerMock, takerMock, takerMock])('aabbcc', 0)).toBe(2);
+    expect(toTakerFunction(new OrTaker([takerMock, takerMock, takerMock]))('aabbcc', 0)).toBe(2);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -34,7 +35,7 @@ describe('createOrTaker', () => {
     const takerMock = jest.fn();
     takerMock.mockReturnValue(NO_MATCH);
 
-    expect(createOrTaker([takerMock, takerMock])('aabbcc', 2)).toBe(NO_MATCH);
+    expect(toTakerFunction(new OrTaker([takerMock, takerMock]))('aabbcc', 2)).toBe(NO_MATCH);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -44,11 +45,11 @@ describe('createOrTaker', () => {
     takerMock.mockReturnValueOnce(-2);
     takerMock.mockReturnValueOnce(4);
 
-    expect(createOrTaker([takerMock, takerMock])('aabbcc', 2)).toBe(-2);
+    expect(toTakerFunction(new OrTaker([takerMock, takerMock]))('aabbcc', 2)).toBe(-2);
     expect(takerMock).toHaveBeenCalledTimes(2);
   });
 
   test('can use inline takers', () => {
-    expect(createOrTaker([text('bb'), text('aa')])('aabbcc', 0)).toBe(2);
+    expect(toTakerFunction(new OrTaker([text('bb'), text('aa')]))('aabbcc', 0)).toBe(2);
   });
 });

@@ -1,39 +1,42 @@
 import {all, char, maybe, NO_MATCH, or, seq, text} from '../../main';
+import {toTakerFunction} from '../../main/rules';
 
 test('readme example', () => {
 
-  const takeZero = text('0');
+  const zeroTaker = text('0');
 
-  const takeLeadingDigit = char([[49 /*1*/, 57 /*9*/]]);
+  const leadingDigitTaker = char([[49 /*1*/, 57 /*9*/]]);
 
-  const takeDigits = all(char([[48 /*0*/, 57 /*9*/]]));
-  // const takeDigits = all(char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
+  const digitsTaker = all(char([[48 /*0*/, 57 /*9*/]]));
+  // const digitsTaker = all(char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
 
-  const takeDot = text('.');
+  const dotTaker = text('.');
 
-  const takeSign = char([43 /*+*/, 45 /*-*/]);
+  const signTaker = char([43 /*+*/, 45 /*-*/]);
 
-  const takeNumber = seq(
+  const numberTaker = seq(
       // sign
-      maybe(takeSign),
+      maybe(signTaker),
 
       // integer
       or(
-          takeZero,
+          zeroTaker,
           seq(
-              takeLeadingDigit,
-              takeDigits,
+              leadingDigitTaker,
+              digitsTaker,
           ),
       ),
 
       // fraction
       maybe(
           seq(
-              takeDot,
-              takeDigits,
+              dotTaker,
+              digitsTaker,
           ),
       ),
   );
+
+  const takeNumber = toTakerFunction(numberTaker);
 
   expect(takeNumber('', 0)).toBe(NO_MATCH);
   expect(takeNumber('0', 0)).toBe(1);

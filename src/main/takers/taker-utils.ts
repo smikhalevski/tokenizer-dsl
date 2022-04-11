@@ -22,6 +22,7 @@ export function createTakerCallCode(taker: Taker, inputVar: Var, offsetVar: Var,
     }
     return source.code;
   }
+
   const takerVar = createVar();
   bindings.push([takerVar, taker]);
   return [returnVar, '=', takerVar, '(', inputVar, ',', offsetVar, ')', ';'];

@@ -1,48 +1,33 @@
-import {char, TakerCodegen, NO_MATCH, none} from '../../main';
-import {createCharCodeCheckerTaker, createCharCodeRangeTaker} from '../../main/takers';
+import {char, NO_MATCH, none} from '../../main';
+import {toTakerFunction} from '../../main/rules';
+import {CharCodeRangeTaker} from '../../main/takers';
 
 const A = 'a'.charCodeAt(0);
-const B = 'b'.charCodeAt(0);
 
 describe('char', () => {
 
   test('returns none', () => {
     expect(char([])).toBe(none);
-  });
-
-  test('returns CharCodeCheckerTaker', () => {
-    expect((char(() => false) as TakerCodegen).type).toBe(CHAR_CODE_CHECKER_TYPE);
+    expect(char([''])).toBe(none);
   });
 
   test('returns CharCodeRangeTaker', () => {
-    expect((char([0]) as TakerCodegen).type).toBe(CHAR_CODE_RANGE_TYPE);
+    expect(char([0])).toBeInstanceOf(CharCodeRangeTaker);
   });
 });
 
-describe('createCharCodeCheckerTaker', () => {
 
-  test('takes char at offset', () => {
-    expect(createCharCodeCheckerTaker((charCode) => charCode === A)('aaabbb', 2)).toBe(3);
-    expect(createCharCodeCheckerTaker((charCode) => charCode === B)('aaabbb', 4)).toBe(5);
-  });
-
-  test('does not read unmatched char', () => {
-    expect(createCharCodeCheckerTaker((charCode) => charCode === A)('aaabbb', 4)).toBe(NO_MATCH);
-    expect(createCharCodeCheckerTaker((charCode) => charCode === B)('aaabbb', 2)).toBe(NO_MATCH);
-  });
-});
-
-describe('createCharCodeRangeTaker', () => {
+describe('CharCodeRangeTaker', () => {
 
   test('takes exact char at offset', () => {
-    expect(createCharCodeRangeTaker([A])('aaabbb', 2)).toBe(3);
+    expect(toTakerFunction(new CharCodeRangeTaker([A]))('aaabbb', 2)).toBe(3);
   });
 
   test('takes char code range at offset', () => {
-    expect(createCharCodeRangeTaker([[A - 1, A + 1]])('aaabbb', 2)).toBe(3);
+    expect(toTakerFunction(new CharCodeRangeTaker([[A - 1, A + 1]]))('aaabbb', 2)).toBe(3);
   });
 
   test('does not read unmatched char', () => {
-    expect(createCharCodeRangeTaker([A])('aaabbb', 4)).toBe(NO_MATCH);
+    expect(toTakerFunction(new CharCodeRangeTaker([A]))('aaabbb', 4)).toBe(NO_MATCH);
   });
 });
