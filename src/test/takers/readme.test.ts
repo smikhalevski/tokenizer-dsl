@@ -7,11 +7,10 @@ test('readme example', () => {
   const leadingDigitTaker = char([[49 /*1*/, 57 /*9*/]]);
 
   const digitsTaker = all(char([[48 /*0*/, 57 /*9*/]]));
-  // const digitsTaker = all(char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
 
   const dotTaker = text('.');
 
-  const signTaker = char([43 /*+*/, 45 /*-*/]);
+  const signTaker = char(['+-']);
 
   const numberTaker = seq(
       // sign
