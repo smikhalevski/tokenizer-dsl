@@ -1,4 +1,4 @@
-import {Taker, toTakerFunction} from '../takers';
+import {Taker} from '../takers';
 import {Rule, StageProvider} from './rule-types';
 
 /**
@@ -12,9 +12,5 @@ import {Rule, StageProvider} from './rule-types';
  * @returns The tokenization rule definition.
  */
 export function createRule<S = any, C = any>(taker: Taker<C>, stages?: S[], nextStage?: StageProvider<S, C> | S): Rule<S, C> {
-  return {
-    taker: toTakerFunction(taker),
-    stages,
-    nextStage,
-  };
+  return {taker, stages, nextStage};
 }
