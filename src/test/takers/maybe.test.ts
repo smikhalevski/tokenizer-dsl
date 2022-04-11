@@ -1,4 +1,4 @@
-import {InternalTaker, maybe, never, NO_MATCH, none, text} from '../../main';
+import {TakerCodegen, maybe, never, NO_MATCH, none, text} from '../../main';
 import {createMaybeTaker} from '../../main/takers';
 
 describe('maybe', () => {
@@ -12,7 +12,7 @@ describe('maybe', () => {
   });
 
   test('returns MaybeTaker', () => {
-    expect((maybe(() => 0) as InternalTaker).type).toBe(MAYBE_TYPE);
+    expect((maybe(() => 0) as TakerCodegen).type).toBe(MAYBE_TYPE);
   });
 });
 

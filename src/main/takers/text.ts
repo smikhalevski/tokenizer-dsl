@@ -1,8 +1,8 @@
 import {Code, createVar, Var} from '../code';
 import {CharCodeRangeTaker} from './char';
 import {none} from './none';
-import {InternalTaker, NO_MATCH, CodeBindings, Taker} from './taker-types';
-import {createCodeBindings, createTakerType, toCharCodes} from './taker-utils';
+import {CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
+import {createCodeBindings, toCharCodes} from './taker-utils';
 
 export interface TextOptions {
 
@@ -46,19 +46,16 @@ export function text(str: string, options: TextOptions = {}): Taker {
   return new CaseSensitiveTextTaker(str);
 }
 
-export const CASE_SENSITIVE_TEXT_TYPE = createTakerType();
-export const CASE_INSENSITIVE_TEXT_TYPE = createTakerType();
-
-export class CaseSensitiveTextTaker implements InternalTaker {
-
-  readonly type = CASE_SENSITIVE_TEXT_TYPE;
+export class CaseSensitiveTextTaker implements TakerCodegen {
 
   constructor(public str: string) {
   }
 
   factory(inputVar: Var, offsetVar: Var, resultVar: Var): CodeBindings {
     const {str} = this;
+
     const strVar = createVar();
+
     return createCodeBindings(
         [
           resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
@@ -70,9 +67,7 @@ export class CaseSensitiveTextTaker implements InternalTaker {
   }
 }
 
-export class CaseInsensitiveTextTaker implements InternalTaker {
-
-  readonly type = CASE_INSENSITIVE_TEXT_TYPE;
+export class CaseInsensitiveTextTaker implements TakerCodegen {
 
   constructor(public str: string) {
   }

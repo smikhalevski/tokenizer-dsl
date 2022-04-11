@@ -1,4 +1,4 @@
-import {char, InternalTaker, never, NO_MATCH, none, regex, text} from '../../main';
+import {char, TakerCodegen, never, NO_MATCH, none, regex, text} from '../../main';
 import {
   createUntilCaseSensitiveTextTaker,
   createUntilCharCodeCheckerTaker,
@@ -21,24 +21,24 @@ describe('until', () => {
   });
 
   test('returns UntilCaseSensitiveTextTaker', () => {
-    expect((until(text('a')) as InternalTaker).type).toBe(UNTIL_CASE_SENSITIVE_TEXT_TYPE);
-    expect((until(text('aaa')) as InternalTaker).type).toBe(UNTIL_CASE_SENSITIVE_TEXT_TYPE);
+    expect((until(text('a')) as TakerCodegen).type).toBe(UNTIL_CASE_SENSITIVE_TEXT_TYPE);
+    expect((until(text('aaa')) as TakerCodegen).type).toBe(UNTIL_CASE_SENSITIVE_TEXT_TYPE);
   });
 
   test('returns UntilCharCodeRangeTaker', () => {
-    expect((until(char([97, 98])) as InternalTaker).type).toBe(UNTIL_CHAR_CODE_RANGE_TYPE);
+    expect((until(char([97, 98])) as TakerCodegen).type).toBe(UNTIL_CHAR_CODE_RANGE_TYPE);
   });
 
   test('returns UntilCharCodeCheckerTaker', () => {
-    expect((until(char(() => false)) as InternalTaker).type).toBe(UNTIL_CHAR_CODE_CHECKER_TYPE);
+    expect((until(char(() => false)) as TakerCodegen).type).toBe(UNTIL_CHAR_CODE_CHECKER_TYPE);
   });
 
   test('returns UntilRegexTaker', () => {
-    expect((until(regex(/a/)) as InternalTaker).type).toBe(UNTIL_REGEX_TYPE);
+    expect((until(regex(/a/)) as TakerCodegen).type).toBe(UNTIL_REGEX_TYPE);
   });
 
   test('returns UntilCharCodeCheckerTaker', () => {
-    expect((until(() => 0) as InternalTaker).type).toBe(UNTIL_GENERIC_TYPE);
+    expect((until(() => 0) as TakerCodegen).type).toBe(UNTIL_GENERIC_TYPE);
   });
 });
 

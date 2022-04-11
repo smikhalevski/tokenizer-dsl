@@ -1,9 +1,5 @@
 import {Binding, Code, createVar, Var} from '../code';
-import {InternalTaker, CodeBindings, Taker, TakerCodegen} from './taker-types';
-
-export function isInternalTaker<T extends InternalTaker>(type: T['type'], taker: Taker | InternalTaker): taker is T {
-  return 'type' in taker && taker.type === type;
-}
+import {CodeBindings, Taker, TakerCodegen} from './taker-types';
 
 export function isTakerCodegen(taker: Taker): taker is TakerCodegen {
   return 'factory' in taker;
@@ -18,7 +14,7 @@ export function toCharCodes(str: string): number[] {
   return charCodes;
 }
 
-export function createTakerCall(taker: Taker, inputVar: Var, offsetVar: Var, returnVar: Var, bindings: Binding[]): Code {
+export function createTakerCallCode(taker: Taker, inputVar: Var, offsetVar: Var, returnVar: Var, bindings: Binding[]): Code {
   if (isTakerCodegen(taker)) {
     const source = taker.factory(inputVar, offsetVar, returnVar);
     if (source.bindings) {
@@ -33,8 +29,4 @@ export function createTakerCall(taker: Taker, inputVar: Var, offsetVar: Var, ret
 
 export function createCodeBindings(code: Code, bindings?: Binding[]): CodeBindings {
   return {code, bindings};
-}
-
-export function createTakerType() {
-  return Symbol();
 }

@@ -1,6 +1,6 @@
 import {Binding, Code, Var} from '../code';
-import {InternalTaker, NO_MATCH, CodeBindings, Taker} from './taker-types';
-import {createCodeBindings, createTakerType, createTakerCall} from './taker-utils';
+import {CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
+import {createCodeBindings, createTakerCallCode} from './taker-utils';
 
 /**
  * Returns the result of the first matched taker.
@@ -11,11 +11,7 @@ export function or(...takers: Taker[]): Taker {
   return new OrTaker(takers);
 }
 
-export const OR_TYPE = createTakerType();
-
-export class OrTaker implements InternalTaker {
-
-  readonly type = OR_TYPE;
+export class OrTaker implements TakerCodegen {
 
   constructor(public takers: Taker[]) {
   }
@@ -30,7 +26,7 @@ export class OrTaker implements InternalTaker {
     for (let i = 0; i < takersLength; ++i) {
       const taker = takers[i];
 
-      code.push(createTakerCall(taker, inputVar, offsetVar, resultVar, bindings));
+      code.push(createTakerCallCode(taker, inputVar, offsetVar, resultVar, bindings));
       if (i < takersLength - 1) {
         code.push('if(', resultVar, '===', NO_MATCH, '){');
       }

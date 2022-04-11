@@ -52,12 +52,3 @@ export const NO_MATCH = -1;
  * that describe a range.
  */
 export type CharCodeRange = string | number | [number, number];
-
-/**
- * Taker that is a subject for internal optimizations.
- *
- * @internal
- */
-export interface InternalTaker extends TakerCodegen {
-  type: symbol;
-}

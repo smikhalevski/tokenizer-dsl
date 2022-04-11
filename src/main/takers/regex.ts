@@ -1,6 +1,6 @@
 import {createVar, Var} from '../code';
-import {InternalTaker, NO_MATCH, CodeBindings, Taker} from './taker-types';
-import {createCodeBindings, createTakerType} from './taker-utils';
+import {CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
+import {createCodeBindings} from './taker-utils';
 
 /**
  * Creates taker that matches a substring.
@@ -11,11 +11,8 @@ export function regex(re: RegExp): Taker {
   return new RegexTaker(re);
 }
 
-export const REGEX_TYPE = createTakerType();
+export class RegexTaker implements TakerCodegen {
 
-export class RegexTaker implements InternalTaker {
-
-  readonly type = REGEX_TYPE;
   re;
 
   constructor(re: RegExp) {

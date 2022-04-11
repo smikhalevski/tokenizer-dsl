@@ -1,10 +1,10 @@
-import {InternalTaker, NO_MATCH} from '../../main';
+import {TakerCodegen, NO_MATCH} from '../../main';
 import {createRegexTaker, regex} from '../../main/takers';
 
 describe('regex', () => {
 
   test('returns RegexTaker', () => {
-    expect((regex(/abc/) as InternalTaker).type).toBe(REGEX_TYPE);
+    expect((regex(/abc/) as TakerCodegen).type).toBe(REGEX_TYPE);
   });
 });
 

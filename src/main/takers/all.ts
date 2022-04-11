@@ -1,17 +1,12 @@
 import {Binding, createVar, Var} from '../code';
-import {CHAR_CODE_RANGE_TYPE, CharCodeRangeTaker, createCharCodePredicate} from './char';
+import {CharCodeRangeTaker, createCharPredicateCode} from './char';
 import {MaybeTaker} from './maybe';
 import {never} from './never';
 import {none} from './none';
-import {REGEX_TYPE, RegexTaker} from './regex';
-import {CharCodeRange, InternalTaker, NO_MATCH, CodeBindings, Taker} from './taker-types';
-import {createCodeBindings, createTakerType, createTakerCall, isInternalTaker, toCharCodes} from './taker-utils';
-import {CASE_SENSITIVE_TEXT_TYPE, CaseSensitiveTextTaker} from './text';
-
-export const ALL_CHAR_CODE_RANGE_TYPE = createTakerType();
-export const ALL_CASE_SENSITIVE_TEXT_TYPE = createTakerType();
-export const ALL_REGEX_TYPE = createTakerType();
-export const ALL_GENERIC_TYPE = createTakerType();
+import {RegexTaker} from './regex';
+import {CharCodeRange, CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
+import {createCodeBindings, createTakerCallCode, toCharCodes} from './taker-utils';
+import {CaseSensitiveTextTaker} from './text';
 
 export interface AllOptions {
 
@@ -58,21 +53,19 @@ export function all(taker: Taker, options: AllOptions = {}): Taker {
   if (taker === never || taker === none) {
     return taker;
   }
-  if (isInternalTaker<CharCodeRangeTaker>(CHAR_CODE_RANGE_TYPE, taker)) {
+  if (taker instanceof CharCodeRangeTaker) {
     return new AllCharCodeRangeTaker(taker.charCodeRanges, minimumCount, maximumCount);
   }
-  if (isInternalTaker<CaseSensitiveTextTaker>(CASE_SENSITIVE_TEXT_TYPE, taker)) {
+  if (taker instanceof CaseSensitiveTextTaker) {
     return new AllCaseSensitiveTextTaker(taker.str, minimumCount, maximumCount);
   }
-  if (isInternalTaker<RegexTaker>(REGEX_TYPE, taker)) {
+  if (taker instanceof RegexTaker) {
     return new AllRegexTaker(taker.re, minimumCount, maximumCount);
   }
   return new AllGenericTaker(taker, minimumCount, maximumCount);
 }
 
-export class AllCharCodeRangeTaker implements InternalTaker {
-
-  readonly type = ALL_CHAR_CODE_RANGE_TYPE;
+export class AllCharCodeRangeTaker implements TakerCodegen {
 
   constructor(public charCodeRanges: CharCodeRange[], public minimumCount: number, public maximumCount: number) {
   }
@@ -96,7 +89,7 @@ export class AllCharCodeRangeTaker implements InternalTaker {
       maximumCount ? ['&&', takeCountVar, '<', maximumCount] : '',
       '&&(',
       charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, '),',
-      createCharCodePredicate(charCodeVar, charCodeRanges),
+      createCharPredicateCode(charCodeVar, charCodeRanges),
       ')){',
       minimumCount || maximumCount ? ['++', takeCountVar, ';'] : '',
       '++', indexVar,
@@ -108,9 +101,7 @@ export class AllCharCodeRangeTaker implements InternalTaker {
   }
 }
 
-export class AllCaseSensitiveTextTaker implements InternalTaker {
-
-  readonly type = ALL_CASE_SENSITIVE_TEXT_TYPE;
+export class AllCaseSensitiveTextTaker implements TakerCodegen {
 
   constructor(public str: string, public minimumCount: number, public maximumCount: number) {
   }
@@ -147,9 +138,8 @@ export class AllCaseSensitiveTextTaker implements InternalTaker {
   }
 }
 
-export class AllRegexTaker implements InternalTaker {
+export class AllRegexTaker implements TakerCodegen {
 
-  readonly type = ALL_REGEX_TYPE;
   re;
 
   constructor(re: RegExp, minimumCount: number, maximumCount: number) {
@@ -181,9 +171,7 @@ export class AllRegexTaker implements InternalTaker {
   }
 }
 
-export class AllGenericTaker implements InternalTaker {
-
-  readonly type = ALL_GENERIC_TYPE;
+export class AllGenericTaker implements TakerCodegen {
 
   constructor(public taker: Taker, public minimumCount: number, public maximumCount: number) {
   }
@@ -207,7 +195,7 @@ export class AllGenericTaker implements InternalTaker {
           ';',
           'do{',
           indexVar, '=', takerResultVar, ';',
-          createTakerCall(taker, inputVar, indexVar, takerResultVar, bindings),
+          createTakerCallCode(taker, inputVar, indexVar, takerResultVar, bindings),
           '}while(',
           takerResultVar, '>', indexVar,
           minimumCount || maximumCount ? ['&&++', takeCountVar, maximumCount ? '<' + maximumCount : ''] : '',

@@ -1,5 +1,5 @@
 import {Binding, Code, compileFunction, createVar} from '../code';
-import {createTakerCall, NO_MATCH} from '../takers';
+import {createTakerCallCode, NO_MATCH} from '../takers';
 import {Rule, RuleHandler} from './rule-types';
 
 /**
@@ -115,7 +115,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
         stages ? ['if(', stages.map((stage, i) => [i === 0 ? '' : '||', stageIndexVar, '===', uniqueStages.indexOf(stage)]), '){'] : '',
 
         // Take chars from the input string
-        createTakerCall(rule.taker, chunkVar, nextOffsetVar, takerResultVar, bindings),
+        createTakerCallCode(rule.taker, chunkVar, nextOffsetVar, takerResultVar, bindings),
 
         'if(', takerResultVar, '!==', NO_MATCH, '&&', takerResultVar, '!==', nextOffsetVar, '){',
 

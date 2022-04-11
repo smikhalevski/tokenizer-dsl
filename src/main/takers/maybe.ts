@@ -1,6 +1,6 @@
 import {Binding, createVar, Var} from '../code';
-import {InternalTaker, NO_MATCH, CodeBindings, Taker} from './taker-types';
-import {createCodeBindings, createTakerType, createTakerCall} from './taker-utils';
+import {CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
+import {createCodeBindings, createTakerCallCode} from './taker-utils';
 
 /**
  * Creates taker that returns `taker` result or current offset if taker returned {@link NO_MATCH}.
@@ -11,11 +11,7 @@ export function maybe(taker: Taker): Taker {
   return new MaybeTaker(taker);
 }
 
-export const MAYBE_TYPE = createTakerType();
-
-export class MaybeTaker implements InternalTaker {
-
-  readonly type = MAYBE_TYPE;
+export class MaybeTaker implements TakerCodegen {
 
   constructor(public taker: Taker) {
   }
@@ -28,7 +24,7 @@ export class MaybeTaker implements InternalTaker {
     return createCodeBindings(
         [
           'var ', takerResultVar, ';',
-          createTakerCall(this.taker, inputVar, offsetVar, takerResultVar, bindings),
+          createTakerCallCode(this.taker, inputVar, offsetVar, takerResultVar, bindings),
           resultVar, '=', takerResultVar, '===', NO_MATCH, '?', offsetVar, ':', takerResultVar, ';',
         ],
         bindings,

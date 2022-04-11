@@ -1,4 +1,4 @@
-import {InternalTaker, NO_MATCH, none, or, TakerFunction, text} from '../../main';
+import {TakerCodegen, NO_MATCH, none, or, TakerFunction, text} from '../../main';
 import {createOrTaker} from '../../main/takers';
 
 describe('or', () => {
@@ -14,7 +14,7 @@ describe('or', () => {
 
   test('returns OrTaker', () => {
     const takerMock = jest.fn();
-    expect((or(takerMock, takerMock) as InternalTaker).type).toBe(OR_TYPE);
+    expect((or(takerMock, takerMock) as TakerCodegen).type).toBe(OR_TYPE);
   });
 });
 

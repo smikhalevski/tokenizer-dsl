@@ -1,11 +1,11 @@
 import {Binding, createVar, Var} from '../code';
-import {CHAR_CODE_RANGE_TYPE, CharCodeRangeTaker, createCharCodePredicate} from './char';
+import {CharCodeRangeTaker, createCharPredicateCode} from './char';
 import {never} from './never';
 import {none} from './none';
-import {REGEX_TYPE, RegexTaker} from './regex';
-import {CharCodeRange, InternalTaker, NO_MATCH, CodeBindings, Taker} from './taker-types';
-import {createCodeBindings, createTakerType, createTakerCall, isInternalTaker} from './taker-utils';
-import {CASE_SENSITIVE_TEXT_TYPE, CaseSensitiveTextTaker} from './text';
+import {RegexTaker} from './regex';
+import {CharCodeRange, CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
+import {createCodeBindings, createTakerCallCode} from './taker-utils';
+import {CaseSensitiveTextTaker} from './text';
 
 export interface UntilOptions {
 
@@ -30,10 +30,10 @@ export function until(taker: Taker, options: UntilOptions = {}): Taker {
   if (taker === never || taker === none) {
     return taker;
   }
-  if (isInternalTaker<RegexTaker>(REGEX_TYPE, taker)) {
+  if (taker instanceof RegexTaker) {
     return new UntilRegexTaker(taker.re, inclusive);
   }
-  if (isInternalTaker<CharCodeRangeTaker>(CHAR_CODE_RANGE_TYPE, taker)) {
+  if (taker instanceof CharCodeRangeTaker) {
     const {charCodeRanges} = taker;
 
     if (charCodeRanges.length === 1 && typeof charCodeRanges[0] === 'number') {
@@ -41,20 +41,13 @@ export function until(taker: Taker, options: UntilOptions = {}): Taker {
     }
     return new UntilCharCodeRangeTaker(charCodeRanges, inclusive);
   }
-  if (isInternalTaker<CaseSensitiveTextTaker>(CASE_SENSITIVE_TEXT_TYPE, taker)) {
+  if (taker instanceof CaseSensitiveTextTaker) {
     return new UntilCaseSensitiveTextTaker(taker.str, inclusive);
   }
   return new UntilGenericTaker(taker, inclusive);
 }
 
-export const UNTIL_CASE_SENSITIVE_TEXT_TYPE = createTakerType();
-export const UNTIL_CHAR_CODE_RANGE_TYPE = createTakerType();
-export const UNTIL_REGEX_TYPE = createTakerType();
-export const UNTIL_GENERIC_TYPE = createTakerType();
-
-export class UntilCharCodeRangeTaker implements InternalTaker {
-
-  readonly type = UNTIL_CHAR_CODE_RANGE_TYPE;
+export class UntilCharCodeRangeTaker implements TakerCodegen {
 
   constructor(public charCodeRanges: CharCodeRange[], public inclusive: boolean) {
   }
@@ -72,16 +65,14 @@ export class UntilCharCodeRangeTaker implements InternalTaker {
       charCodeVar,
       ';',
       'while(', indexVar, '<', inputLengthVar,
-      '&&(', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, '),!(', createCharCodePredicate(charCodeVar, this.charCodeRanges), '))',
+      '&&(', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, '),!(', createCharPredicateCode(charCodeVar, this.charCodeRanges), '))',
       ')++', indexVar, ';',
       resultVar, '=', indexVar, '===', inputLengthVar, '?', NO_MATCH, ':', indexVar, this.inclusive ? '+1;' : ';',
     ]);
   }
 }
 
-export class UntilCaseSensitiveTextTaker implements InternalTaker {
-
-  readonly type = UNTIL_CASE_SENSITIVE_TEXT_TYPE;
+export class UntilCaseSensitiveTextTaker implements TakerCodegen {
 
   constructor(public str: string, public inclusive: boolean) {
   }
@@ -101,9 +92,8 @@ export class UntilCaseSensitiveTextTaker implements InternalTaker {
   }
 }
 
-export class UntilRegexTaker implements InternalTaker {
+export class UntilRegexTaker implements TakerCodegen {
 
-  readonly type = UNTIL_REGEX_TYPE;
   re;
 
   constructor(re: RegExp, public inclusive: boolean) {
@@ -126,9 +116,7 @@ export class UntilRegexTaker implements InternalTaker {
   }
 }
 
-export class UntilGenericTaker implements InternalTaker {
-
-  readonly type = UNTIL_GENERIC_TYPE;
+export class UntilGenericTaker implements TakerCodegen {
 
   constructor(public taker: Taker, public inclusive: boolean) {
   }
@@ -146,7 +134,7 @@ export class UntilGenericTaker implements InternalTaker {
       indexVar, '=', offsetVar, ',',
       takerResultVar, '=', NO_MATCH, ';',
       'while(', indexVar, '<', inputLengthVar, '&&', takerResultVar, '===', NO_MATCH, '){',
-      createTakerCall(this.taker, inputVar, indexVar, takerResultVar, bindings),
+      createTakerCallCode(this.taker, inputVar, indexVar, takerResultVar, bindings),
       '++', indexVar,
       '}',
       resultVar, '=', takerResultVar, '<', 0, '?', takerResultVar, ':', this.inclusive ? takerResultVar : [indexVar, '-1'], ';',

@@ -1,6 +1,6 @@
 import {Binding, Code, createVar, Var} from '../code';
 import {CodeBindings, Taker, TakerCodegen} from './taker-types';
-import {createCodeBindings, createTakerCall} from './taker-utils';
+import {createCodeBindings, createTakerCallCode} from './taker-utils';
 
 /**
  * Creates a taker that applies takers one after another.
@@ -29,7 +29,7 @@ export class SeqTaker implements TakerCodegen {
 
       code.push(
           'var ', takerResultVar, ';',
-          createTakerCall(taker, inputVar, offsetVar, takerResultVar, bindings),
+          createTakerCallCode(taker, inputVar, offsetVar, takerResultVar, bindings),
           'if(', takerResultVar, '<0){', resultVar, '=', takerResultVar, '}else{'
       );
 
@@ -37,7 +37,7 @@ export class SeqTaker implements TakerCodegen {
     }
 
     code.push(
-        createTakerCall(takers[takersLength - 1], inputVar, offsetVar, resultVar, bindings),
+        createTakerCallCode(takers[takersLength - 1], inputVar, offsetVar, resultVar, bindings),
         '}'.repeat(takersLength - 1),
     );
     return createCodeBindings(code, bindings);

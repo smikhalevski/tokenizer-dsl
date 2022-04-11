@@ -1,4 +1,4 @@
-import {InternalTaker, NO_MATCH, none, text} from '../../main';
+import {TakerCodegen, NO_MATCH, none, text} from '../../main';
 import {createCaseInsensitiveTextTaker, createCaseSensitiveTextTaker} from '../../main/takers';
 
 describe('text', () => {
@@ -8,12 +8,12 @@ describe('text', () => {
   });
 
   test('returns CaseSensitiveTextTaker', () => {
-    expect((text('aaa') as InternalTaker).type).toBe(CASE_SENSITIVE_TEXT_TYPE);
-    expect((text('123', {caseInsensitive: true}) as InternalTaker).type).toBe(CASE_SENSITIVE_TEXT_TYPE);
+    expect((text('aaa') as TakerCodegen).type).toBe(CASE_SENSITIVE_TEXT_TYPE);
+    expect((text('123', {caseInsensitive: true}) as TakerCodegen).type).toBe(CASE_SENSITIVE_TEXT_TYPE);
   });
 
   test('returns CaseInsensitiveTextTaker', () => {
-    expect((text('aaa', {caseInsensitive: true}) as InternalTaker).type).toBe(CASE_INSENSITIVE_TEXT_TYPE);
+    expect((text('aaa', {caseInsensitive: true}) as TakerCodegen).type).toBe(CASE_INSENSITIVE_TEXT_TYPE);
   });
 
   test('throws if text length is ambiguous', () => {

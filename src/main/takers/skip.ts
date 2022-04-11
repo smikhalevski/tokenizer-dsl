@@ -1,6 +1,6 @@
 import {Var} from '../code';
-import {InternalTaker, NO_MATCH, CodeBindings, Taker} from './taker-types';
-import {createCodeBindings, createTakerType} from './taker-utils';
+import {CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
+import {createCodeBindings} from './taker-utils';
 
 /**
  * Creates taker that skips given number of chars.
@@ -11,11 +11,7 @@ export function skip(charCount = 1): Taker {
   return new SkipTaker(charCount);
 }
 
-export const SKIP_TYPE = createTakerType();
-
-export class SkipTaker implements InternalTaker {
-
-  readonly type = SKIP_TYPE;
+export class SkipTaker implements TakerCodegen {
 
   constructor(public charCount: number) {
   }

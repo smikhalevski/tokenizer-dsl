@@ -1,5 +1,5 @@
 import {Binding, Code, compileFunction, createVar} from '../code';
-import {createTakerCall, Taker, TakerFunction} from '../takers';
+import {createTakerCallCode, Taker, TakerFunction} from '../takers';
 
 export function toTakerFunction(taker: Taker): TakerFunction {
   if (typeof taker === 'function') {
@@ -13,7 +13,7 @@ export function toTakerFunction(taker: Taker): TakerFunction {
 
   const code: Code = [
     'var ', resultVar, ';',
-    createTakerCall(taker, inputVar, offsetVar, resultVar, bindings),
+    createTakerCallCode(taker, inputVar, offsetVar, resultVar, bindings),
     'return ', resultVar,
   ];
 
