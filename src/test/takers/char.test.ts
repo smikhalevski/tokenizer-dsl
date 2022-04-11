@@ -1,6 +1,4 @@
-import {char, NO_MATCH, none} from '../../main';
-import {toTakerFunction} from '../../main/rules';
-import {CharCodeRangeTaker} from '../../main/takers';
+import {char, CharCodeRangeTaker, NO_MATCH, none, toTakerFunction} from '../../main/takers';
 
 const A = 'a'.charCodeAt(0);
 

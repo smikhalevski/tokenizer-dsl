@@ -1,6 +1,16 @@
-import {all, never, NO_MATCH, none, text} from '../../main';
-import {toTakerFunction} from '../../main/rules';
-import {AllCaseSensitiveTextTaker, AllCharCodeRangeTaker, AllRegexTaker, AllTaker, MaybeTaker} from '../../main/takers';
+import {
+  all,
+  AllCaseSensitiveTextTaker,
+  AllCharCodeRangeTaker,
+  AllRegexTaker,
+  AllTaker,
+  MaybeTaker,
+  never,
+  NO_MATCH,
+  none,
+  text,
+  toTakerFunction
+} from '../../main/takers';
 
 const A = 'a'.charCodeAt(0);
 

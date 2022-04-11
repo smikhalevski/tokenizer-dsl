@@ -1,5 +1,5 @@
-import {Binding, Code, createVar, Var} from '../code';
-import {CodeBindings, Taker, TakerCodegen} from './taker-types';
+import {Binding, Code, compileFunction, createVar, Var} from '../code';
+import {CodeBindings, Taker, TakerCodegen, TakerFunction} from './taker-types';
 
 export function isTakerCodegen(taker: Taker): taker is TakerCodegen {
   return 'factory' in taker;
@@ -30,4 +30,23 @@ export function createTakerCallCode(taker: Taker, inputVar: Var, offsetVar: Var,
 
 export function createCodeBindings(code: Code, bindings?: Binding[]): CodeBindings {
   return {code, bindings};
+}
+
+export function toTakerFunction(taker: Taker): TakerFunction {
+  if (typeof taker === 'function') {
+    return taker;
+  }
+
+  const bindings: Binding[] = [];
+  const inputVar = createVar();
+  const offsetVar = createVar();
+  const resultVar = createVar();
+
+  const code: Code = [
+    'var ', resultVar, ';',
+    createTakerCallCode(taker, inputVar, offsetVar, resultVar, bindings),
+    'return ', resultVar,
+  ];
+
+  return compileFunction([inputVar, offsetVar], code, bindings);
 }

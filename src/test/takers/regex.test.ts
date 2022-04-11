@@ -1,6 +1,4 @@
-import {NO_MATCH} from '../../main';
-import {toTakerFunction} from '../../main/rules';
-import {regex, RegexTaker} from '../../main/takers';
+import {NO_MATCH, regex, RegexTaker, toTakerFunction} from '../../main/takers';
 
 describe('regex', () => {
 

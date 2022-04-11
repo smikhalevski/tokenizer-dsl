@@ -1,5 +1,4 @@
-import {all, char, maybe, NO_MATCH, or, seq, text} from '../../main';
-import {toTakerFunction} from '../../main/rules';
+import {all, char, maybe, NO_MATCH, or, seq, text, toTakerFunction} from '../../main/takers';
 
 test('readme example', () => {
 

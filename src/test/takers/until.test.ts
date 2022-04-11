@@ -1,6 +1,11 @@
-import {char, never, NO_MATCH, none, regex, text} from '../../main';
-import {toTakerFunction} from '../../main/rules';
 import {
+  char,
+  never,
+  NO_MATCH,
+  none,
+  regex,
+  text,
+  toTakerFunction,
   until,
   UntilCaseSensitiveTextTaker,
   UntilCharCodeRangeTaker,

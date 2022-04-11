@@ -1,6 +1,4 @@
-import {never, NO_MATCH, none, TakerFunction, text} from '../../main';
-import {toTakerFunction} from '../../main/rules';
-import {seq, SeqTaker} from '../../main/takers';
+import {never, NO_MATCH, none, seq, SeqTaker, TakerFunction, text, toTakerFunction} from '../../main/takers';
 
 describe('seq', () => {
 

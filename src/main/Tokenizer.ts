@@ -1,6 +1,6 @@
 import {compileRuleIterator, Rule, RuleHandler, RuleIteratorState} from './rules';
 
-export class Tokenizer<S = never, C = never> implements RuleIteratorState {
+export class Tokenizer<S = void, C = void> implements RuleIteratorState {
 
   public stageIndex;
   public chunk = '';

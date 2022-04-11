@@ -1,6 +1,11 @@
-import {NO_MATCH, none, text} from '../../main';
-import {toTakerFunction} from '../../main/rules';
-import {CaseInsensitiveTextTaker, CaseSensitiveTextTaker} from '../../main/takers';
+import {
+  CaseInsensitiveTextTaker,
+  CaseSensitiveTextTaker,
+  NO_MATCH,
+  none,
+  text,
+  toTakerFunction
+} from '../../main/takers';
 
 describe('text', () => {
 

@@ -1,6 +1,4 @@
-import {maybe, never, NO_MATCH, none, text} from '../../main';
-import {toTakerFunction} from '../../main/rules';
-import {MaybeTaker} from '../../main/takers';
+import {maybe, MaybeTaker, never, NO_MATCH, none, text, toTakerFunction} from '../../main/takers';
 
 describe('maybe', () => {
 

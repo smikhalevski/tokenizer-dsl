@@ -1,6 +1,4 @@
-import {NO_MATCH, none, or, TakerFunction, text} from '../../main';
-import {toTakerFunction} from '../../main/rules';
-import {OrTaker} from '../../main/takers';
+import {NO_MATCH, none, or, OrTaker, TakerFunction, text, toTakerFunction} from '../../main/takers';
 
 describe('or', () => {
 
