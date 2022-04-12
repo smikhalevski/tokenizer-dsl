@@ -1,53 +1,53 @@
-import {NO_MATCH, none, or, OrTaker, Taker, text, toTakerFunction} from '../../main/takers';
+import {NO_MATCH, none, or, OrReader, Reader, text, toReaderFunction} from '../../main/readers';
 
 describe('or', () => {
 
-  test('returns none taker', () => {
+  test('returns none reader', () => {
     expect(or()).toBe(none);
   });
 
-  test('returns single taker', () => {
-    const takerMock: Taker<any> = () => 0;
-    expect(or(takerMock)).toBe(takerMock);
+  test('returns single reader', () => {
+    const readerMock: Reader<any> = () => 0;
+    expect(or(readerMock)).toBe(readerMock);
   });
 
-  test('returns OrTaker', () => {
-    const takerMock = jest.fn();
-    expect(or(takerMock, takerMock)).toBeInstanceOf(OrTaker);
+  test('returns OrReader', () => {
+    const readerMock = jest.fn();
+    expect(or(readerMock, readerMock)).toBeInstanceOf(OrReader);
   });
 });
 
-describe('OrTaker', () => {
+describe('OrReader', () => {
 
   test('returns after the first match', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(NO_MATCH);
-    takerMock.mockReturnValueOnce(2);
-    takerMock.mockReturnValueOnce(4);
+    const readerMock = jest.fn();
+    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(2);
+    readerMock.mockReturnValueOnce(4);
 
-    expect(toTakerFunction(new OrTaker([takerMock, takerMock, takerMock]))('aabbcc', 0)).toBe(2);
-    expect(takerMock).toHaveBeenCalledTimes(2);
+    expect(toReaderFunction(new OrReader([readerMock, readerMock, readerMock]))('aabbcc', 0)).toBe(2);
+    expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
   test('returns NO_MATCH', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValue(NO_MATCH);
+    const readerMock = jest.fn();
+    readerMock.mockReturnValue(NO_MATCH);
 
-    expect(toTakerFunction(new OrTaker([takerMock, takerMock]))('aabbcc', 2)).toBe(NO_MATCH);
-    expect(takerMock).toHaveBeenCalledTimes(2);
+    expect(toReaderFunction(new OrReader([readerMock, readerMock]))('aabbcc', 2)).toBe(NO_MATCH);
+    expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
   test('returns error result', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(NO_MATCH);
-    takerMock.mockReturnValueOnce(-2);
-    takerMock.mockReturnValueOnce(4);
+    const readerMock = jest.fn();
+    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(-2);
+    readerMock.mockReturnValueOnce(4);
 
-    expect(toTakerFunction(new OrTaker([takerMock, takerMock]))('aabbcc', 2)).toBe(-2);
-    expect(takerMock).toHaveBeenCalledTimes(2);
+    expect(toReaderFunction(new OrReader([readerMock, readerMock]))('aabbcc', 2)).toBe(-2);
+    expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
-  test('can use inline takers', () => {
-    expect(toTakerFunction(new OrTaker([text('bb'), text('aa')]))('aabbcc', 0)).toBe(2);
+  test('can use inline readers', () => {
+    expect(toReaderFunction(new OrReader([text('bb'), text('aa')]))('aabbcc', 0)).toBe(2);
   });
 });

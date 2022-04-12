@@ -9,10 +9,10 @@ import {
 describe('createRuleIterationPlan', () => {
 
   test('appends a single rule to the default stage', () => {
-    const take1 = () => 0;
-    const take2 = () => 0;
+    const read1 = () => 0;
+    const read2 = () => 0;
 
-    const rule = createRule(seq(take1, take2));
+    const rule = createRule(seq(read1, read2));
 
     const ruleIterationPlan: RuleIterationPlan<any, any> = {
       stages: [],
@@ -20,7 +20,7 @@ describe('createRuleIterationPlan', () => {
       stagePlans: [],
       defaultPlans: [
         {
-          prefix: [take1, take2],
+          prefix: [read1, read2],
           rule,
         },
       ],
@@ -30,17 +30,17 @@ describe('createRuleIterationPlan', () => {
   });
 
   test('appends a single rule to the stage', () => {
-    const take1 = () => 0;
-    const take2 = () => 0;
+    const read1 = () => 0;
+    const read2 = () => 0;
 
-    const rule = createRule(seq(take1, take2), ['AAA']);
+    const rule = createRule(seq(read1, read2), ['AAA']);
 
     const ruleIterationPlan: RuleIterationPlan<any, any> = {
       stages: ['AAA'],
       stagesComputed: false,
       stagePlans: [
         [{
-          prefix: [take1, take2],
+          prefix: [read1, read2],
           rule,
         }],
       ],
@@ -51,26 +51,26 @@ describe('createRuleIterationPlan', () => {
   });
 
   test('appends a multiple rules to the stage', () => {
-    const take1 = () => 0;
-    const take12 = () => 0;
-    const take22 = () => 0;
+    const read1 = () => 0;
+    const read12 = () => 0;
+    const read22 = () => 0;
 
-    const rule1 = createRule(seq(take1, take12), ['AAA']);
-    const rule2 = createRule(seq(take1, take22), ['AAA']);
+    const rule1 = createRule(seq(read1, read12), ['AAA']);
+    const rule2 = createRule(seq(read1, read22), ['AAA']);
 
     const ruleIterationPlan: RuleIterationPlan<any, any> = {
       stages: ['AAA'],
       stagesComputed: false,
       stagePlans: [
         [{
-          prefix: [take1],
+          prefix: [read1],
           children: [
             {
-              prefix: [take12],
+              prefix: [read12],
               rule: rule1,
             },
             {
-              prefix: [take22],
+              prefix: [read22],
               rule: rule2,
             },
           ],
@@ -83,23 +83,23 @@ describe('createRuleIterationPlan', () => {
   });
 
   test('appends a rules to different stages', () => {
-    const take1 = () => 0;
-    const take12 = () => 0;
-    const take22 = () => 0;
+    const read1 = () => 0;
+    const read12 = () => 0;
+    const read22 = () => 0;
 
-    const rule1 = createRule(seq(take1, take12), ['AAA']);
-    const rule2 = createRule(seq(take1, take22), ['BBB']);
+    const rule1 = createRule(seq(read1, read12), ['AAA']);
+    const rule2 = createRule(seq(read1, read22), ['BBB']);
 
     const ruleIterationPlan: RuleIterationPlan<any, any> = {
       stages: ['AAA', 'BBB'],
       stagesComputed: false,
       stagePlans: [
         [{
-          prefix: [take1, take12],
+          prefix: [read1, read12],
           rule: rule1,
         }],
         [{
-          prefix: [take1, take22],
+          prefix: [read1, read22],
           rule: rule2,
         }],
       ],
@@ -110,24 +110,24 @@ describe('createRuleIterationPlan', () => {
   });
 
   test('appends a rule without a stage to the default stage and all other stages', () => {
-    const take1 = () => 0;
-    const take2 = () => 0;
+    const read1 = () => 0;
+    const read2 = () => 0;
 
-    const rule1 = createRule(seq(take1, take2), ['AAA']);
-    const rule2 = createRule(seq(take1, take2));
+    const rule1 = createRule(seq(read1, read2), ['AAA']);
+    const rule2 = createRule(seq(read1, read2));
 
     const ruleIterationPlan: RuleIterationPlan<any, any> = {
       stages: ['AAA'],
       stagesComputed: false,
       stagePlans: [
         [{
-          prefix: [take1, take2],
+          prefix: [read1, read2],
           rule: rule1,
         }],
       ],
       defaultPlans: [
         {
-          prefix: [take1, take2],
+          prefix: [read1, read2],
           rule: rule2,
         },
       ],
@@ -140,14 +140,14 @@ describe('createRuleIterationPlan', () => {
 describe('appendRule', () => {
 
   test('appends a single rule', () => {
-    const take1 = () => 0;
-    const take2 = () => 0;
+    const read1 = () => 0;
+    const read2 = () => 0;
 
-    const rule = createRule(seq(take1, take2));
+    const rule = createRule(seq(read1, read2));
 
     const rulePlan: RulePlan<any, any>[] = [
       {
-        prefix: [take1, take2],
+        prefix: [read1, read2],
         rule,
       },
     ];
@@ -156,20 +156,20 @@ describe('appendRule', () => {
   });
 
   test('appends a rule without a common prefix', () => {
-    const take11 = () => 0;
-    const take12 = () => 0;
-    const take21 = () => 0;
+    const read11 = () => 0;
+    const read12 = () => 0;
+    const read21 = () => 0;
 
-    const rule1 = createRule(seq(take11, take12));
-    const rule2 = createRule(take21);
+    const rule1 = createRule(seq(read11, read12));
+    const rule2 = createRule(read21);
 
     const rulePlan: RulePlan<any, any>[] = [
       {
-        prefix: [take11, take12],
+        prefix: [read11, read12],
         rule: rule1,
       },
       {
-        prefix: [take21],
+        prefix: [read21],
         rule: rule2,
       },
     ];
@@ -178,23 +178,23 @@ describe('appendRule', () => {
   });
 
   test('appends a rule with a common prefix', () => {
-    const take1 = () => 0;
-    const take12 = () => 0;
-    const take21 = () => 0;
+    const read1 = () => 0;
+    const read12 = () => 0;
+    const read21 = () => 0;
 
-    const rule1 = createRule(seq(take1, take12));
-    const rule2 = createRule(seq(take1, take21));
+    const rule1 = createRule(seq(read1, read12));
+    const rule2 = createRule(seq(read1, read21));
 
     const rulePlan: RulePlan<any, any>[] = [
       {
-        prefix: [take1],
+        prefix: [read1],
         children: [
           {
-            prefix: [take12],
+            prefix: [read12],
             rule: rule1,
           },
           {
-            prefix: [take21],
+            prefix: [read21],
             rule: rule2,
           },
         ]
@@ -205,18 +205,18 @@ describe('appendRule', () => {
   });
 
   test('appends termination rule', () => {
-    const take1 = () => 0;
-    const take12 = () => 0;
+    const read1 = () => 0;
+    const read12 = () => 0;
 
-    const rule1 = createRule(seq(take1, take12));
-    const rule2 = createRule(take1);
+    const rule1 = createRule(seq(read1, read12));
+    const rule2 = createRule(read1);
 
     const rulePlan: RulePlan<any, any>[] = [
       {
-        prefix: [take1],
+        prefix: [read1],
         children: [
           {
-            prefix: [take12],
+            prefix: [read12],
             rule: rule1,
           },
         ],
@@ -228,15 +228,15 @@ describe('appendRule', () => {
   });
 
   test('ignores absorbed rules', () => {
-    const take1 = () => 0;
-    const take22 = () => 0;
+    const read1 = () => 0;
+    const read22 = () => 0;
 
-    const rule1 = createRule(take1);
-    const rule2 = createRule(seq(take1, take22));
+    const rule1 = createRule(read1);
+    const rule2 = createRule(seq(read1, read22));
 
     const rulePlan: RulePlan<any, any>[] = [
       {
-        prefix: [take1],
+        prefix: [read1],
         rule: rule1,
       },
     ];

@@ -1,28 +1,28 @@
-import {NO_MATCH, regex, RegexTaker, toTakerFunction} from '../../main/takers';
+import {NO_MATCH, regex, RegexReader, toReaderFunction} from '../../main/readers';
 
 describe('regex', () => {
 
-  test('returns RegexTaker', () => {
-    expect(regex(/abc/)).toBeInstanceOf(RegexTaker);
+  test('returns RegexReader', () => {
+    expect(regex(/abc/)).toBeInstanceOf(RegexReader);
   });
 });
 
-describe('RegexTaker', () => {
+describe('RegexReader', () => {
 
-  test('takes text', () => {
-    const take = toTakerFunction(new RegexTaker(/abc/));
+  test('reads text', () => {
+    const read = toReaderFunction(new RegexReader(/abc/));
 
-    expect(take('aaaabc', 3)).toBe(6);
-    expect(take('aaaabcde', 3)).toBe(6);
-    expect(take('aaaab', 3)).toBe(NO_MATCH);
-    expect(take('aaaABC', 3)).toBe(NO_MATCH);
+    expect(read('aaaabc', 3)).toBe(6);
+    expect(read('aaaabcde', 3)).toBe(6);
+    expect(read('aaaab', 3)).toBe(NO_MATCH);
+    expect(read('aaaABC', 3)).toBe(NO_MATCH);
   });
 
   test('starts from the given offset', () => {
-    expect(toTakerFunction(new RegexTaker(/abc/))('aaaabcabc', 6)).toBe(9);
+    expect(toReaderFunction(new RegexReader(/abc/))('aaaabcabc', 6)).toBe(9);
   });
 
   test('ignores matches that do not start at offset', () => {
-    expect(toTakerFunction(new RegexTaker(/abc/))('aaaabcabc', 5)).toBe(NO_MATCH);
+    expect(toReaderFunction(new RegexReader(/abc/))('aaaabcabc', 5)).toBe(NO_MATCH);
   });
 });

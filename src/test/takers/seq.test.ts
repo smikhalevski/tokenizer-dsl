@@ -1,4 +1,4 @@
-import {never, NO_MATCH, none, seq, SeqTaker, Taker, text, toTakerFunction} from '../../main/takers';
+import {never, NO_MATCH, none, seq, SeqReader, Reader, text, toReaderFunction} from '../../main/readers';
 
 describe('seq', () => {
 
@@ -11,43 +11,43 @@ describe('seq', () => {
     expect(seq(text('a'), never)).toBe(never);
   });
 
-  test('returns taker', () => {
-    const takerMock: Taker<any> = () => 0;
-    expect(seq(takerMock)).toBe(takerMock);
+  test('returns reader', () => {
+    const readerMock: Reader<any> = () => 0;
+    expect(seq(readerMock)).toBe(readerMock);
   });
 
-  test('returns SeqTaker', () => {
-    expect(seq(text('aaa'), text('bbb'))).toBeInstanceOf(SeqTaker);
+  test('returns SeqReader', () => {
+    expect(seq(text('aaa'), text('bbb'))).toBeInstanceOf(SeqReader);
   });
 });
 
-describe('SeqTaker', () => {
+describe('SeqReader', () => {
 
-  test('fails if any of takers fail', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(4);
-    takerMock.mockReturnValueOnce(NO_MATCH);
-    takerMock.mockReturnValueOnce(5);
+  test('fails if any of readers fail', () => {
+    const readerMock = jest.fn();
+    readerMock.mockReturnValueOnce(4);
+    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(5);
 
-    expect(toTakerFunction(new SeqTaker([takerMock, takerMock, takerMock]))('aabbcc', 2)).toBe(NO_MATCH);
-    expect(takerMock).toHaveBeenCalledTimes(2);
+    expect(toReaderFunction(new SeqReader([readerMock, readerMock, readerMock]))('aabbcc', 2)).toBe(NO_MATCH);
+    expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
-  test('allows takers to return the same offset', () => {
-    expect(toTakerFunction(new SeqTaker([() => 2, () => 4]))('aabbcc', 2)).toBe(4);
+  test('allows readers to return the same offset', () => {
+    expect(toReaderFunction(new SeqReader([() => 2, () => 4]))('aabbcc', 2)).toBe(4);
   });
 
   test('returns error result', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(4);
-    takerMock.mockReturnValueOnce(-2);
-    takerMock.mockReturnValueOnce(5);
+    const readerMock = jest.fn();
+    readerMock.mockReturnValueOnce(4);
+    readerMock.mockReturnValueOnce(-2);
+    readerMock.mockReturnValueOnce(5);
 
-    expect(toTakerFunction(new SeqTaker([takerMock, takerMock, takerMock]))('aabbcc', 2)).toBe(-2);
-    expect(takerMock).toHaveBeenCalledTimes(2);
+    expect(toReaderFunction(new SeqReader([readerMock, readerMock, readerMock]))('aabbcc', 2)).toBe(-2);
+    expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
-  test('can use inline takers', () => {
-    expect(toTakerFunction(new SeqTaker([text('aa'), text('bb')]))('aabbcc', 0)).toBe(4);
+  test('can use inline readers', () => {
+    expect(toReaderFunction(new SeqReader([text('aa'), text('bb')]))('aabbcc', 0)).toBe(4);
   });
 });

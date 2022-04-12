@@ -1,12 +1,12 @@
 import {Binding, createVar, Var} from '../code';
-import {CharCodeRange, CharCodeRangeTaker, createCharPredicateCode} from './char';
-import {MaybeTaker} from './maybe';
+import {CharCodeRange, CharCodeRangeReader, createCharPredicateCode} from './char';
+import {MaybeReader} from './maybe';
 import {never} from './never';
 import {none} from './none';
-import {RegexTaker} from './regex';
-import {CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
-import {createCodeBindings, createTakerCallCode, toCharCodes} from './taker-utils';
-import {CaseSensitiveTextTaker} from './text';
+import {RegexReader} from './regex';
+import {CodeBindings, NO_MATCH, Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings, createReaderCallCode, toCharCodes} from './reader-utils';
+import {CaseSensitiveTextReader} from './text';
 
 export interface AllOptions {
 
@@ -26,12 +26,12 @@ export interface AllOptions {
 }
 
 /**
- * Creates taker that repeatedly takes chars using `taker`.
+ * Creates reader that repeatedly reads chars using `reader`.
  *
- * @param taker The taker that takes chars.
- * @param options Taker options.
+ * @param reader The reader that reads chars.
+ * @param options Reader options.
  */
-export function all<C = any>(taker: Taker<C>, options: AllOptions = {}): Taker<C> {
+export function all<C = any>(reader: Reader<C>, options: AllOptions = {}): Reader<C> {
 
   let {
     minimumCount = 0,
@@ -45,27 +45,27 @@ export function all<C = any>(taker: Taker<C>, options: AllOptions = {}): Taker<C
     return never;
   }
   if (minimumCount === 0 && maximumCount === 1) {
-    return new MaybeTaker(taker);
+    return new MaybeReader(reader);
   }
   if (minimumCount === 1 && maximumCount === 1) {
-    return taker;
+    return reader;
   }
-  if (taker === never || taker === none) {
-    return taker;
+  if (reader === never || reader === none) {
+    return reader;
   }
-  if (taker instanceof CharCodeRangeTaker) {
-    return new AllCharCodeRangeTaker(taker.charCodeRanges, minimumCount, maximumCount);
+  if (reader instanceof CharCodeRangeReader) {
+    return new AllCharCodeRangeReader(reader.charCodeRanges, minimumCount, maximumCount);
   }
-  if (taker instanceof CaseSensitiveTextTaker) {
-    return new AllCaseSensitiveTextTaker(taker.str, minimumCount, maximumCount);
+  if (reader instanceof CaseSensitiveTextReader) {
+    return new AllCaseSensitiveTextReader(reader.str, minimumCount, maximumCount);
   }
-  if (taker instanceof RegexTaker) {
-    return new AllRegexTaker(taker.re, minimumCount, maximumCount);
+  if (reader instanceof RegexReader) {
+    return new AllRegexReader(reader.re, minimumCount, maximumCount);
   }
-  return new AllTaker(taker, minimumCount, maximumCount);
+  return new AllReader(reader, minimumCount, maximumCount);
 }
 
-export class AllCharCodeRangeTaker implements TakerCodegen {
+export class AllCharCodeRangeReader implements ReaderCodegen {
 
   constructor(public charCodeRanges: CharCodeRange[], public minimumCount: number, public maximumCount: number) {
   }
@@ -76,32 +76,32 @@ export class AllCharCodeRangeTaker implements TakerCodegen {
     const inputLengthVar = createVar();
     const indexVar = createVar();
     const charCodeVar = createVar();
-    const takeCountVar = createVar();
+    const readCountVar = createVar();
 
     return createCodeBindings([
       'var ',
       inputLengthVar, '=', inputVar, '.length,',
       indexVar, '=', offsetVar, ',',
       charCodeVar,
-      minimumCount || maximumCount ? [',', takeCountVar, '=0'] : '',
+      minimumCount || maximumCount ? [',', readCountVar, '=0'] : '',
       ';',
       'while(', indexVar, '<', inputLengthVar,
-      maximumCount ? ['&&', takeCountVar, '<', maximumCount] : '',
+      maximumCount ? ['&&', readCountVar, '<', maximumCount] : '',
       '&&(',
       charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, '),',
       createCharPredicateCode(charCodeVar, charCodeRanges),
       ')){',
-      minimumCount || maximumCount ? ['++', takeCountVar, ';'] : '',
+      minimumCount || maximumCount ? ['++', readCountVar, ';'] : '',
       '++', indexVar,
       '}',
       resultVar, '=',
-      minimumCount ? [takeCountVar, '<', minimumCount, '?', NO_MATCH, ':', indexVar] : indexVar,
+      minimumCount ? [readCountVar, '<', minimumCount, '?', NO_MATCH, ':', indexVar] : indexVar,
       ';'
     ]);
   }
 }
 
-export class AllCaseSensitiveTextTaker implements TakerCodegen {
+export class AllCaseSensitiveTextReader implements ReaderCodegen {
 
   constructor(public str: string, public minimumCount: number, public maximumCount: number) {
   }
@@ -112,25 +112,25 @@ export class AllCaseSensitiveTextTaker implements TakerCodegen {
     const strVar = createVar();
     const inputLengthVar = createVar();
     const indexVar = createVar();
-    const takeCountVar = createVar();
+    const readCountVar = createVar();
 
     return createCodeBindings(
         [
           'var ',
           inputLengthVar, '=', inputVar, '.length,',
           indexVar, '=', offsetVar,
-          minimumCount || maximumCount ? [',', takeCountVar, '=0'] : '',
+          minimumCount || maximumCount ? [',', readCountVar, '=0'] : '',
           ';',
           'while(',
           indexVar, '+', str.length, '<=', inputLengthVar,
-          maximumCount ? ['&&', takeCountVar, '<', maximumCount] : '',
+          maximumCount ? ['&&', readCountVar, '<', maximumCount] : '',
           toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', indexVar, '+', i, ')===', charCode]),
           '){',
-          minimumCount || maximumCount ? ['++', takeCountVar, ';'] : '',
+          minimumCount || maximumCount ? ['++', readCountVar, ';'] : '',
           indexVar, '+=', str.length,
           '}',
           resultVar, '=',
-          minimumCount ? [takeCountVar, '<', minimumCount, '?', NO_MATCH, ':', indexVar] : indexVar,
+          minimumCount ? [readCountVar, '<', minimumCount, '?', NO_MATCH, ':', indexVar] : indexVar,
           ';',
         ],
         [[strVar, str]],
@@ -138,7 +138,7 @@ export class AllCaseSensitiveTextTaker implements TakerCodegen {
   }
 }
 
-export class AllRegexTaker implements TakerCodegen {
+export class AllRegexReader implements ReaderCodegen {
 
   re;
 
@@ -171,38 +171,38 @@ export class AllRegexTaker implements TakerCodegen {
   }
 }
 
-export class AllTaker<C> implements TakerCodegen {
+export class AllReader<C> implements ReaderCodegen {
 
-  constructor(public taker: Taker<C>, public minimumCount: number, public maximumCount: number) {
+  constructor(public reader: Reader<C>, public minimumCount: number, public maximumCount: number) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-    const {taker, minimumCount, maximumCount} = this;
+    const {reader, minimumCount, maximumCount} = this;
 
     const bindings: Binding[] = [];
     const inputLengthVar = createVar();
     const indexVar = createVar();
-    const takerResultVar = createVar();
-    const takeCountVar = createVar();
+    const readerResultVar = createVar();
+    const readCountVar = createVar();
 
     return createCodeBindings(
         [
           'var ',
           inputLengthVar, '=', inputVar, '.length,',
           indexVar, ',',
-          takerResultVar, '=', offsetVar,
-          minimumCount || maximumCount ? [',', takeCountVar, '=0'] : '',
+          readerResultVar, '=', offsetVar,
+          minimumCount || maximumCount ? [',', readCountVar, '=0'] : '',
           ';',
           'do{',
-          indexVar, '=', takerResultVar, ';',
-          createTakerCallCode(taker, inputVar, indexVar, contextVar, takerResultVar, bindings),
+          indexVar, '=', readerResultVar, ';',
+          createReaderCallCode(reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
           '}while(',
-          takerResultVar, '>', indexVar,
-          minimumCount || maximumCount ? ['&&++', takeCountVar, maximumCount ? '<' + maximumCount : ''] : '',
+          readerResultVar, '>', indexVar,
+          minimumCount || maximumCount ? ['&&++', readCountVar, maximumCount ? '<' + maximumCount : ''] : '',
           ')',
           resultVar, '=',
-          minimumCount ? [takeCountVar, '<', minimumCount, '?', NO_MATCH, ':'] : '',
-          takerResultVar, '===', NO_MATCH, '?', indexVar, ':', takerResultVar,
+          minimumCount ? [readCountVar, '<', minimumCount, '?', NO_MATCH, ':'] : '',
+          readerResultVar, '===', NO_MATCH, '?', indexVar, ':', readerResultVar,
           ';',
         ],
         bindings,

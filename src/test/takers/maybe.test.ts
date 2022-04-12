@@ -1,4 +1,4 @@
-import {maybe, MaybeTaker, never, NO_MATCH, none, text, toTakerFunction} from '../../main/takers';
+import {maybe, MaybeReader, never, NO_MATCH, none, text, toReaderFunction} from '../../main/readers';
 
 describe('maybe', () => {
 
@@ -7,32 +7,32 @@ describe('maybe', () => {
     expect(maybe(none)).toBe(none);
   });
 
-  test('returns MaybeTaker', () => {
-    expect(maybe(() => 0)).toBeInstanceOf(MaybeTaker);
+  test('returns MaybeReader', () => {
+    expect(maybe(() => 0)).toBeInstanceOf(MaybeReader);
   });
 });
 
-describe('MaybeTaker', () => {
+describe('MaybeReader', () => {
 
-  test('returns result of taker', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(4);
+  test('returns result of reader', () => {
+    const readerMock = jest.fn();
+    readerMock.mockReturnValueOnce(4);
 
-    expect(toTakerFunction(new MaybeTaker(takerMock))('aabbcc', 2)).toBe(4);
-    expect(takerMock).toHaveBeenCalledTimes(1);
+    expect(toReaderFunction(new MaybeReader(readerMock))('aabbcc', 2)).toBe(4);
+    expect(readerMock).toHaveBeenCalledTimes(1);
   });
 
-  test('returns offset if taker did not match', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(NO_MATCH);
+  test('returns offset if reader did not match', () => {
+    const readerMock = jest.fn();
+    readerMock.mockReturnValueOnce(NO_MATCH);
 
-    expect(toTakerFunction(new MaybeTaker(takerMock))('aabbcc', 2)).toBe(2);
-    expect(takerMock).toHaveBeenCalledTimes(1);
+    expect(toReaderFunction(new MaybeReader(readerMock))('aabbcc', 2)).toBe(2);
+    expect(readerMock).toHaveBeenCalledTimes(1);
   });
 
-  test('can use inline takers', () => {
-    expect(toTakerFunction(new MaybeTaker(text('aa')))('aabbcc', 0)).toBe(2);
-    expect(toTakerFunction(new MaybeTaker(text('bb')))('aabbcc', 0)).toBe(0);
+  test('can use inline readers', () => {
+    expect(toReaderFunction(new MaybeReader(text('aa')))('aabbcc', 0)).toBe(2);
+    expect(toReaderFunction(new MaybeReader(text('bb')))('aabbcc', 0)).toBe(0);
   });
 
 });

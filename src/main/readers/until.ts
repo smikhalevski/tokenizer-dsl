@@ -1,16 +1,16 @@
 import {Binding, createVar, Var} from '../code';
-import {CharCodeRange, CharCodeRangeTaker, createCharPredicateCode} from './char';
+import {CharCodeRange, CharCodeRangeReader, createCharPredicateCode} from './char';
 import {never} from './never';
 import {none} from './none';
-import {RegexTaker} from './regex';
-import {CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
-import {createCodeBindings, createTakerCallCode} from './taker-utils';
-import {CaseSensitiveTextTaker} from './text';
+import {RegexReader} from './regex';
+import {CodeBindings, NO_MATCH, Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings, createReaderCallCode} from './reader-utils';
+import {CaseSensitiveTextReader} from './text';
 
 export interface UntilOptions {
 
   /**
-   * If set to `true` then chars matched by `taker` are included in result.
+   * If set to `true` then chars matched by `reader` are included in result.
    *
    * @default false
    */
@@ -18,36 +18,36 @@ export interface UntilOptions {
 }
 
 /**
- * Creates taker that takes chars until `taker` matches.
+ * Creates reader that reads chars until `reader` matches.
  *
- * @param taker The taker that takes chars.
- * @param options Taker options.
+ * @param reader The reader that reads chars.
+ * @param options Reader options.
  */
-export function until<C = any>(taker: Taker<C>, options: UntilOptions = {}): Taker<C> {
+export function until<C = any>(reader: Reader<C>, options: UntilOptions = {}): Reader<C> {
 
   const {inclusive = false} = options;
 
-  if (taker === never || taker === none) {
-    return taker;
+  if (reader === never || reader === none) {
+    return reader;
   }
-  if (taker instanceof RegexTaker) {
-    return new UntilRegexTaker(taker.re, inclusive);
+  if (reader instanceof RegexReader) {
+    return new UntilRegexReader(reader.re, inclusive);
   }
-  if (taker instanceof CharCodeRangeTaker) {
-    const {charCodeRanges} = taker;
+  if (reader instanceof CharCodeRangeReader) {
+    const {charCodeRanges} = reader;
 
     if (charCodeRanges.length === 1 && typeof charCodeRanges[0] === 'number') {
-      return new UntilCaseSensitiveTextTaker(String.fromCharCode(charCodeRanges[0]), inclusive);
+      return new UntilCaseSensitiveTextReader(String.fromCharCode(charCodeRanges[0]), inclusive);
     }
-    return new UntilCharCodeRangeTaker(charCodeRanges, inclusive);
+    return new UntilCharCodeRangeReader(charCodeRanges, inclusive);
   }
-  if (taker instanceof CaseSensitiveTextTaker) {
-    return new UntilCaseSensitiveTextTaker(taker.str, inclusive);
+  if (reader instanceof CaseSensitiveTextReader) {
+    return new UntilCaseSensitiveTextReader(reader.str, inclusive);
   }
-  return new UntilTaker(taker, inclusive);
+  return new UntilReader(reader, inclusive);
 }
 
-export class UntilCharCodeRangeTaker implements TakerCodegen {
+export class UntilCharCodeRangeReader implements ReaderCodegen {
 
   constructor(public charCodeRanges: CharCodeRange[], public inclusive: boolean) {
   }
@@ -72,7 +72,7 @@ export class UntilCharCodeRangeTaker implements TakerCodegen {
   }
 }
 
-export class UntilCaseSensitiveTextTaker implements TakerCodegen {
+export class UntilCaseSensitiveTextReader implements ReaderCodegen {
 
   constructor(public str: string, public inclusive: boolean) {
   }
@@ -92,7 +92,7 @@ export class UntilCaseSensitiveTextTaker implements TakerCodegen {
   }
 }
 
-export class UntilRegexTaker implements TakerCodegen {
+export class UntilRegexReader implements ReaderCodegen {
 
   re;
 
@@ -116,9 +116,9 @@ export class UntilRegexTaker implements TakerCodegen {
   }
 }
 
-export class UntilTaker<C> implements TakerCodegen {
+export class UntilReader<C> implements ReaderCodegen {
 
-  constructor(public taker: Taker<C>, public inclusive: boolean) {
+  constructor(public reader: Reader<C>, public inclusive: boolean) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
@@ -126,19 +126,19 @@ export class UntilTaker<C> implements TakerCodegen {
     const bindings: Binding[] = [];
     const inputLengthVar = createVar();
     const indexVar = createVar();
-    const takerResultVar = createVar();
+    const readerResultVar = createVar();
 
     return createCodeBindings(
         [
           'var ',
           inputLengthVar, '=', inputVar, '.length,',
           indexVar, '=', offsetVar, ',',
-          takerResultVar, '=', NO_MATCH, ';',
-          'while(', indexVar, '<', inputLengthVar, '&&', takerResultVar, '===', NO_MATCH, '){',
-          createTakerCallCode(this.taker, inputVar, indexVar, contextVar, takerResultVar, bindings),
+          readerResultVar, '=', NO_MATCH, ';',
+          'while(', indexVar, '<', inputLengthVar, '&&', readerResultVar, '===', NO_MATCH, '){',
+          createReaderCallCode(this.reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
           '++', indexVar,
           '}',
-          resultVar, '=', takerResultVar, '<', 0, '?', takerResultVar, ':', this.inclusive ? takerResultVar : [indexVar, '-1'], ';',
+          resultVar, '=', readerResultVar, '<', 0, '?', readerResultVar, ':', this.inclusive ? readerResultVar : [indexVar, '-1'], ';',
         ],
         bindings,
     );

@@ -1,4 +1,4 @@
-import {Taker} from '../takers';
+import {Reader} from '../readers';
 
 export type StageProvider<S, C> = (input: string, offset: number, length: number, context: C) => S;
 
@@ -11,9 +11,9 @@ export type StageProvider<S, C> = (input: string, offset: number, length: number
 export interface Rule<S, C> {
 
   /**
-   * The taker that takes chars from the string.
+   * The reader that reads chars from the string.
    */
-  taker: Taker<C>;
+  reader: Reader<C>;
 
   /**
    * The list of stages at which rule can be used. If omitted then rule is used on all stages. If an empty array
@@ -46,7 +46,7 @@ export interface RuleHandler<S, C> {
    *
    * @param rule The rule that read the token.
    * @param offset The absolute offset from the start of the input stream where the token starts.
-   * @param length The number of chars taken by the rule.
+   * @param length The number of chars readn by the rule.
    */
   token(rule: Rule<S, C>, offset: number, length: number): void;
 

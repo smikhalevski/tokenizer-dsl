@@ -12,81 +12,81 @@ describe('readme', () => {
 
   test('latest', (measure) => {
 
-    const takeZero = latest.char('0'.charCodeAt(0));
+    const readZero = latest.char('0'.charCodeAt(0));
 
-    const takeLeadingDigit = latest.charBy((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
+    const readLeadingDigit = latest.charBy((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
 
-    const takeDigits = latest.allCharBy((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/);
+    const readDigits = latest.allCharBy((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/);
 
-    const takeDot = latest.char('.'.charCodeAt(0));
+    const readDot = latest.char('.'.charCodeAt(0));
 
-    const takeSign = latest.charBy((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
+    const readSign = latest.charBy((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
 
-    const takeNumber = latest.seq(
+    const readNumber = latest.seq(
         // sign
-        latest.maybe(takeSign),
+        latest.maybe(readSign),
 
         // integer
         latest.or(
-            takeZero,
+            readZero,
             latest.seq(
-                takeLeadingDigit,
-                takeDigits,
+                readLeadingDigit,
+                readDigits,
             ),
         ),
 
         // fraction
         latest.maybe(
             latest.seq(
-                takeDot,
-                takeDigits,
+                readDot,
+                readDigits,
             ),
         ),
     );
 
-    measure(() => takeNumber(input, 0));
+    measure(() => readNumber(input, 0));
   });
 
   test('next', (measure) => {
-    const takeZero = next.text('0');
+    const readZero = next.text('0');
 
-    const takeLeadingDigit = next.char([[49 /*1*/, 57 /*9*/]]);
+    const readLeadingDigit = next.char([[49 /*1*/, 57 /*9*/]]);
 
-    const takeDigits = next.all(next.char([[48 /*0*/, 57 /*9*/]]));
+    const readDigits = next.all(next.char([[48 /*0*/, 57 /*9*/]]));
 
-    const takeDot = next.text('.');
+    const readDot = next.text('.');
 
-    const takeSign = next.char([43 /*+*/, 45 /*-*/]);
+    const readSign = next.char([43 /*+*/, 45 /*-*/]);
 
-    const takeNumber = next.seq(
+    const readNumber = next.seq(
         // sign
-        next.maybe(takeSign),
+        next.maybe(readSign),
 
         // integer
         next.or(
-            takeZero,
+            readZero,
             next.seq(
-                takeLeadingDigit,
-                takeDigits,
+                readLeadingDigit,
+                readDigits,
             ),
         ),
 
         // fraction
         next.maybe(
             next.seq(
-                takeDot,
-                takeDigits,
+                readDot,
+                readDigits,
             ),
         ),
     );
 
-    measure(() => takeNumber(input, 0));
+    measure(() => readNumber(input, 0));
   });
 }, {targetRme: 0.001});
 
 describe('char', () => {
 
-  describe('CharCodeCheckerTaker', () => {
+  describe('CharCodeCheckerReader', () => {
 
     const input = 'ababab';
 
@@ -96,17 +96,17 @@ describe('char', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.charBy((charCode) => charCode === 97);
-      measure(() => take(input, 0));
+      const read = latest.charBy((charCode) => charCode === 97);
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.char((charCode) => charCode === 97);
-      measure(() => take(input, 0));
+      const read = next.char((charCode) => charCode === 97);
+      measure(() => read(input, 0));
     });
   });
 
-  describe('CharCodeRangeTaker', () => {
+  describe('CharCodeRangeReader', () => {
 
     const input = 'ababab';
 
@@ -116,20 +116,20 @@ describe('char', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.charBy((charCode) => charCode === 97 || charCode === 98);
-      measure(() => take(input, 0));
+      const read = latest.charBy((charCode) => charCode === 97 || charCode === 98);
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.char([97, 98]);
-      measure(() => take(input, 0));
+      const read = next.char([97, 98]);
+      measure(() => read(input, 0));
     });
   });
 }, {targetRme: 0.001});
 
 describe('all', () => {
 
-  describe('AllCharCodeCheckerTaker', () => {
+  describe('AllCharCodeCheckerReader', () => {
 
     const input = 'aaaaaab';
 
@@ -139,17 +139,17 @@ describe('all', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.allCharBy((charCode) => charCode === 97);
-      measure(() => take(input, 0));
+      const read = latest.allCharBy((charCode) => charCode === 97);
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.all(next.char((charCode) => charCode === 97));
-      measure(() => take(input, 0));
+      const read = next.all(next.char((charCode) => charCode === 97));
+      measure(() => read(input, 0));
     });
   });
 
-  describe('AllCharCodeRangeTaker', () => {
+  describe('AllCharCodeRangeReader', () => {
 
     const input = 'abababc';
 
@@ -159,17 +159,17 @@ describe('all', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.allCharBy((charCode) => charCode === 97 || charCode === 98);
-      measure(() => take(input, 0));
+      const read = latest.allCharBy((charCode) => charCode === 97 || charCode === 98);
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.all(next.char([97, 98]));
-      measure(() => take(input, 0));
+      const read = next.all(next.char([97, 98]));
+      measure(() => read(input, 0));
     });
   });
 
-  describe('AllCharCodeRangeTaker {minimumCount: 2}', () => {
+  describe('AllCharCodeRangeReader {minimumCount: 2}', () => {
 
     const input = 'aaabbb';
 
@@ -179,17 +179,17 @@ describe('all', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2);
-      measure(() => take(input, 0));
+      const read = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2);
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.all(next.char([97, 98]), {minimumCount: 2});
-      measure(() => take(input, 0));
+      const read = next.all(next.char([97, 98]), {minimumCount: 2});
+      measure(() => read(input, 0));
     });
   });
 
-  describe('AllCharCodeRangeTaker {maximumCount: 3}', () => {
+  describe('AllCharCodeRangeReader {maximumCount: 3}', () => {
 
     const input = 'aaabbb';
 
@@ -199,17 +199,17 @@ describe('all', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 0, 3);
-      measure(() => take(input, 0));
+      const read = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 0, 3);
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.all(next.char([97, 98]), {maximumCount: 3});
-      measure(() => take(input, 0));
+      const read = next.all(next.char([97, 98]), {maximumCount: 3});
+      measure(() => read(input, 0));
     });
   });
 
-  describe('AllCharCodeRangeTaker {minimumCount: 2, maximumCount: 3}', () => {
+  describe('AllCharCodeRangeReader {minimumCount: 2, maximumCount: 3}', () => {
 
     const input = 'aaabbb';
 
@@ -219,17 +219,17 @@ describe('all', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2, 3);
-      measure(() => take(input, 0));
+      const read = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2, 3);
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.all(next.char([97, 98]), {minimumCount: 2, maximumCount: 3});
-      measure(() => take(input, 0));
+      const read = next.all(next.char([97, 98]), {minimumCount: 2, maximumCount: 3});
+      measure(() => read(input, 0));
     });
   });
 
-  describe('AllCharCodeRangeTaker {minimumCount: 2, maximumCount: 2}', () => {
+  describe('AllCharCodeRangeReader {minimumCount: 2, maximumCount: 2}', () => {
 
     const input = 'aaabbb';
 
@@ -239,17 +239,17 @@ describe('all', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2, 2);
-      measure(() => take(input, 0));
+      const read = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2, 2);
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.all(next.char([97, 98]), {minimumCount: 2, maximumCount: 2});
-      measure(() => take(input, 0));
+      const read = next.all(next.char([97, 98]), {minimumCount: 2, maximumCount: 2});
+      measure(() => read(input, 0));
     });
   });
 
-  describe('AllCaseSensitiveTextTaker', () => {
+  describe('AllCaseSensitiveTextReader', () => {
 
     const input = 'ababababc';
 
@@ -259,17 +259,17 @@ describe('all', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.all(latest.text('ab'));
-      measure(() => take(input, 0));
+      const read = latest.all(latest.text('ab'));
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.all(next.text('ab'));
-      measure(() => take(input, 0));
+      const read = next.all(next.text('ab'));
+      measure(() => read(input, 0));
     });
   });
 
-  describe('AllRegexTaker', () => {
+  describe('AllRegexReader', () => {
 
     const input = 'ababababc';
 
@@ -279,20 +279,20 @@ describe('all', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.all(latest.text('ab'));
-      measure(() => take(input, 0));
+      const read = latest.all(latest.text('ab'));
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.all(next.regex(/ab/));
-      measure(() => take(input, 0));
+      const read = next.all(next.regex(/ab/));
+      measure(() => read(input, 0));
     });
   });
 }, {targetRme: 0.001});
 
 describe('or', () => {
 
-  describe('OrTaker', () => {
+  describe('OrReader', () => {
 
     const input = 'aaaa';
 
@@ -302,20 +302,20 @@ describe('or', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.or(latest.char(99), latest.char(98), latest.char(97));
-      measure(() => take(input, 0));
+      const read = latest.or(latest.char(99), latest.char(98), latest.char(97));
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.or(next.text('c'), next.text('b'), next.text('a'));
-      measure(() => take(input, 0));
+      const read = next.or(next.text('c'), next.text('b'), next.text('a'));
+      measure(() => read(input, 0));
     });
   });
 }, {targetRme: 0.001});
 
 describe('seq', () => {
 
-  describe('SeqTaker', () => {
+  describe('SeqReader', () => {
 
     const input = 'aaaa';
 
@@ -325,20 +325,20 @@ describe('seq', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.seq(latest.char(97), latest.char(97), latest.char(97));
-      measure(() => take(input, 0));
+      const read = latest.seq(latest.char(97), latest.char(97), latest.char(97));
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.seq(next.text('a'), next.text('a'), next.text('a'));
-      measure(() => take(input, 0));
+      const read = next.seq(next.text('a'), next.text('a'), next.text('a'));
+      measure(() => read(input, 0));
     });
   });
 }, {targetRme: 0.001});
 
 describe('text', () => {
 
-  describe('CaseSensitiveTextTaker', () => {
+  describe('CaseSensitiveTextReader', () => {
 
     const input = 'ababab';
 
@@ -348,17 +348,17 @@ describe('text', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.text('ababa');
-      measure(() => take(input, 0));
+      const read = latest.text('ababa');
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.text('ababa');
-      measure(() => take(input, 0));
+      const read = next.text('ababa');
+      measure(() => read(input, 0));
     });
   });
 
-  describe('CaseInsensitiveTextTaker', () => {
+  describe('CaseInsensitiveTextReader', () => {
 
     const input = 'aBAbab';
 
@@ -368,20 +368,20 @@ describe('text', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.text('ABABA', true);
-      measure(() => take(input, 0));
+      const read = latest.text('ABABA', true);
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.text('ABABA', {caseInsensitive: true});
-      measure(() => take(input, 0));
+      const read = next.text('ABABA', {caseInsensitive: true});
+      measure(() => read(input, 0));
     });
   });
 }, {targetRme: 0.001});
 
 describe('until', () => {
 
-  describe('UntilCharCodeRangeTaker', () => {
+  describe('UntilCharCodeRangeReader', () => {
 
     const input = 'aaaaaab';
 
@@ -391,17 +391,17 @@ describe('until', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.untilCharBy((charCode) => charCode === 98 || charCode === 99, false, false);
-      measure(() => take(input, 0));
+      const read = latest.untilCharBy((charCode) => charCode === 98 || charCode === 99, false, false);
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.until(next.char([98, 99]));
-      measure(() => take(input, 0));
+      const read = next.until(next.char([98, 99]));
+      measure(() => read(input, 0));
     });
   });
 
-  describe('UntilCharCodeCheckerTaker', () => {
+  describe('UntilCharCodeCheckerReader', () => {
 
     const input = 'aaaaaab';
 
@@ -411,17 +411,17 @@ describe('until', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.untilCharBy((charCode) => charCode === 98, false, false);
-      measure(() => take(input, 0));
+      const read = latest.untilCharBy((charCode) => charCode === 98, false, false);
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.until(next.char((charCode) => charCode === 98));
-      measure(() => take(input, 0));
+      const read = next.until(next.char((charCode) => charCode === 98));
+      measure(() => read(input, 0));
     });
   });
 
-  describe('UntilCaseSensitiveTextTaker', () => {
+  describe('UntilCaseSensitiveTextReader', () => {
 
     const input = 'aaaaaabc';
 
@@ -435,17 +435,17 @@ describe('until', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.untilText('bc', false, false);
-      measure(() => take(input, 0));
+      const read = latest.untilText('bc', false, false);
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.until(next.text('bc'));
-      measure(() => take(input, 0));
+      const read = next.until(next.text('bc'));
+      measure(() => read(input, 0));
     });
   });
 
-  describe('UntilRegexTaker', () => {
+  describe('UntilRegexReader', () => {
 
     const input = 'aaaaaab';
 
@@ -455,13 +455,13 @@ describe('until', () => {
     });
 
     test('latest', (measure) => {
-      const take = latest.untilCharBy((charCode) => charCode === 98, false, false);
-      measure(() => take(input, 0));
+      const read = latest.untilCharBy((charCode) => charCode === 98, false, false);
+      measure(() => read(input, 0));
     });
 
     test('next', (measure) => {
-      const take = next.until(next.regex(/b/));
-      measure(() => take(input, 0));
+      const read = next.until(next.regex(/b/));
+      measure(() => read(input, 0));
     });
   });
 

@@ -1,5 +1,5 @@
 import {Binding, Code, compileFunction, createVar, Var} from '../code';
-import {CodeBindings, Taker, TakerFunction} from './taker-types';
+import {CodeBindings, Reader, ReaderFunction} from './reader-types';
 
 export function toCharCodes(str: string): number[] {
   const charCodes: number[] = [];
@@ -10,10 +10,10 @@ export function toCharCodes(str: string): number[] {
   return charCodes;
 }
 
-export function createTakerCallCode<C>(taker: Taker<C>, inputVar: Var, offsetVar: Var, contextVar: Var, returnVar: Var, bindings: Binding[]): Code {
+export function createReaderCallCode<C>(reader: Reader<C>, inputVar: Var, offsetVar: Var, contextVar: Var, returnVar: Var, bindings: Binding[]): Code {
 
-  if ('factory' in taker) {
-    const codeBindings = taker.factory(inputVar, offsetVar, contextVar, returnVar);
+  if ('factory' in reader) {
+    const codeBindings = reader.factory(inputVar, offsetVar, contextVar, returnVar);
 
     if (codeBindings.bindings) {
       bindings.push(...codeBindings.bindings);
@@ -21,19 +21,19 @@ export function createTakerCallCode<C>(taker: Taker<C>, inputVar: Var, offsetVar
     return codeBindings.code;
   }
 
-  const takerVar = createVar();
-  bindings.push([takerVar, taker]);
+  const readerVar = createVar();
+  bindings.push([readerVar, reader]);
 
-  return [returnVar, '=', takerVar, '(', inputVar, ',', offsetVar, ',', contextVar, ')', ';'];
+  return [returnVar, '=', readerVar, '(', inputVar, ',', offsetVar, ',', contextVar, ')', ';'];
 }
 
 export function createCodeBindings(code: Code, bindings?: Binding[]): CodeBindings {
   return {code, bindings};
 }
 
-export function toTakerFunction<C = void>(taker: Taker<C>): TakerFunction<C> {
-  if (typeof taker === 'function') {
-    return taker;
+export function toReaderFunction<C = void>(reader: Reader<C>): ReaderFunction<C> {
+  if (typeof reader === 'function') {
+    return reader;
   }
 
   const bindings: Binding[] = [];
@@ -44,7 +44,7 @@ export function toTakerFunction<C = void>(taker: Taker<C>): TakerFunction<C> {
 
   const code: Code = [
     'var ', resultVar, ';',
-    createTakerCallCode(taker, inputVar, offsetVar, contextVar, resultVar, bindings),
+    createReaderCallCode(reader, inputVar, offsetVar, contextVar, resultVar, bindings),
     'return ', resultVar,
   ];
 

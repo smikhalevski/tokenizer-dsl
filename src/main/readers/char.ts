@@ -1,19 +1,19 @@
 import {Code, createVar, Var} from '../code';
 import {none} from './none';
-import {CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
-import {createCodeBindings, toCharCodes} from './taker-utils';
+import {CodeBindings, NO_MATCH, Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings, toCharCodes} from './reader-utils';
 
 export type CharCodeRange = number | [number, number];
 
 /**
- * Creates a taker that matches a single char by its code.
+ * Creates a reader that matches a single char by its code.
  *
  * @param ranges An array of char codes, or tuples of lower/upper char codes that define an inclusive range of codes.
  * If a string is provided then any char from the string would fit.
  *
  * @see {@link text}
  */
-export function char(ranges: (string | number | [number, number])[]): Taker<any> {
+export function char(ranges: (string | number | [number, number])[]): Reader<any> {
   const charCodeRanges: CharCodeRange[] = [];
 
   for (const range of ranges) {
@@ -28,10 +28,10 @@ export function char(ranges: (string | number | [number, number])[]): Taker<any>
     return none;
   }
 
-  return new CharCodeRangeTaker(charCodeRanges);
+  return new CharCodeRangeReader(charCodeRanges);
 }
 
-export class CharCodeRangeTaker implements TakerCodegen {
+export class CharCodeRangeReader implements ReaderCodegen {
 
   constructor(public charCodeRanges: CharCodeRange[]) {
   }

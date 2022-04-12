@@ -5,13 +5,13 @@ import {
   none,
   regex,
   text,
-  toTakerFunction,
+  toReaderFunction,
   until,
-  UntilCaseSensitiveTextTaker,
-  UntilCharCodeRangeTaker,
-  UntilRegexTaker,
-  UntilTaker
-} from '../../main/takers';
+  UntilCaseSensitiveTextReader,
+  UntilCharCodeRangeReader,
+  UntilRegexReader,
+  UntilReader
+} from '../../main/readers';
 
 const B = 'b'.charCodeAt(0);
 
@@ -25,84 +25,84 @@ describe('until', () => {
     expect(until(never)).toBe(never);
   });
 
-  test('returns UntilCaseSensitiveTextTaker', () => {
-    expect(until(text('a'))).toBeInstanceOf(UntilCaseSensitiveTextTaker);
-    expect(until(text('aaa'))).toBeInstanceOf(UntilCaseSensitiveTextTaker);
+  test('returns UntilCaseSensitiveTextReader', () => {
+    expect(until(text('a'))).toBeInstanceOf(UntilCaseSensitiveTextReader);
+    expect(until(text('aaa'))).toBeInstanceOf(UntilCaseSensitiveTextReader);
   });
 
-  test('returns UntilCharCodeRangeTaker', () => {
-    expect(until(char([97, 98]))).toBeInstanceOf(UntilCharCodeRangeTaker);
+  test('returns UntilCharCodeRangeReader', () => {
+    expect(until(char([97, 98]))).toBeInstanceOf(UntilCharCodeRangeReader);
   });
 
-  test('returns UntilRegexTaker', () => {
-    expect(until(regex(/a/))).toBeInstanceOf(UntilRegexTaker);
+  test('returns UntilRegexReader', () => {
+    expect(until(regex(/a/))).toBeInstanceOf(UntilRegexReader);
   });
 
-  test('returns UntilTaker', () => {
-    expect(until(() => 0)).toBeInstanceOf(UntilTaker);
-  });
-});
-
-describe('UntilCharCodeRangeTaker', () => {
-
-  test('takes chars until char code is met', () => {
-    expect(toTakerFunction(new UntilCharCodeRangeTaker([[B, B]], false))('aaabbb', 0)).toBe(3);
-  });
-
-  test('takes chars including the searched char', () => {
-    expect(toTakerFunction(new UntilCharCodeRangeTaker([[B, B]], true))('aaabbb', 0)).toBe(4);
+  test('returns UntilReader', () => {
+    expect(until(() => 0)).toBeInstanceOf(UntilReader);
   });
 });
 
-describe('UntilCaseSensitiveTextTaker', () => {
+describe('UntilCharCodeRangeReader', () => {
 
-  test('takes chars until substr is met', () => {
-    expect(toTakerFunction(new UntilCaseSensitiveTextTaker('b', false))('aaabbb', 0)).toBe(3);
+  test('reads chars until char code is met', () => {
+    expect(toReaderFunction(new UntilCharCodeRangeReader([[B, B]], false))('aaabbb', 0)).toBe(3);
   });
 
-  test('takes chars including substr', () => {
-    expect(toTakerFunction(new UntilCaseSensitiveTextTaker('b', true))('aaabbb', 0)).toBe(4);
-  });
-});
-
-describe('UntilRegexTaker', () => {
-
-  test('takes until regex is met', () => {
-    expect(toTakerFunction(new UntilRegexTaker(/b/, false))('aaabbbaaabbb', 0)).toBe(3);
-    expect(toTakerFunction(new UntilRegexTaker(/b/, false))('aaabbbaaabbb', 6)).toBe(9);
-    expect(toTakerFunction(new UntilRegexTaker(/c/, false))('aaabbbaaabbb', 6)).toBe(NO_MATCH);
-  });
-
-  test('takes chars including matched substr', () => {
-    expect(toTakerFunction(new UntilRegexTaker(/bb/, true))('aaabbbb', 0)).toBe(5);
+  test('reads chars including the searched char', () => {
+    expect(toReaderFunction(new UntilCharCodeRangeReader([[B, B]], true))('aaabbb', 0)).toBe(4);
   });
 });
 
-describe('UntilTaker', () => {
+describe('UntilCaseSensitiveTextReader', () => {
 
-  test('advances taker by one char on each iteration', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(NO_MATCH);
-    takerMock.mockReturnValueOnce(NO_MATCH);
-    takerMock.mockReturnValueOnce(0);
-
-    expect(toTakerFunction(new UntilTaker(takerMock, false))('aaaa', 0)).toBe(2);
-    expect(takerMock).toHaveBeenCalledTimes(3);
-    expect(takerMock).toHaveBeenNthCalledWith(3, 'aaaa', 2, undefined);
+  test('reads chars until substr is met', () => {
+    expect(toReaderFunction(new UntilCaseSensitiveTextReader('b', false))('aaabbb', 0)).toBe(3);
   });
 
-  test('takes inclusive', () => {
-    const takerMock = jest.fn();
-    takerMock.mockReturnValueOnce(NO_MATCH);
-    takerMock.mockReturnValueOnce(NO_MATCH);
-    takerMock.mockReturnValueOnce(77);
+  test('reads chars including substr', () => {
+    expect(toReaderFunction(new UntilCaseSensitiveTextReader('b', true))('aaabbb', 0)).toBe(4);
+  });
+});
 
-    expect(toTakerFunction(new UntilTaker(takerMock, true))('aaaa', 0)).toBe(77);
-    expect(takerMock).toHaveBeenCalledTimes(3);
-    expect(takerMock).toHaveBeenNthCalledWith(3, 'aaaa', 2, undefined);
+describe('UntilRegexReader', () => {
+
+  test('reads until regex is met', () => {
+    expect(toReaderFunction(new UntilRegexReader(/b/, false))('aaabbbaaabbb', 0)).toBe(3);
+    expect(toReaderFunction(new UntilRegexReader(/b/, false))('aaabbbaaabbb', 6)).toBe(9);
+    expect(toReaderFunction(new UntilRegexReader(/c/, false))('aaabbbaaabbb', 6)).toBe(NO_MATCH);
   });
 
-  test('can use inline takers', () => {
-    expect(toTakerFunction(new UntilTaker(text('bb'), false))('aabbcc', 0)).toBe(2);
+  test('reads chars including matched substr', () => {
+    expect(toReaderFunction(new UntilRegexReader(/bb/, true))('aaabbbb', 0)).toBe(5);
+  });
+});
+
+describe('UntilReader', () => {
+
+  test('advances reader by one char on each iteration', () => {
+    const readerMock = jest.fn();
+    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(0);
+
+    expect(toReaderFunction(new UntilReader(readerMock, false))('aaaa', 0)).toBe(2);
+    expect(readerMock).toHaveBeenCalledTimes(3);
+    expect(readerMock).toHaveBeenNthCalledWith(3, 'aaaa', 2, undefined);
+  });
+
+  test('reads inclusive', () => {
+    const readerMock = jest.fn();
+    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(77);
+
+    expect(toReaderFunction(new UntilReader(readerMock, true))('aaaa', 0)).toBe(77);
+    expect(readerMock).toHaveBeenCalledTimes(3);
+    expect(readerMock).toHaveBeenNthCalledWith(3, 'aaaa', 2, undefined);
+  });
+
+  test('can use inline readers', () => {
+    expect(toReaderFunction(new UntilReader(text('bb'), false))('aabbcc', 0)).toBe(2);
   });
 });

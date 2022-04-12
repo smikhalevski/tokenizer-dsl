@@ -1,9 +1,9 @@
 import {Code, createVar, Var} from '../code';
 import {die} from '../utils';
-import {CharCodeRangeTaker} from './char';
+import {CharCodeRangeReader} from './char';
 import {none} from './none';
-import {CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
-import {createCodeBindings, toCharCodes} from './taker-utils';
+import {CodeBindings, NO_MATCH, Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings, toCharCodes} from './reader-utils';
 
 export interface TextOptions {
 
@@ -16,13 +16,13 @@ export interface TextOptions {
 }
 
 /**
- * Creates taker that reads a substring from the input.
+ * Creates reader that reads a substring from the input.
  *
  * @param str The text to match.
- * @param options Taker options.
+ * @param options Reader options.
  * @see {@link char}
  */
-export function text(str: string, options: TextOptions = {}): Taker<any> {
+export function text(str: string, options: TextOptions = {}): Reader<any> {
 
   const {caseInsensitive = false} = options;
 
@@ -37,15 +37,15 @@ export function text(str: string, options: TextOptions = {}): Taker<any> {
     if (strUpper.length !== strLower.length) {
       die('Unsupported char');
     }
-    return new CaseInsensitiveTextTaker(str);
+    return new CaseInsensitiveTextReader(str);
   }
   if (str.length === 1) {
-    return new CharCodeRangeTaker([str.charCodeAt(0)]);
+    return new CharCodeRangeReader([str.charCodeAt(0)]);
   }
-  return new CaseSensitiveTextTaker(str);
+  return new CaseSensitiveTextReader(str);
 }
 
-export class CaseSensitiveTextTaker implements TakerCodegen {
+export class CaseSensitiveTextReader implements ReaderCodegen {
 
   constructor(public str: string) {
   }
@@ -66,7 +66,7 @@ export class CaseSensitiveTextTaker implements TakerCodegen {
   }
 }
 
-export class CaseInsensitiveTextTaker implements TakerCodegen {
+export class CaseInsensitiveTextReader implements ReaderCodegen {
 
   constructor(public str: string) {
   }

@@ -1,4 +1,4 @@
-import {char, CharCodeRangeTaker, NO_MATCH, none, toTakerFunction} from '../../main/takers';
+import {char, CharCodeRangeReader, NO_MATCH, none, toReaderFunction} from '../../main/readers';
 
 const A = 'a'.charCodeAt(0);
 
@@ -9,23 +9,23 @@ describe('char', () => {
     expect(char([''])).toBe(none);
   });
 
-  test('returns CharCodeRangeTaker', () => {
-    expect(char([0])).toBeInstanceOf(CharCodeRangeTaker);
+  test('returns CharCodeRangeReader', () => {
+    expect(char([0])).toBeInstanceOf(CharCodeRangeReader);
   });
 });
 
 
-describe('CharCodeRangeTaker', () => {
+describe('CharCodeRangeReader', () => {
 
-  test('takes exact char at offset', () => {
-    expect(toTakerFunction(new CharCodeRangeTaker([A]))('aaabbb', 2)).toBe(3);
+  test('reads exact char at offset', () => {
+    expect(toReaderFunction(new CharCodeRangeReader([A]))('aaabbb', 2)).toBe(3);
   });
 
-  test('takes char code range at offset', () => {
-    expect(toTakerFunction(new CharCodeRangeTaker([[A - 1, A + 1]]))('aaabbb', 2)).toBe(3);
+  test('reads char code range at offset', () => {
+    expect(toReaderFunction(new CharCodeRangeReader([[A - 1, A + 1]]))('aaabbb', 2)).toBe(3);
   });
 
   test('does not read unmatched char', () => {
-    expect(toTakerFunction(new CharCodeRangeTaker([A]))('aaabbb', 4)).toBe(NO_MATCH);
+    expect(toReaderFunction(new CharCodeRangeReader([A]))('aaabbb', 4)).toBe(NO_MATCH);
   });
 });

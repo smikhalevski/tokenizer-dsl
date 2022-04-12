@@ -1,13 +1,13 @@
-import {Taker} from './taker-types';
-import {createCodeBindings} from './taker-utils';
+import {Reader} from './reader-types';
+import {createCodeBindings} from './reader-utils';
 
 /**
- * The singleton taker that always returns the current offset.
+ * The singleton reader that always returns the current offset.
  *
  * @see {@link skip}
  * @see {@link end}
  */
-export const none: Taker<any> = {
+export const none: Reader<any> = {
 
   factory(inputVar, offsetVar, contextVar, resultVar) {
     return createCodeBindings([

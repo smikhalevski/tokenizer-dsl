@@ -1,25 +1,25 @@
 import {
-  CaseInsensitiveTextTaker,
-  CaseSensitiveTextTaker,
+  CaseInsensitiveTextReader,
+  CaseSensitiveTextReader,
   NO_MATCH,
   none,
   text,
-  toTakerFunction
-} from '../../main/takers';
+  toReaderFunction
+} from '../../main/readers';
 
 describe('text', () => {
 
-  test('returns noneTaker for an empty string', () => {
+  test('returns noneReader for an empty string', () => {
     expect(text('')).toBe(none);
   });
 
-  test('returns CaseSensitiveTextTaker', () => {
-    expect(text('aaa')).toBeInstanceOf(CaseSensitiveTextTaker);
-    expect(text('123', {caseInsensitive: true})).toBeInstanceOf(CaseSensitiveTextTaker);
+  test('returns CaseSensitiveTextReader', () => {
+    expect(text('aaa')).toBeInstanceOf(CaseSensitiveTextReader);
+    expect(text('123', {caseInsensitive: true})).toBeInstanceOf(CaseSensitiveTextReader);
   });
 
-  test('returns CaseInsensitiveTextTaker', () => {
-    expect(text('aaa', {caseInsensitive: true})).toBeInstanceOf(CaseInsensitiveTextTaker);
+  test('returns CaseInsensitiveTextReader', () => {
+    expect(text('aaa', {caseInsensitive: true})).toBeInstanceOf(CaseInsensitiveTextReader);
   });
 
   test('throws if text length is ambiguous', () => {
@@ -27,25 +27,25 @@ describe('text', () => {
   });
 });
 
-describe('CaseSensitiveTextTaker', () => {
+describe('CaseSensitiveTextReader', () => {
 
-  test('takes case-sensitive text', () => {
-    const take = toTakerFunction(new CaseSensitiveTextTaker('abc'));
+  test('reads case-sensitive text', () => {
+    const read = toReaderFunction(new CaseSensitiveTextReader('abc'));
 
-    expect(take('aaaabc', 3)).toBe(6);
-    expect(take('aaaabcde', 3)).toBe(6);
-    expect(take('aaaab', 3)).toBe(NO_MATCH);
-    expect(take('aaaABC', 3)).toBe(NO_MATCH);
+    expect(read('aaaabc', 3)).toBe(6);
+    expect(read('aaaabcde', 3)).toBe(6);
+    expect(read('aaaab', 3)).toBe(NO_MATCH);
+    expect(read('aaaABC', 3)).toBe(NO_MATCH);
   });
 });
 
-describe('CaseInsensitiveTextTaker', () => {
+describe('CaseInsensitiveTextReader', () => {
 
-  test('takes case-insensitive text', () => {
-    const take = toTakerFunction(new CaseInsensitiveTextTaker('abc'));
+  test('reads case-insensitive text', () => {
+    const read = toReaderFunction(new CaseInsensitiveTextReader('abc'));
 
-    expect(take('AAAABC', 3)).toBe(6);
-    expect(take('AAAABCDE', 3)).toBe(6);
-    expect(take('AAAAB', 3)).toBe(NO_MATCH);
+    expect(read('AAAABC', 3)).toBe(6);
+    expect(read('AAAABCDE', 3)).toBe(6);
+    expect(read('AAAAB', 3)).toBe(NO_MATCH);
   });
 });

@@ -1,51 +1,51 @@
-import {all, char, maybe, NO_MATCH, or, seq, text, toTakerFunction} from '../../main/takers';
+import {all, char, maybe, NO_MATCH, or, seq, text, toReaderFunction} from '../../main/readers';
 
 test('readme example', () => {
 
-  const zeroTaker = text('0');
+  const zeroReader = text('0');
 
-  const leadingDigitTaker = char([[49 /*1*/, 57 /*9*/]]);
+  const leadingDigitReader = char([[49 /*1*/, 57 /*9*/]]);
 
-  const digitsTaker = all(char([[48 /*0*/, 57 /*9*/]]));
+  const digitsReader = all(char([[48 /*0*/, 57 /*9*/]]));
 
-  const dotTaker = text('.');
+  const dotReader = text('.');
 
-  const signTaker = char(['+-']);
+  const signReader = char(['+-']);
 
-  const numberTaker = seq(
+  const numberReader = seq(
       // sign
-      maybe(signTaker),
+      maybe(signReader),
 
       // integer
       or(
-          zeroTaker,
+          zeroReader,
           seq(
-              leadingDigitTaker,
-              digitsTaker,
+              leadingDigitReader,
+              digitsReader,
           ),
       ),
 
       // fraction
       maybe(
           seq(
-              dotTaker,
-              digitsTaker,
+              dotReader,
+              digitsReader,
           ),
       ),
   );
 
-  const takeNumber = toTakerFunction<void>(numberTaker);
+  const readNumber = toReaderFunction<void>(numberReader);
 
-  expect(takeNumber('', 0)).toBe(NO_MATCH);
-  expect(takeNumber('0', 0)).toBe(1);
+  expect(readNumber('', 0)).toBe(NO_MATCH);
+  expect(readNumber('0', 0)).toBe(1);
 
-  expect(takeNumber('00', 0)).toBe(1);
+  expect(readNumber('00', 0)).toBe(1);
 
-  expect(takeNumber('123', 0)).toBe(3);
+  expect(readNumber('123', 0)).toBe(3);
 
-  expect(takeNumber('0.', 0)).toBe(2);
-  expect(takeNumber('0.123', 0)).toBe(5);
+  expect(readNumber('0.', 0)).toBe(2);
+  expect(readNumber('0.123', 0)).toBe(5);
 
-  expect(takeNumber('-0.123', 0)).toBe(6);
-  expect(takeNumber('+0.123', 0)).toBe(6);
+  expect(readNumber('-0.123', 0)).toBe(6);
+  expect(readNumber('+0.123', 0)).toBe(6);
 });

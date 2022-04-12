@@ -1,5 +1,5 @@
 import {Binding, Code, compileFunction, createVar, Var} from '../code';
-import {createTakerCallCode, NO_MATCH, seq} from '../takers';
+import {createReaderCallCode, NO_MATCH, seq} from '../readers';
 import {createRuleIterationPlan, RulePlan} from './createRuleIterationPlan';
 import {Rule, RuleHandler} from './rule-types';
 
@@ -79,10 +79,10 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
 
   const createRulePlansCode = (plans: RulePlan<S, C>[], prevPrefixOffsetVar: Var): Code => {
 
-    const takerResultVar = createVar();
+    const readerResultVar = createVar();
 
     const code: Code[] = [
-      'var ', takerResultVar, ';',
+      'var ', readerResultVar, ';',
     ];
 
     for (const plan of plans) {
@@ -90,13 +90,13 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
       // Check the prefix
       code.push(
           prefixOffsetVar, '=', prevPrefixOffsetVar, ';',
-          createTakerCallCode(seq(...plan.prefix), chunkVar, prefixOffsetVar, contextVar, takerResultVar, bindings),
-          'if(', takerResultVar, '!==', NO_MATCH, '&&', takerResultVar, '!==', prefixOffsetVar, '){',
+          createReaderCallCode(seq(...plan.prefix), chunkVar, prefixOffsetVar, contextVar, readerResultVar, bindings),
+          'if(', readerResultVar, '!==', NO_MATCH, '&&', readerResultVar, '!==', prefixOffsetVar, '){',
       );
 
       // Apply nested plans
       if (plan.children) {
-        code.push(createRulePlansCode(plan.children, takerResultVar));
+        code.push(createRulePlansCode(plan.children, readerResultVar));
       }
 
       // Apply plan rule
@@ -109,8 +109,8 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
         code.push([
 
           // Emit error
-          'if(', takerResultVar, '<0){',
-          errorCallbackVar, '(', ruleVar, ',', chunkOffsetVar, '+', nextOffsetVar, ',', takerResultVar, ');',
+          'if(', readerResultVar, '<0){',
+          errorCallbackVar, '(', ruleVar, ',', chunkOffsetVar, '+', nextOffsetVar, ',', readerResultVar, ');',
           'return}',
 
           // Emit confirmed token
@@ -124,12 +124,12 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
 
           plan.rule.nextStage === undefined ? '' :
               typeof plan.rule.nextStage === 'function'
-                  ? [stageIndexVar, '=', stagesVar, '.indexOf(', ruleVar, '.nextStage(', chunkVar, ',', nextOffsetVar, ',', takerResultVar, '-', nextOffsetVar, ',', contextVar, '));']
+                  ? [stageIndexVar, '=', stagesVar, '.indexOf(', ruleVar, '.nextStage(', chunkVar, ',', nextOffsetVar, ',', readerResultVar, '-', nextOffsetVar, ',', contextVar, '));']
                   : [stageIndexVar, '=', iterationPlan.stages.indexOf(plan.rule.nextStage), ';']
           ,
 
           prevReaderVar, '=', ruleVar, ';',
-          nextOffsetVar, '=', takerResultVar, ';',
+          nextOffsetVar, '=', readerResultVar, ';',
 
           // Continue the looping over characters in the input chunk
           'continue',

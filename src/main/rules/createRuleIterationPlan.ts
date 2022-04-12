@@ -1,4 +1,4 @@
-import {SeqTaker, Taker} from '../takers';
+import {SeqReader, Reader} from '../readers';
 import {Rule} from './rule-types';
 
 export interface RuleIterationPlan<S, C> {
@@ -9,7 +9,7 @@ export interface RuleIterationPlan<S, C> {
 }
 
 export interface RulePlan<S, C> {
-  prefix: Taker<C>[];
+  prefix: Reader<C>[];
   children?: RulePlan<S, C>[];
   rule?: Rule<S, C>;
 }
@@ -66,13 +66,13 @@ export function createRuleIterationPlan<S, C>(rules: Rule<S, C>[]): RuleIteratio
  * Appends the rule to the tree of plans.
  */
 export function appendRule<S, C>(plans: RulePlan<S, C>[], rule: Rule<S, C>): RulePlan<S, C>[] {
-  const {taker} = rule;
+  const {reader} = rule;
 
-  distributeRule(plans, taker instanceof SeqTaker ? taker.takers : [taker], rule);
+  distributeRule(plans, reader instanceof SeqReader ? reader.readers : [reader], rule);
   return plans;
 }
 
-function distributeRule<S, C>(plans: RulePlan<S, C>[], prefix: Taker<C>[], rule: Rule<S, C>): void {
+function distributeRule<S, C>(plans: RulePlan<S, C>[], prefix: Reader<C>[], rule: Rule<S, C>): void {
 
   const prefixLength = prefix.length;
 

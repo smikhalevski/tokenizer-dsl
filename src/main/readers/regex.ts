@@ -1,17 +1,17 @@
 import {createVar, Var} from '../code';
-import {CodeBindings, NO_MATCH, Taker, TakerCodegen} from './taker-types';
-import {createCodeBindings} from './taker-utils';
+import {CodeBindings, NO_MATCH, Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings} from './reader-utils';
 
 /**
- * Creates taker that matches a substring.
+ * Creates reader that matches a substring.
  *
  * @param re The `RegExp` to match.
  */
-export function regex(re: RegExp): Taker<any> {
-  return new RegexTaker(re);
+export function regex(re: RegExp): Reader<any> {
+  return new RegexReader(re);
 }
 
-export class RegexTaker implements TakerCodegen {
+export class RegexReader implements ReaderCodegen {
 
   re;
 

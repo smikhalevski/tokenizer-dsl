@@ -1,19 +1,19 @@
 import {Var} from '../code';
-import {CodeBindings, Taker, TakerCodegen} from './taker-types';
-import {createCodeBindings} from './taker-utils';
+import {CodeBindings, Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings} from './reader-utils';
 
 /**
- * Creates taker that returns the input length plus the offset.
+ * Creates reader that returns the input length plus the offset.
  *
  * @param offset The offset added to the input length.
  *
  * @see {@link skip}
  */
-export function end(offset = 0): Taker<any> {
-  return new EndTaker(offset);
+export function end(offset = 0): Reader<any> {
+  return new EndReader(offset);
 }
 
-export class EndTaker implements TakerCodegen {
+export class EndReader implements ReaderCodegen {
 
   constructor(public offset: number) {
   }

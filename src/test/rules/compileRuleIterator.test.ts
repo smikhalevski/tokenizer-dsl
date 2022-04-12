@@ -1,4 +1,4 @@
-import {all, createRule, seq, TakerFunction, text} from '../../main';
+import {all, createRule, seq, ReaderFunction, text} from '../../main';
 import {compileRuleIterator, RuleHandler, RuleIteratorState} from '../../main/rules';
 
 describe('compileRuleIterator', () => {
@@ -188,7 +188,7 @@ describe('compileRuleIterator', () => {
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(1);
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 1002, 3);
-    // Token taken by ruleB is not emitted because no confirmation was given
+    // Token readn by ruleB is not emitted because no confirmation was given
 
     expect(errorCallbackMock).toHaveBeenCalledTimes(1);
     expect(errorCallbackMock).toHaveBeenNthCalledWith(1, ruleError, 1007, -777);
@@ -280,10 +280,10 @@ describe('compileRuleIterator', () => {
 
   test('optimizes rule prefixes', () => {
 
-    const prefixTakerMock: TakerFunction<any> = jest.fn((input, offset) => offset + 1);
+    const prefixReaderMock: ReaderFunction<any> = jest.fn((input, offset) => offset + 1);
 
-    const ruleA = createRule(seq(prefixTakerMock, text('a')));
-    const ruleB = createRule(seq(prefixTakerMock, text('b')));
+    const ruleA = createRule(seq(prefixReaderMock, text('a')));
+    const ruleB = createRule(seq(prefixReaderMock, text('b')));
 
     const ruleIterator = compileRuleIterator([ruleA, ruleB]);
 
