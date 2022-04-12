@@ -31,7 +31,7 @@ describe('Tokenizer', () => {
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(2);
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1, 2);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1, 1);
 
     tokenizer.write('BBB');
 
@@ -40,12 +40,12 @@ describe('Tokenizer', () => {
     tokenizer.write('a');
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleB, 2, 8);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleB, 2, 6);
 
     tokenizer.end();
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(4);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, ruleA, 8, 9);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, ruleA, 8, 1);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -64,8 +64,8 @@ describe('Tokenizer', () => {
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1, 2);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleB, 2, 3);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleB, 2, 1);
 
     tokenizer.reset();
     tokenizer.end('BBB');

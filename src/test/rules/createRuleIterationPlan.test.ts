@@ -16,6 +16,7 @@ describe('createRuleIterationPlan', () => {
 
     const ruleIterationPlan: RuleIterationPlan<any, any> = {
       stages: [],
+      stagesComputed: false,
       stagePlans: [],
       defaultPlans: [
         {
@@ -36,6 +37,7 @@ describe('createRuleIterationPlan', () => {
 
     const ruleIterationPlan: RuleIterationPlan<any, any> = {
       stages: ['AAA'],
+      stagesComputed: false,
       stagePlans: [
         [{
           prefix: [take1, take2],
@@ -58,6 +60,7 @@ describe('createRuleIterationPlan', () => {
 
     const ruleIterationPlan: RuleIterationPlan<any, any> = {
       stages: ['AAA'],
+      stagesComputed: false,
       stagePlans: [
         [{
           prefix: [take1],
@@ -89,6 +92,7 @@ describe('createRuleIterationPlan', () => {
 
     const ruleIterationPlan: RuleIterationPlan<any, any> = {
       stages: ['AAA', 'BBB'],
+      stagesComputed: false,
       stagePlans: [
         [{
           prefix: [take1, take12],
@@ -114,6 +118,7 @@ describe('createRuleIterationPlan', () => {
 
     const ruleIterationPlan: RuleIterationPlan<any, any> = {
       stages: ['AAA'],
+      stagesComputed: false,
       stagePlans: [
         [{
           prefix: [take1, take2],
