@@ -1,4 +1,4 @@
-import {Binding, Code, compileFunction, createVar} from '../code';
+import {Binding, Code, compileFunction, createVar, Var} from '../code';
 import {createTakerCallCode, NO_MATCH, seq} from '../takers';
 import {createRuleIterationPlan, RulePlan} from './createRuleIterationPlan';
 import {Rule, RuleHandler} from './rule-types';
@@ -73,24 +73,33 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
   const chunkOffsetVar = createVar();
 
   const prevReaderVar = createVar();
+  const prefixOffsetVar = createVar();
   const nextOffsetVar = createVar();
   const chunkLengthVar = createVar();
-  const takerResultVar = createVar();
 
-  const createRulePlansCode = (plans: RulePlan<S, C>[]): Code => {
+  const createRulePlansCode = (plans: RulePlan<S, C>[], prevPrefixOffsetVar: Var): Code => {
 
-    const code: Code[] = [];
+    const takerResultVar = createVar();
+
+    const code: Code[] = [
+      'var ', takerResultVar, ';',
+    ];
 
     for (const plan of plans) {
 
       // Check the prefix
-      code.push(createTakerCallCode(seq(...plan.prefix), chunkVar, nextOffsetVar, contextVar, takerResultVar, bindings));
+      code.push(
+          prefixOffsetVar, '=', prevPrefixOffsetVar, ';',
+          createTakerCallCode(seq(...plan.prefix), chunkVar, prefixOffsetVar, contextVar, takerResultVar, bindings),
+          'if(', takerResultVar, '!==', NO_MATCH, '&&', takerResultVar, '!==', prefixOffsetVar, '){',
+      );
 
       // Apply nested plans
       if (plan.children) {
-        code.push(createRulePlansCode(plan.children));
+        code.push(createRulePlansCode(plan.children, takerResultVar));
       }
 
+      // Apply plan rule
       if (plan.rule) {
 
         const ruleVar = createVar();
@@ -98,7 +107,6 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
         bindings.push([ruleVar, plan.rule]);
 
         code.push([
-          'if(', takerResultVar, '!==', NO_MATCH, '&&', takerResultVar, '!==', nextOffsetVar, '){',
 
           // Emit error
           'if(', takerResultVar, '<0){',
@@ -123,9 +131,12 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
           prevReaderVar, '=', ruleVar, ';',
           nextOffsetVar, '=', takerResultVar, ';',
 
-          'continue}',
+          // Continue the looping over characters in the input chunk
+          'continue',
         ]);
       }
+
+      code.push('}');
     }
 
     return code;
@@ -143,9 +154,9 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
     unrecognizedTokenCallbackVar, '=', handlerVar, '.unrecognizedToken,',
 
     prevReaderVar, ',',
+    prefixOffsetVar, ',',
     nextOffsetVar, '=', offsetVar, ',',
-    chunkLengthVar, '=', chunkVar, '.length,',
-    takerResultVar, ';',
+    chunkLengthVar, '=', chunkVar, '.length;',
 
     'while(', nextOffsetVar, '<', chunkLengthVar, '){',
 
@@ -153,12 +164,12 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
       'switch(', stageIndexVar, '){',
       iterationPlan.stagePlans.map((plans, i) => [
         'case ', i, ':',
-        createRulePlansCode(plans),
+        createRulePlansCode(plans, nextOffsetVar),
         'break;',
       ]),
-      iterationPlan.defaultPlans.length ? ['default:', createRulePlansCode(iterationPlan.defaultPlans)] : '',
+      iterationPlan.defaultPlans.length ? ['default:', createRulePlansCode(iterationPlan.defaultPlans, nextOffsetVar)] : '',
       '}',
-    ] : createRulePlansCode(iterationPlan.defaultPlans),
+    ] : createRulePlansCode(iterationPlan.defaultPlans, nextOffsetVar),
 
     'break}',
 

@@ -1,4 +1,4 @@
-import {all, createRule, text} from '../../main';
+import {all, createRule, seq, TakerFunction, text} from '../../main';
 import {compileRuleIterator, RuleHandler, RuleIteratorState} from '../../main/rules';
 
 describe('compileRuleIterator', () => {
@@ -275,6 +275,38 @@ describe('compileRuleIterator', () => {
       offset: 3,
       chunkOffset: 0,
       stageIndex: 1,
+    });
+  });
+
+  test('optimizes rule prefixes', () => {
+
+    const prefixTakerMock: TakerFunction<any> = jest.fn((input, offset) => offset + 1);
+
+    const ruleA = createRule(seq(prefixTakerMock, text('a')));
+    const ruleB = createRule(seq(prefixTakerMock, text('b')));
+
+    const ruleIterator = compileRuleIterator([ruleA, ruleB]);
+
+    const state: RuleIteratorState = {
+      chunk: '_b',
+      offset: 0,
+      chunkOffset: 0,
+      stageIndex: -1,
+    };
+
+    ruleIterator(state, false, handler, undefined);
+
+    expect(tokenCallbackMock).toHaveBeenCalledTimes(1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleB, 0, 2);
+
+    expect(errorCallbackMock).not.toHaveBeenCalled();
+    expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
+
+    expect(state).toEqual({
+      chunk: '_b',
+      offset: 2,
+      chunkOffset: 0,
+      stageIndex: -1,
     });
   });
 });
