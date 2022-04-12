@@ -1,6 +1,6 @@
 import {Binding, Code, compileFunction, createVar} from '../code';
-import {createTakerCallCode, NO_MATCH} from '../takers';
-import {createRuleIterationPlan} from './createRuleIterationPlan';
+import {createTakerCallCode, NO_MATCH, seq} from '../takers';
+import {createRuleIterationPlan, RulePlan} from './createRuleIterationPlan';
 import {Rule, RuleHandler} from './rule-types';
 
 /**
@@ -51,18 +51,6 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
 
   const iterationPlan = createRuleIterationPlan(rules);
 
-  const uniqueStages: S[] = [];
-
-  for (const rule of rules) {
-    if (rule.stages) {
-      for (const stage of rule.stages) {
-        if (uniqueStages.indexOf(stage) === -1) {
-          uniqueStages.push(stage);
-        }
-      }
-    }
-  }
-
   const stateVar = createVar();
   const streamingVar = createVar();
   const handlerVar = createVar();
@@ -84,6 +72,55 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
 
   const bindings: Binding[] = [];
 
+  const createRulePlansCode = <S, C>(plans: RulePlan<S, C>[]): Code => {
+
+    const code: Code[] = [];
+
+    for (const plan of plans) {
+
+      // Check the prefix
+      code.push(createTakerCallCode(seq(...plan.prefix), chunkVar, nextOffsetVar, contextVar, takerResultVar, bindings));
+
+      // Apply nested plans
+      if (plan.children) {
+        code.push(createRulePlansCode(plan.children));
+      }
+
+      if (plan.rule) {
+
+        const ruleVar = createVar();
+
+        bindings.push([ruleVar, plan.rule]);
+
+        code.push([
+          'if(', takerResultVar, '!==', NO_MATCH, '&&', takerResultVar, '!==', nextOffsetVar, '){',
+
+          // Emit error
+          'if(', takerResultVar, '<0){',
+          errorCallbackVar, '(', ruleVar, ',', chunkOffsetVar, '+', nextOffsetVar, ',', takerResultVar, ');',
+          'return}',
+
+          // Emit confirmed token
+          'if(', prevReaderVar, '){',
+          tokenCallbackVar, '(', prevReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', chunkOffsetVar, '+', nextOffsetVar, ');',
+          prevReaderVar, '=undefined;',
+          '}',
+
+          stateVar, '.stageIndex=', stageIndexVar, ';',
+          stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
+
+          plan.rule.nextStage === undefined ? '' : [stageIndexVar, '=', iterationPlan.stages.indexOf(plan.rule.nextStage as any), ';'],
+          prevReaderVar, '=', ruleVar, ';',
+          nextOffsetVar, '=', takerResultVar, ';',
+
+          'continue}',
+        ]);
+      }
+    }
+
+    return code;
+  };
+
   const code: Code = [
     'var ',
     stageIndexVar, '=', stateVar, '.stageIndex,',
@@ -102,50 +139,17 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
 
     'while(', nextOffsetVar, '<', chunkLengthVar, '){',
 
-    rules.map((rule) => {
+    iterationPlan.stagePlans.length ? [
+      'switch(', stageIndexVar, '){',
+      iterationPlan.stagePlans.map((plans, i) => [
+        'case ', i, ':',
+        createRulePlansCode(plans),
+        'break;',
+      ]),
+      iterationPlan.defaultPlans.length ? ['default:', createRulePlansCode(iterationPlan.defaultPlans)] : '',
+      '}',
+    ] : createRulePlansCode(iterationPlan.defaultPlans),
 
-      const {stages} = rule;
-
-      if (stages?.length === 0) {
-        return '';
-      }
-
-      const ruleVar = createVar();
-
-      bindings.push([ruleVar, rule]);
-
-      return [
-        // Check if token can be applied on the current stage
-        stages ? ['if(', stages.map((stage, i) => [i === 0 ? '' : '||', stageIndexVar, '===', uniqueStages.indexOf(stage)]), '){'] : '',
-
-        // Take chars from the input string
-        createTakerCallCode(rule.taker, chunkVar, nextOffsetVar, contextVar, takerResultVar, bindings),
-
-        'if(', takerResultVar, '!==', NO_MATCH, '&&', takerResultVar, '!==', nextOffsetVar, '){',
-
-        // Emit error
-        'if(', takerResultVar, '<0){',
-        errorCallbackVar, '(', ruleVar, ',', chunkOffsetVar, '+', nextOffsetVar, ',', takerResultVar, ');',
-        'return}',
-
-        // Emit confirmed token
-        'if(', prevReaderVar, '){',
-        tokenCallbackVar, '(', prevReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', chunkOffsetVar, '+', nextOffsetVar, ');',
-        prevReaderVar, '=undefined;',
-        '}',
-
-        stateVar, '.stageIndex=', stageIndexVar, ';',
-        stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
-
-        rule.nextStage === undefined ? '' : [stageIndexVar, '=', uniqueStages.indexOf(rule.nextStage as S), ';'],
-        prevReaderVar, '=', ruleVar, ';',
-        nextOffsetVar, '=', takerResultVar, ';',
-
-        'continue}',
-
-        stages ? '}' : '',
-      ];
-    }),
     'break}',
 
     'if(', streamingVar, ')return;',
@@ -164,7 +168,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
 
   const ruleIterator = compileFunction<RuleIterator<S, C>>([stateVar, streamingVar, handlerVar, contextVar], code, bindings);
 
-  ruleIterator.stages = uniqueStages;
+  ruleIterator.stages = iterationPlan.stages;
 
   return ruleIterator;
 }

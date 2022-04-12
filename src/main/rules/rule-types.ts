@@ -21,7 +21,7 @@ export interface Rule<S, C> {
    *
    * @default undefined
    */
-  stages: S[] | undefined;
+  stages?: S[] | undefined;
 
   /**
    * Provides the stage to which tokenizer transitions if this rule successfully reads a token.
@@ -30,7 +30,7 @@ export interface Rule<S, C> {
    *
    * @default undefined
    */
-  nextStage: StageProvider<S, C> | S | undefined;
+  nextStage?: StageProvider<S, C> | S | undefined;
 }
 
 /**
