@@ -3,6 +3,7 @@ import {Rule} from './rule-types';
 
 export interface RuleIterationPlan<S, C> {
   stages: S[];
+  stagesComputed: boolean;
   stagePlans: RulePlan<S, C>[][];
   defaultPlans: RulePlan<S, C>[];
 }
@@ -16,6 +17,8 @@ export interface RulePlan<S, C> {
 export function createRuleIterationPlan<S, C>(rules: Rule<S, C>[]): RuleIterationPlan<S, C> {
   const stages: S[] = [];
 
+  let stagesComputed = false;
+
   for (const rule of rules) {
     if (rule.stages) {
       for (const stage of rule.stages) {
@@ -24,6 +27,7 @@ export function createRuleIterationPlan<S, C>(rules: Rule<S, C>[]): RuleIteratio
         }
       }
     }
+    stagesComputed ||= typeof rule.nextStage === 'function';
   }
 
   const stagePlans: RulePlan<S, C>[][] = [];
@@ -52,6 +56,7 @@ export function createRuleIterationPlan<S, C>(rules: Rule<S, C>[]): RuleIteratio
 
   return {
     stages,
+    stagesComputed,
     stagePlans,
     defaultPlans,
   };

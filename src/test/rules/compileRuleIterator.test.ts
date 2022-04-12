@@ -40,9 +40,9 @@ describe('compileRuleIterator', () => {
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(4);
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleB, 1, 2);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleA, 2, 4);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, ruleB, 4, 6);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleB, 1, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleA, 2, 2);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, ruleB, 4, 2);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -70,7 +70,7 @@ describe('compileRuleIterator', () => {
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(2);
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1, 2);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1, 1);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -98,8 +98,8 @@ describe('compileRuleIterator', () => {
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1, 2);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleA, 2, 3);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleA, 2, 1);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -126,9 +126,9 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, false, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 1002, 1003);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1003, 1004);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleA, 1004, 1005);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 1002, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1003, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleA, 1004, 1);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -155,8 +155,8 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, false, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(2);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 1002, 1003);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1003, 1004);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 1002, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1003, 1);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
 
@@ -187,7 +187,7 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, false, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 1002, 1005);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 1002, 3);
     // Token taken by ruleB is not emitted because no confirmation was given
 
     expect(errorCallbackMock).toHaveBeenCalledTimes(1);
@@ -203,7 +203,7 @@ describe('compileRuleIterator', () => {
     });
   });
 
-  test('respects stages', () => {
+  test('respects literal stages', () => {
     const ruleA = createRule(text('a'), ['A'], 'B');
     const ruleB = createRule(text('b'), ['B'], 'A');
 
@@ -213,18 +213,62 @@ describe('compileRuleIterator', () => {
       chunk: 'ababbbb',
       offset: 0,
       chunkOffset: 0,
-      stageIndex: ruleIterator.stages.indexOf('A'),
+      stageIndex: 0,
     };
 
     ruleIterator(state, true, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleB, 1, 2);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleA, 2, 3);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleB, 1, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleA, 2, 1);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
+
+    expect(state).toEqual({
+      chunk: 'ababbbb',
+      offset: 3,
+      chunkOffset: 0,
+      stageIndex: 1,
+    });
+  });
+
+  test('respects computed stages', () => {
+    const ruleANextStageMock = jest.fn(() => 'B');
+    const ruleBNextStageMock = jest.fn(() => 'A');
+
+    const ruleA = createRule(text('a'), ['A'], ruleANextStageMock);
+    const ruleB = createRule(text('b'), ['B'], ruleBNextStageMock);
+
+    const ruleIterator = compileRuleIterator([ruleA, ruleB]);
+
+    const state: RuleIteratorState = {
+      chunk: 'ababbbb',
+      offset: 0,
+      chunkOffset: 0,
+      stageIndex: 0,
+    };
+
+    const context = Symbol('context');
+
+    ruleIterator(state, true, handler, context);
+
+    expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleB, 1, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleA, 2, 1);
+
+    expect(errorCallbackMock).not.toHaveBeenCalled();
+    expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
+
+    expect(ruleANextStageMock).toHaveBeenCalledTimes(2);
+    expect(ruleANextStageMock).toHaveBeenNthCalledWith(1, 'ababbbb', 0, 1, context);
+    expect(ruleANextStageMock).toHaveBeenNthCalledWith(2, 'ababbbb', 2, 1, context);
+
+    expect(ruleBNextStageMock).toHaveBeenCalledTimes(2);
+    expect(ruleBNextStageMock).toHaveBeenNthCalledWith(1, 'ababbbb', 1, 1, context);
+    expect(ruleBNextStageMock).toHaveBeenNthCalledWith(2, 'ababbbb', 3, 1, context);
 
     expect(state).toEqual({
       chunk: 'ababbbb',

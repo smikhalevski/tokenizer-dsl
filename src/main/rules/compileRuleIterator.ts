@@ -50,6 +50,13 @@ export interface RuleIterator<S, C> {
 export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, C> {
 
   const iterationPlan = createRuleIterationPlan(rules);
+  const bindings: Binding[] = [];
+
+  const stagesVar = createVar();
+
+  if (iterationPlan.stagesComputed) {
+    bindings.push([stagesVar, iterationPlan.stages]);
+  }
 
   const stateVar = createVar();
   const streamingVar = createVar();
@@ -70,9 +77,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
   const chunkLengthVar = createVar();
   const takerResultVar = createVar();
 
-  const bindings: Binding[] = [];
-
-  const createRulePlansCode = <S, C>(plans: RulePlan<S, C>[]): Code => {
+  const createRulePlansCode = (plans: RulePlan<S, C>[]): Code => {
 
     const code: Code[] = [];
 
@@ -102,14 +107,19 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
 
           // Emit confirmed token
           'if(', prevReaderVar, '){',
-          tokenCallbackVar, '(', prevReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', chunkOffsetVar, '+', nextOffsetVar, ');',
+          tokenCallbackVar, '(', prevReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', nextOffsetVar, '-', offsetVar, ');',
           prevReaderVar, '=undefined;',
           '}',
 
           stateVar, '.stageIndex=', stageIndexVar, ';',
           stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
-          plan.rule.nextStage === undefined ? '' : [stageIndexVar, '=', iterationPlan.stages.indexOf(plan.rule.nextStage as any), ';'],
+          plan.rule.nextStage === undefined ? '' :
+              typeof plan.rule.nextStage === 'function'
+                  ? [stageIndexVar, '=', stagesVar, '.indexOf(', ruleVar, '.nextStage(', chunkVar, ',', nextOffsetVar, ',', takerResultVar, '-', nextOffsetVar, ',', contextVar, '));']
+                  : [stageIndexVar, '=', iterationPlan.stages.indexOf(plan.rule.nextStage), ';']
+          ,
+
           prevReaderVar, '=', ruleVar, ';',
           nextOffsetVar, '=', takerResultVar, ';',
 
@@ -156,7 +166,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
 
     // Emit trailing unconfirmed token
     'if(', prevReaderVar, '){',
-    tokenCallbackVar, '(', prevReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', chunkOffsetVar, '+', nextOffsetVar, ');',
+    tokenCallbackVar, '(', prevReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', nextOffsetVar, '-', offsetVar, ');',
     stateVar, '.stageIndex=', stageIndexVar, ';',
     stateVar, '.offset=', nextOffsetVar, ';',
     '}',
