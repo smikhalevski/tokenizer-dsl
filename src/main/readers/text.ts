@@ -16,10 +16,11 @@ export interface TextOptions {
 }
 
 /**
- * Creates reader that reads a substring from the input.
+ * Creates a reader that reads a substring from the input.
  *
  * @param str The text to match.
  * @param options Reader options.
+ *
  * @see {@link char}
  */
 export function text(str: string, options: TextOptions = {}): Reader<any> {

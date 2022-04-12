@@ -2,9 +2,9 @@ import {Binding, createVar, Var} from '../code';
 import {CharCodeRange, CharCodeRangeReader, createCharPredicateCode} from './char';
 import {never} from './never';
 import {none} from './none';
-import {RegexReader} from './regex';
 import {CodeBindings, NO_MATCH, Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings, createReaderCallCode} from './reader-utils';
+import {RegexReader} from './regex';
 import {CaseSensitiveTextReader} from './text';
 
 export interface UntilOptions {
@@ -18,7 +18,7 @@ export interface UntilOptions {
 }
 
 /**
- * Creates reader that reads chars until `reader` matches.
+ * Creates a reader that reads chars until `reader` matches.
  *
  * @param reader The reader that reads chars.
  * @param options Reader options.

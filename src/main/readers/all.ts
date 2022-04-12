@@ -3,9 +3,9 @@ import {CharCodeRange, CharCodeRangeReader, createCharPredicateCode} from './cha
 import {MaybeReader} from './maybe';
 import {never} from './never';
 import {none} from './none';
-import {RegexReader} from './regex';
 import {CodeBindings, NO_MATCH, Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings, createReaderCallCode, toCharCodes} from './reader-utils';
+import {RegexReader} from './regex';
 import {CaseSensitiveTextReader} from './text';
 
 export interface AllOptions {
@@ -26,7 +26,7 @@ export interface AllOptions {
 }
 
 /**
- * Creates reader that repeatedly reads chars using `reader`.
+ * Creates a reader that repeatedly reads chars using `reader`.
  *
  * @param reader The reader that reads chars.
  * @param options Reader options.

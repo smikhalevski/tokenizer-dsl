@@ -35,4 +35,13 @@ describe('MaybeReader', () => {
     expect(toReaderFunction(new MaybeReader(text('bb')))('aabbcc', 0)).toBe(0);
   });
 
+  test('propagates context', () => {
+    const readerMock = jest.fn(() => 0);
+    const context = Symbol('context');
+
+    expect(toReaderFunction<any>(new MaybeReader(readerMock))('a', 0, context)).toBe(0);
+
+    expect(readerMock).toHaveBeenCalledTimes(1);
+    expect(readerMock).toHaveBeenNthCalledWith(1, 'a', 0, context);
+  });
 });

@@ -3,7 +3,7 @@ import {CodeBindings, NO_MATCH, Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings} from './reader-utils';
 
 /**
- * Creates reader that skips given number of chars.
+ * Creates a reader that skips given number of chars.
  *
  * @param charCount The number of chars to skip.
  *

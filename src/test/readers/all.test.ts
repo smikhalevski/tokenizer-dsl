@@ -2,8 +2,8 @@ import {
   all,
   AllCaseSensitiveTextReader,
   AllCharCodeRangeReader,
-  AllRegexReader,
   AllReader,
+  AllRegexReader,
   MaybeReader,
   never,
   NO_MATCH,
@@ -220,5 +220,15 @@ describe('AllReader', () => {
 
   test('can use inline readers', () => {
     expect(toReaderFunction(new AllReader(text('a'), 0, 0))('aabbcc', 0)).toBe(2);
+  });
+
+  test('propagates context', () => {
+    const readerMock = jest.fn(() => 0);
+    const context = Symbol('context');
+
+    expect(toReaderFunction<any>(new AllReader(readerMock, 0, 0))('a', 0, context)).toBe(0);
+
+    expect(readerMock).toHaveBeenCalledTimes(1);
+    expect(readerMock).toHaveBeenNthCalledWith(1, 'a', 0, context);
   });
 });

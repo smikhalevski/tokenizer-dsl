@@ -1,4 +1,4 @@
-import {all, createRule, seq, ReaderFunction, text} from '../../main';
+import {all, createRule, ReaderFunction, seq, text} from '../../main';
 import {compileRuleIterator, RuleHandler, RuleIteratorState} from '../../main/rules';
 
 describe('compileRuleIterator', () => {

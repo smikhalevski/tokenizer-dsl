@@ -3,7 +3,7 @@ import {CodeBindings, Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings} from './reader-utils';
 
 /**
- * Creates reader that returns the input length plus the offset.
+ * Creates a reader that returns the input length plus the offset.
  *
  * @param offset The offset added to the input length.
  *

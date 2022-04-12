@@ -50,4 +50,14 @@ describe('OrReader', () => {
   test('can use inline readers', () => {
     expect(toReaderFunction(new OrReader([text('bb'), text('aa')]))('aabbcc', 0)).toBe(2);
   });
+
+  test('propagates context', () => {
+    const readerMock = jest.fn(() => 0);
+    const context = Symbol('context');
+
+    expect(toReaderFunction<any>(new OrReader([readerMock, readerMock]))('a', 0, context)).toBe(0);
+
+    expect(readerMock).toHaveBeenCalledTimes(1);
+    expect(readerMock).toHaveBeenNthCalledWith(1, 'a', 0, context);
+  });
 });

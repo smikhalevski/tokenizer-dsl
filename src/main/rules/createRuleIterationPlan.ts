@@ -1,4 +1,4 @@
-import {SeqReader, Reader} from '../readers';
+import {Reader, SeqReader} from '../readers';
 import {Rule} from './rule-types';
 
 export interface RuleIterationPlan<S, C> {

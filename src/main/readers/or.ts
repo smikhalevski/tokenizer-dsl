@@ -5,7 +5,7 @@ import {CodeBindings, NO_MATCH, Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings, createReaderCallCode} from './reader-utils';
 
 /**
- * Returns the result of the first matched reader.
+ * Creates a reader that returns the result of the first matched reader.
  *
  * @param readers Readers that are called.
  */

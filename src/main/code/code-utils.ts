@@ -95,6 +95,9 @@ export function compileFunction<F extends Function>(argVars: Var[], code: Code, 
   return Function.call(undefined, varRenamer(arrVar), fnSrc)(arr);
 }
 
+/**
+ * Creates callback that returns a unique name for a variable.
+ */
 export function createVarRenamer(): VarRenamer {
   const varMap = new Map<Var, string>();
 

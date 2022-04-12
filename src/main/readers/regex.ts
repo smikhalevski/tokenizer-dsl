@@ -3,7 +3,7 @@ import {CodeBindings, NO_MATCH, Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings} from './reader-utils';
 
 /**
- * Creates reader that matches a substring.
+ * Creates a reader that matches a substring.
  *
  * @param re The `RegExp` to match.
  */

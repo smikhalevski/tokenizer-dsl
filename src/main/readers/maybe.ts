@@ -5,7 +5,7 @@ import {CodeBindings, NO_MATCH, Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings, createReaderCallCode} from './reader-utils';
 
 /**
- * Creates reader that returns `reader` result or current offset if reader returned {@link NO_MATCH}.
+ * Creates a reader that returns `reader` result or current offset if reader returned {@link NO_MATCH}.
  *
  * @param reader The reader which match must be considered optional.
  */
