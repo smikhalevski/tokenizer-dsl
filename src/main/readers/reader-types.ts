@@ -21,7 +21,7 @@ export type ReaderFunction<C> = (input: string, offset: number, context: C) => n
 export interface ReaderCodegen {
 
   /**
-   * The factory that returns the code body of the reader function. The produced code assigns the reader result for
+   * The factory that returns the code of the reader function. The produced code assigns the reader result for
    * `inputVar` and `offsetVar` to `resultVar`. The produced code must be a semicolon-terminated statement.
    *
    * ```ts
