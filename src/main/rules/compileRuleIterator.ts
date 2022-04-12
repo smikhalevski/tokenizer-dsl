@@ -1,5 +1,6 @@
 import {Binding, Code, compileFunction, createVar} from '../code';
 import {createTakerCallCode, NO_MATCH} from '../takers';
+import {createRuleIterationPlan} from './createRuleIterationPlan';
 import {Rule, RuleHandler} from './rule-types';
 
 /**
@@ -38,7 +39,7 @@ export interface RuleIterator<S, C> {
   /**
    * The list of unique stages that are used by tokens that comprise this iterator.
    */
-  uniqueStages: readonly S[];
+  stages: readonly S[];
 }
 
 /**
@@ -47,6 +48,8 @@ export interface RuleIterator<S, C> {
  * @param rules The list of tokes that iterator can process.
  */
 export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, C> {
+
+  const iterationPlan = createRuleIterationPlan(rules);
 
   const uniqueStages: S[] = [];
 
@@ -161,7 +164,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
 
   const ruleIterator = compileFunction<RuleIterator<S, C>>([stateVar, streamingVar, handlerVar, contextVar], code, bindings);
 
-  ruleIterator.uniqueStages = uniqueStages;
+  ruleIterator.stages = uniqueStages;
 
   return ruleIterator;
 }

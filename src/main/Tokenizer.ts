@@ -17,7 +17,7 @@ export class Tokenizer<S = any, C = void> implements RuleIteratorState {
     }
 
     const ruleIterator = this.ruleIterator = compileRuleIterator(rules);
-    this.stageIndex = this.initialStageIndex = ruleIterator.uniqueStages.indexOf(initialStage as S);
+    this.stageIndex = this.initialStageIndex = ruleIterator.stages.indexOf(initialStage as S);
   }
 
   write(chunk: string): void {

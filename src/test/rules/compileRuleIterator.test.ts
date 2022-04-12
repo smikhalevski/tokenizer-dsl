@@ -213,7 +213,7 @@ describe('compileRuleIterator', () => {
       chunk: 'ababbbb',
       offset: 0,
       chunkOffset: 0,
-      stageIndex: ruleIterator.uniqueStages.indexOf('A'),
+      stageIndex: ruleIterator.stages.indexOf('A'),
     };
 
     ruleIterator(state, true, handler, undefined);

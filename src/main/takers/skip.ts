@@ -20,6 +20,7 @@ export class SkipTaker implements TakerCodegen {
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const {charCount} = this;
+
     return createCodeBindings([
       resultVar, '=', offsetVar, '+', charCount, '<=', inputVar, '.length?', offsetVar, '+', charCount, ':', NO_MATCH, ';',
     ]);
