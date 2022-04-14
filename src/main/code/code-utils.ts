@@ -19,18 +19,37 @@ export function createVar(): Var {
  * @param varRenamer The callback that returns a variable name for a variable.
  * @returns The compilable string.
  */
-export function assembleCode(code: Code, varRenamer: VarRenamer): string {
+export function assembleJs(code: Code, varRenamer: VarRenamer): string {
   if (typeof code === 'symbol') {
     return varRenamer(code);
   }
-  if (Array.isArray(code)) {
-    let str = '';
-    for (let i = 0; i < code.length; ++i) {
-      str += assembleCode(code[i], varRenamer);
-    }
-    return str;
+  if (code == null || typeof code !== 'object') {
+    return String(code);
   }
-  return '' + code;
+  if (Array.isArray(code)) {
+    let src = '';
+    for (let i = 0; i < code.length; ++i) {
+      src += assembleJs(code[i], varRenamer);
+    }
+    return src;
+  }
+  if (code.type === 'block') {
+    return assembleJs(code.code, varRenamer);
+  }
+  if (code.type === 'varAssign') {
+    return varRenamer(code.var) + '=' + assembleJs(code.code, varRenamer) + ';';
+  }
+
+  let src = 'var ' + varRenamer(code.var);
+
+  if (code.code !== undefined) {
+    const valueSrc = assembleJs(code.code, varRenamer);
+
+    if (valueSrc) {
+      src += '=' + valueSrc;
+    }
+  }
+  return src + ';';
 }
 
 /**
@@ -62,7 +81,7 @@ export function compileFunction<F extends Function>(argVars: Var[], code: Code, 
   const varRenamer = createVarRenamer();
 
   if (!bindings || !bindings.length) {
-    return Function.apply(undefined, argVars.map(varRenamer).concat(assembleCode(code, varRenamer))) as F;
+    return Function.apply(undefined, argVars.map(varRenamer).concat(assembleJs(code, varRenamer))) as F;
   }
 
   const fnCode: Code[] = [];
@@ -90,7 +109,7 @@ export function compileFunction<F extends Function>(argVars: Var[], code: Code, 
 
   fnCode.push('){', code, '}');
 
-  const fnSrc = assembleCode(fnCode, (v) => varRenamer(varMap.has(v) ? valueMap.get(varMap.get(v))! : v));
+  const fnSrc = assembleJs(fnCode, (v) => varRenamer(varMap.has(v) ? valueMap.get(varMap.get(v))! : v));
 
   return Function.call(undefined, varRenamer(arrVar), fnSrc)(arr);
 }

@@ -1,4 +1,4 @@
-import {assembleCode, compileFunction, createVar, createVarRenamer, encodeLowerAlpha} from '../../main/code';
+import {assembleJs, compileFunction, createVar, createVarRenamer, encodeLowerAlpha} from '../../main/code';
 
 describe('encodeLowerAlpha', () => {
 
@@ -32,20 +32,20 @@ describe('createVarRenamer', () => {
   });
 });
 
-describe('assembleCode', () => {
+describe('assembleJs', () => {
 
   test('assembles primitives', () => {
-    expect(assembleCode(true, createVarRenamer())).toBe('true');
-    expect(assembleCode(false, createVarRenamer())).toBe('false');
-    expect(assembleCode(123, createVarRenamer())).toBe('123');
-    expect(assembleCode('abc', createVarRenamer())).toBe('abc');
+    expect(assembleJs(true, createVarRenamer())).toBe('true');
+    expect(assembleJs(false, createVarRenamer())).toBe('false');
+    expect(assembleJs(123, createVarRenamer())).toBe('123');
+    expect(assembleJs('abc', createVarRenamer())).toBe('abc');
   });
 
   test('assembles variables', () => {
     const aVar = createVar();
     const bVar = createVar();
 
-    expect(assembleCode([aVar, '=', bVar, '+', aVar], createVarRenamer())).toBe('a=b+a');
+    expect(assembleJs([aVar, '=', bVar, '+', aVar], createVarRenamer())).toBe('a=b+a');
   });
 });
 
