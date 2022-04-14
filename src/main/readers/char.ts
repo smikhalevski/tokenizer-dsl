@@ -8,15 +8,15 @@ export type CharCodeRange = number | [number, number];
 /**
  * Creates a reader that matches a single char by its code.
  *
- * @param ranges An array of char codes, or tuples of lower/upper char codes that define an inclusive range of codes.
- * If a string is provided then any char from the string would fit.
+ * @param chars An array of strings (each char from string is used for matching), char codes, or tuples of lower/upper
+ * char codes that define an inclusive range of codes.
  *
  * @see {@link text}
  */
-export function char(ranges: (string | number | [number, number])[]): Reader<any> {
+export function char(chars: (string | number | [number, number])[]): Reader<any> {
   const charCodeRanges: CharCodeRange[] = [];
 
-  for (const range of ranges) {
+  for (const range of chars) {
 
     if (typeof range === 'string') {
       charCodeRanges.push(...toCharCodes(range));

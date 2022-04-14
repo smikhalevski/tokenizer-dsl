@@ -1,6 +1,7 @@
 export {all, AllOptions} from './readers/all';
 export {char} from './readers/char';
 export {end} from './readers/end';
+export {lookahead} from './readers/lookahead';
 export {maybe} from './readers/maybe';
 export {never} from './readers/never';
 export {none} from './readers/none';
@@ -11,7 +12,7 @@ export {skip} from './readers/skip';
 export {text, TextOptions} from './readers/text';
 export {until, UntilOptions} from './readers/until';
 export * from './readers/reader-types';
-export {Code, Var} from './code';
+export {Code, Var, Binding} from './code';
 export {createRule} from './rules/createRule';
-export {Rule, RuleHandler} from './rules/rule-types';
+export {Rule, RuleHandler, StageProvider} from './rules/rule-types';
 export {Tokenizer} from './Tokenizer';
