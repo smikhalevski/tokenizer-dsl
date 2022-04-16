@@ -23,9 +23,11 @@ export function assembleJs(code: Code, varRenamer: VarRenamer): string {
   if (typeof code === 'symbol') {
     return varRenamer(code);
   }
-  if (code == null || typeof code !== 'object') {
+
+  if (!code || typeof code !== 'object') {
     return String(code);
   }
+
   if (Array.isArray(code)) {
     let src = '';
     for (let i = 0; i < code.length; ++i) {
@@ -33,17 +35,16 @@ export function assembleJs(code: Code, varRenamer: VarRenamer): string {
     }
     return src;
   }
-  if (code.type === 'block') {
-    return assembleJs(code.code, varRenamer);
-  }
+
   if (code.type === 'varAssign') {
-    return varRenamer(code.var) + '=' + assembleJs(code.code, varRenamer) + ';';
+    return varRenamer(code.var) + '=' + assembleJs(code.value, varRenamer) + ';';
   }
 
+  // varDeclare
   let src = 'var ' + varRenamer(code.var);
 
-  if (code.code !== undefined) {
-    const valueSrc = assembleJs(code.code, varRenamer);
+  if (code.value.length) {
+    const valueSrc = assembleJs(code.value, varRenamer);
 
     if (valueSrc) {
       src += '=' + valueSrc;
@@ -127,6 +128,7 @@ export function createVarRenamer(): VarRenamer {
  * Encodes a non-negative integer as a string of lower ASCII alpha characters (a-z).
  *
  * ```ts
+ * encodeLowerAlpha(0); // → 'a'
  * encodeLowerAlpha(100); // → 'cw'
  * ```
  *
@@ -143,6 +145,10 @@ export function encodeLowerAlpha(value: number): string {
   return str;
 }
 
-function inverseMap<K, V>(map: Map<K, V>): Map<V, K> {
+export function inverseMap<K, V>(map: Map<K, V>): Map<V, K> {
   return new Map(Array.from(map).map(([k, v]) => [v, k]));
+}
+
+export function toArray<T>(t: T | T[]): T[] {
+  return Array.isArray(t) ? t : [t];
 }
