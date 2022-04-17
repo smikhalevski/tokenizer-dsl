@@ -3,24 +3,29 @@
  */
 export type Var = symbol;
 
-export interface VarAssign {
-  type: 'varAssign';
-  var: Var;
-  value: Code[];
-  retained: boolean;
+export enum CodeType {
+  VAR_DECLARE,
+  VAR_ASSIGN,
 }
 
 export interface VarDeclare {
-  type: 'varDeclare';
+  type: CodeType.VAR_DECLARE;
   var: Var;
-  value: Code[];
+  valueCode: Code[];
+  retained: boolean;
+}
+
+export interface VarAssign {
+  type: CodeType.VAR_ASSIGN;
+  var: Var;
+  valueCode: Code[];
   retained: boolean;
 }
 
 /**
  * The code fragment.
  */
-export type Code = Code[] | Var | VarAssign | VarDeclare | string | number | boolean | null | undefined;
+export type Code = Code[] | Var | VarDeclare | VarAssign | string | number | boolean | null | undefined;
 
 export type Binding = [Var, unknown];
 

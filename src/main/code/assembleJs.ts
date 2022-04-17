@@ -1,4 +1,4 @@
-import {Code, VarRenamer} from './code-types';
+import {Code, CodeType, VarRenamer} from './code-types';
 
 /**
  * Assembles code fragment into a compilable code string.
@@ -24,15 +24,17 @@ export function assembleJs(code: Code, varRenamer: VarRenamer): string {
     return src;
   }
 
-  if (code.type === 'varAssign') {
-    return varRenamer(code.var) + '=' + assembleJs(code.value, varRenamer) + ';';
+  const {valueCode} = code;
+
+  if (code.type === CodeType.VAR_ASSIGN) {
+    return varRenamer(code.var) + '=' + assembleJs(valueCode, varRenamer) + ';';
   }
 
   // varDeclare
   let src = 'var ' + varRenamer(code.var);
 
-  if (code.value.length) {
-    const valueSrc = assembleJs(code.value, varRenamer);
+  if (valueCode.length) {
+    const valueSrc = assembleJs(valueCode, varRenamer);
 
     if (valueSrc) {
       src += '=' + valueSrc;

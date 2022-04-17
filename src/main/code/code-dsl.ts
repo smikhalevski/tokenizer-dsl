@@ -1,4 +1,4 @@
-import {Code, Var} from './code-types';
+import {Code, CodeType, Var} from './code-types';
 import {toArray} from './code-utils';
 
 const reLf = /\n/g;
@@ -14,11 +14,11 @@ try {
 const reArrayIndex = /^(?:0|[1-9]\d*)$/;
 
 export function varAssign(v: Var, value: Code, retained = false): Code {
-  return {type: 'varAssign', var: v, value: toArray(value), retained};
+  return {type: CodeType.VAR_ASSIGN, var: v, valueCode: toArray(value), retained};
 }
 
-export function varDeclare(v: Var, value?: Code, retained = false): Code {
-  return {type: 'varDeclare', var: v, value: value === undefined ? [] : toArray(value), retained};
+export function varDeclare(v: Var, value: Code = [], retained = false): Code {
+  return {type: CodeType.VAR_DECLARE, var: v, valueCode: toArray(value), retained};
 }
 
 export function prop(name: string | number): Code {
