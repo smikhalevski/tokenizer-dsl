@@ -55,6 +55,7 @@ describe('docComment', () => {
 
   test('returns a doc comment', () => {
     expect(assembleJs(docComment('Okay'), createVarRenamer())).toBe('\n/**\n * Okay\n */\n');
+    expect(assembleJs(docComment(0), createVarRenamer())).toBe('\n/**\n * 0\n */\n');
   });
 
   test('returns a multiline doc comment', () => {
@@ -72,6 +73,7 @@ describe('comment', () => {
 
   test('returns a comment', () => {
     expect(assembleJs(comment('Okay'), createVarRenamer())).toBe('// Okay\n');
+    expect(assembleJs(comment(0), createVarRenamer())).toBe('// 0\n');
   });
 
   test('returns a multiline comment', () => {
