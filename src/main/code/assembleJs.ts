@@ -1,4 +1,6 @@
-import {Code, CodeType, VarRenamer} from './code-types';
+import {Code, CodeType} from './code-types';
+import {isVar} from './code-utils';
+import {createVarRenamer} from './createVarRenamer';
 
 /**
  * Assembles code fragment into a compilable code string.
@@ -7,8 +9,8 @@ import {Code, CodeType, VarRenamer} from './code-types';
  * @param varRenamer The callback that returns a variable name for a variable.
  * @returns The compilable string.
  */
-export function assembleJs(code: Code, varRenamer: VarRenamer): string {
-  if (typeof code === 'symbol') {
+export function assembleJs(code: Code, varRenamer = createVarRenamer()): string {
+  if (isVar(code)) {
     return varRenamer(code);
   }
 

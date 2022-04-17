@@ -1,5 +1,5 @@
 import {Code, CodeType, Var} from './code-types';
-import {toArray} from './code-utils';
+import {isVar, toArray} from './code-utils';
 
 const reLf = /\n/g;
 
@@ -29,7 +29,7 @@ export function propAccess(code: Code, name: Var | string | number, optional?: b
   if (typeof name === 'string' && reIdentifier.test(name)) {
     return [code, optional ? '?.' : '.', name];
   }
-  return [code, optional ? '?.[' : '[', typeof name === 'symbol' ? name : prop(name), ']'];
+  return [code, optional ? '?.[' : '[', isVar(name) ? name : prop(name), ']'];
 }
 
 export function docComment(str: unknown): Code {

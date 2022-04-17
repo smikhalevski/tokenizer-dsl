@@ -1,4 +1,5 @@
 import {Code, CodeType, Var} from './code-types';
+import {isVar} from './code-utils';
 
 export const enum WalkDirection {
   BACKWARDS = -1,
@@ -28,7 +29,7 @@ export function walkChildren(children: Code[], index: number, direction: WalkDir
 export function countVarRefs(children: Code[], index: number, v: Var): number {
   let refCount = 0;
   walkChildren(children, index, WalkDirection.FORWARDS, (child) => {
-    return typeof child !== 'symbol' || child !== v || ++refCount !== 2;
+    return !isVar(child) || child !== v || ++refCount !== 2;
   });
   return refCount;
 }
@@ -50,7 +51,7 @@ export function inlineVarAssignments(children: Code[]): void {
       return;
     }
     walkChildren(children, index + 1, WalkDirection.FORWARDS, (otherChild, index, children) => {
-      if (!otherChild || typeof otherChild !== 'symbol' || otherChild !== child.var) {
+      if (!otherChild || !isVar(otherChild) || otherChild !== child.var) {
         return;
       }
       children[index] = child.valueCode;
