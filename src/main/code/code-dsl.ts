@@ -33,9 +33,9 @@ export function propAccess(code: Code, name: Var | string | number, optional?: b
 }
 
 export function docComment(str: unknown): Code {
-  return str != null ? '\n/**\n * ' + String(str).replace(reLf, '\n * ') + '\n */\n' : '';
+  return str ? '\n/**\n * ' + String(str).replace(reLf, '\n * ') + '\n */\n' : '';
 }
 
 export function comment(str: unknown): Code {
-  return str != null ? '// ' + String(str).replace(reLf, '\n// ') + '\n' : '';
+  return str ? '// ' + String(str).replace(reLf, '\n// ') + '\n' : '';
 }
