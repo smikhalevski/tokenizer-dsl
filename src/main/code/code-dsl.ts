@@ -17,8 +17,8 @@ export function varAssign(v: Var, value: Code, retained = false): Code {
   return {type: 'varAssign', var: v, value: toArray(value), retained};
 }
 
-export function varDeclare(v: Var, value?: Code): Code {
-  return {type: 'varDeclare', var: v, value: value === undefined ? [] : toArray(value)};
+export function varDeclare(v: Var, value?: Code, retained = false): Code {
+  return {type: 'varDeclare', var: v, value: value === undefined ? [] : toArray(value), retained};
 }
 
 export function prop(name: string | number): Code {

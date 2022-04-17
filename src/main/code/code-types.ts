@@ -14,6 +14,7 @@ export interface VarDeclare {
   type: 'varDeclare';
   var: Var;
   value: Code[];
+  retained: boolean;
 }
 
 /**
@@ -22,3 +23,8 @@ export interface VarDeclare {
 export type Code = Code[] | Var | VarAssign | VarDeclare | string | number | boolean | null | undefined;
 
 export type Binding = [Var, unknown];
+
+/**
+ * Returns the unique variable name.
+ */
+export type VarRenamer = (v: Var) => string;
