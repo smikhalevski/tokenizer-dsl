@@ -1,5 +1,4 @@
 import {Code, CodeType} from './code-types';
-import {isVar} from './code-utils';
 import {createVarRenamer} from './createVarRenamer';
 
 /**
@@ -10,7 +9,7 @@ import {createVarRenamer} from './createVarRenamer';
  * @returns The compilable string.
  */
 export function assembleJs(code: Code, varRenamer = createVarRenamer()): string {
-  if (isVar(code)) {
+  if (typeof code === 'symbol') {
     return varRenamer(code);
   }
 
@@ -26,17 +25,17 @@ export function assembleJs(code: Code, varRenamer = createVarRenamer()): string 
     return src;
   }
 
-  const {valueCode} = code;
+  const {children} = code;
 
   if (code.type === CodeType.VAR_ASSIGN) {
-    return varRenamer(code.var) + '=' + assembleJs(valueCode, varRenamer) + ';';
+    return varRenamer(code.var) + '=' + assembleJs(children, varRenamer) + ';';
   }
 
   // varDeclare
   let src = 'var ' + varRenamer(code.var);
 
-  if (valueCode.length) {
-    const valueSrc = assembleJs(valueCode, varRenamer);
+  if (children.length) {
+    const valueSrc = assembleJs(children, varRenamer);
 
     if (valueSrc) {
       src += '=' + valueSrc;

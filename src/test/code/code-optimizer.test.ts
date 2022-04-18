@@ -1,6 +1,6 @@
 import {Code, createVar} from '../../main/code';
 import {varAssign} from '../../main/code/code-dsl';
-import {countVarRefs, inlineVarAssignments, walkChildren, WalkDirection} from '../../main/code/code-optimizer';
+import {countVarRefs, Direction, inlineVars, walkChildren} from '../../main/code/code-optimizer';
 
 describe('walkChildren', () => {
 
@@ -11,7 +11,7 @@ describe('walkChildren', () => {
 
     const code: Code = ['aaa', v, 'bbb'];
 
-    walkChildren(code, 0, WalkDirection.FORWARDS, walkerMock);
+    walkChildren(code, 0, Direction.FORWARDS, walkerMock);
 
     expect(walkerMock).toHaveBeenCalledTimes(3);
     expect(walkerMock).toHaveBeenNthCalledWith(1, 'aaa', 0, code);
@@ -24,7 +24,7 @@ describe('walkChildren', () => {
 
     const code: Code = [['aaa'], [v], 'bbb'];
 
-    walkChildren(code, 0, WalkDirection.FORWARDS, walkerMock);
+    walkChildren(code, 0, Direction.FORWARDS, walkerMock);
 
     expect(walkerMock).toHaveBeenCalledTimes(3);
     expect(walkerMock).toHaveBeenNthCalledWith(1, 'aaa', 0, code[0]);
@@ -37,7 +37,7 @@ describe('walkChildren', () => {
 
     const code: Code[] = ['aaa', v, 'bbb'];
 
-    walkChildren(code, 2, WalkDirection.BACKWARDS, walkerMock);
+    walkChildren(code, 2, Direction.BACKWARDS, walkerMock);
 
     expect(walkerMock).toHaveBeenCalledTimes(3);
     expect(walkerMock).toHaveBeenNthCalledWith(1, 'bbb', 2, code);
@@ -50,7 +50,7 @@ describe('walkChildren', () => {
 
     const code: Code[] = [['aaa'], [v, 'qqq'], 'bbb'];
 
-    walkChildren(code, 2, WalkDirection.BACKWARDS, walkerMock);
+    walkChildren(code, 2, Direction.BACKWARDS, walkerMock);
 
     expect(walkerMock).toHaveBeenCalledTimes(4);
     expect(walkerMock).toHaveBeenNthCalledWith(1, 'bbb', 2, code);
@@ -84,14 +84,14 @@ describe('countVarRefs', () => {
   });
 });
 
-describe('inlineVarAssignments', () => {
+describe('inlineVars', () => {
 
   const v = createVar();
 
   test('removes unused assignment', () => {
     const code: Code = ['aaa', varAssign(v, 123), 'bbb'];
 
-    inlineVarAssignments(code);
+    inlineVars(code);
 
     expect(code).toEqual(['aaa', '', 'bbb']);
   });
@@ -99,7 +99,7 @@ describe('inlineVarAssignments', () => {
   test('removes unused assignment if it uses the assigned var', () => {
     const code: Code = ['aaa', varAssign(v, [createVar(), 'AAA']), 'bbb'];
 
-    inlineVarAssignments(code);
+    inlineVars(code);
 
     expect(code).toEqual(['aaa', '', 'bbb']);
   });
@@ -110,7 +110,7 @@ describe('inlineVarAssignments', () => {
 
     const code: Code = ['aaa', varAssign(var1, [var2, 'AAA']), 'bbb', var1];
 
-    inlineVarAssignments(code);
+    inlineVars(code);
 
     expect(code).toEqual(['aaa', '', 'bbb', [var2, 'AAA']]);
   });
@@ -118,7 +118,7 @@ describe('inlineVarAssignments', () => {
   test('inlines single var assignment', () => {
     const code: Code = ['aaa', varAssign(v, 'AAA'), 'bbb', v];
 
-    inlineVarAssignments(code);
+    inlineVars(code);
 
     expect(code).toEqual(['aaa', '', 'bbb', ['AAA']]);
   });
@@ -126,7 +126,7 @@ describe('inlineVarAssignments', () => {
   test('inlines var assignment if var was already referenced', () => {
     const code: Code = [v, 'aaa', varAssign(v, 'AAA'), 'bbb', v];
 
-    inlineVarAssignments(code);
+    inlineVars(code);
 
     expect(code).toEqual([v, 'aaa', '', 'bbb', ['AAA']]);
   });
@@ -135,7 +135,7 @@ describe('inlineVarAssignments', () => {
 
     const code: Code = ['aaa', [varAssign(v, 'AAA'), 'bbb', v], 'ccc', v];
 
-    inlineVarAssignments(code);
+    inlineVars(code);
 
     expect(code).toEqual(['aaa', ['', 'bbb', ['AAA']], 'ccc', v]);
   });
@@ -146,7 +146,7 @@ describe('inlineVarAssignments', () => {
 
     const code: Code = ['aaa', varAssign(var1, 'AAA'), varAssign(var2, ['BBB', var1, 'CCC']), var2, var2];
 
-    inlineVarAssignments(code);
+    inlineVars(code);
 
     expect(code).toEqual(['aaa', '', varAssign(var2, ['BBB', ['AAA'], 'CCC']), var2, var2]);
   });
@@ -154,7 +154,7 @@ describe('inlineVarAssignments', () => {
   test('inlines sequential assignments', () => {
     const code: Code = [varAssign(v, 'AAA'), varAssign(v, [v, 'BBB']), v];
 
-    inlineVarAssignments(code);
+    inlineVars(code);
 
     expect(code).toEqual(['', '', [['AAA'], 'BBB']]);
   });
@@ -162,7 +162,7 @@ describe('inlineVarAssignments', () => {
   test('preserves retained var assignment', () => {
     const code: Code = [varAssign(v, 'AAA', true), v];
 
-    inlineVarAssignments(code);
+    inlineVars(code);
 
     expect(code).toEqual([varAssign(v, 'AAA', true), v]);
   });
@@ -170,8 +170,16 @@ describe('inlineVarAssignments', () => {
   test('preserves retained var assignment even if var is not referenced', () => {
     const code: Code = [varAssign(v, 'AAA', true)];
 
-    inlineVarAssignments(code);
+    inlineVars(code);
 
     expect(code).toEqual([varAssign(v, 'AAA', true)]);
+  });
+
+  test('does not inline over retained assignment', () => {
+    const code: Code = [varAssign(v, 'AAA'), varAssign(v, 'BBB', true), v];
+
+    inlineVars(code);
+
+    expect(code).toEqual([varAssign(v, 'BBB', true), v]);
   });
 });

@@ -3,6 +3,7 @@
  *
  * ```ts
  * encodeAlpha(0); // → 'a'
+ *
  * encodeAlpha(100); // → 'cw'
  * ```
  *

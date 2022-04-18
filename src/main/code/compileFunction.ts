@@ -7,9 +7,9 @@ import {createVarRenamer} from './createVarRenamer';
  * Compiles a function from the given code.
  *
  * ```ts
- * const myArg = Symbol();
- * const myVar = Symbol();
- * const myBoundVar = Symbol();
+ * const myArg = createVar();
+ * const myVar = createVar();
+ * const myBoundVar = createVar();
  *
  * const myFn = compileFunction(
  *     [myArg],

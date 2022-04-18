@@ -11,14 +11,14 @@ export enum CodeType {
 export interface VarDeclare {
   type: CodeType.VAR_DECLARE;
   var: Var;
-  valueCode: Code[];
+  children: Code[];
   retained: boolean;
 }
 
 export interface VarAssign {
   type: CodeType.VAR_ASSIGN;
   var: Var;
-  valueCode: Code[];
+  children: Code[];
   retained: boolean;
 }
 

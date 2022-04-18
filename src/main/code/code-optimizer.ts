@@ -1,24 +1,23 @@
 import {Code, CodeType, Var} from './code-types';
-import {isVar} from './code-utils';
 
-export const enum WalkDirection {
+export const enum Direction {
   BACKWARDS = -1,
   FORWARDS = 1,
 }
 
-export function walkChildren(children: Code[], index: number, direction: WalkDirection, walker: (child: Exclude<Code, Code[]>, index: number, children: Code[]) => boolean | void): boolean {
-  for (let i = index; direction === WalkDirection.FORWARDS ? i < children.length : i > -1; i += direction) {
+export function walkChildren(children: Code[], index: number, direction: Direction, walker: (child: Exclude<Code, Code[]>, index: number, children: Code[]) => boolean | void): boolean {
+  for (let i = index; direction === Direction.FORWARDS ? i < children.length : i > -1; i += direction) {
 
     const child = children[i];
 
     if (
         Array.isArray(child)
-            ? !walkChildren(child, direction === WalkDirection.FORWARDS ? 0 : child.length - 1, direction, walker)
+            ? !walkChildren(child, direction === Direction.FORWARDS ? 0 : child.length - 1, direction, walker)
             : walker(child, i, children) === false
             || child
             && typeof child === 'object'
-            && child.valueCode
-            && !walkChildren(child.valueCode, direction === WalkDirection.FORWARDS ? 0 : child.valueCode.length - 1, direction, walker)
+            && child.children
+            && !walkChildren(child.children, direction === Direction.FORWARDS ? 0 : child.children.length - 1, direction, walker)
     ) {
       return false;
     }
@@ -28,14 +27,13 @@ export function walkChildren(children: Code[], index: number, direction: WalkDir
 
 export function countVarRefs(children: Code[], index: number, v: Var): number {
   let refCount = 0;
-  walkChildren(children, index, WalkDirection.FORWARDS, (child) => {
-    return !isVar(child) || child !== v || ++refCount !== 2;
-  });
+  walkChildren(children, index, Direction.FORWARDS, (child) => typeof child !== 'symbol' || child !== v || ++refCount !== 2);
   return refCount;
 }
 
-export function inlineVarAssignments(children: Code[]): void {
-  walkChildren(children, children.length - 1, WalkDirection.BACKWARDS, (child, index, children) => {
+export function inlineVars(children: Code[]): Code[] {
+  walkChildren(children, children.length - 1, Direction.BACKWARDS, (child, index, children) => {
+
     if (!child || typeof child !== 'object' || child.type !== CodeType.VAR_ASSIGN || child.retained) {
       return;
     }
@@ -50,12 +48,13 @@ export function inlineVarAssignments(children: Code[]): void {
     if (refCount === 0) {
       return;
     }
-    walkChildren(children, index + 1, WalkDirection.FORWARDS, (otherChild, index, children) => {
-      if (!otherChild || !isVar(otherChild) || otherChild !== child.var) {
+    walkChildren(children, index + 1, Direction.FORWARDS, (otherChild, index, children) => {
+      if (!otherChild || typeof otherChild !== 'symbol' || otherChild !== child.var) {
         return;
       }
-      children[index] = child.valueCode;
+      children[index] = child.children;
       return false;
     });
   });
+  return children;
 }
