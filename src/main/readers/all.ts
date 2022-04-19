@@ -180,7 +180,6 @@ export class AllReader<C> implements ReaderCodegen {
     const {reader, minimumCount, maximumCount} = this;
 
     const bindings: Binding[] = [];
-    const inputLengthVar = createVar();
     const indexVar = createVar();
     const readerResultVar = createVar();
     const readCountVar = createVar();
@@ -188,7 +187,6 @@ export class AllReader<C> implements ReaderCodegen {
     return createCodeBindings(
         [
           'var ',
-          inputLengthVar, '=', inputVar, '.length,',
           indexVar, ',',
           readerResultVar, '=', offsetVar,
           minimumCount || maximumCount ? [',', readCountVar, '=0'] : '',
