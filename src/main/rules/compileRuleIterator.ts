@@ -128,7 +128,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
                   : [stageIndexVar, '=', iterationPlan.stages.indexOf(plan.rule.nextStage), ';']
           ,
 
-          prevReaderVar, '=', ruleVar, ';',
+          plan.rule.silent ? '' : [prevReaderVar, '=', ruleVar, ';'],
           nextOffsetVar, '=', readerResultVar, ';',
 
           // Continue the looping over characters in the input chunk

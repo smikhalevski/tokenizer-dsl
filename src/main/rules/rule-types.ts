@@ -31,6 +31,17 @@ export interface Rule<S, C> {
    * @default undefined
    */
   nextStage?: StageProvider<S, C> | S | undefined;
+
+  /**
+   * If set to `true` then tokens read by this reader are not emitted.
+   */
+  silent?: boolean;
+
+  /**
+   * If set to `true` and multiple sequential tokens are read from the input by this reader, then they are emitted as a
+   * single token.
+   */
+  continuous?: boolean;
 }
 
 /**
@@ -46,7 +57,7 @@ export interface RuleHandler<S, C> {
    *
    * @param rule The rule that read the token.
    * @param offset The absolute offset from the start of the input stream where the token starts.
-   * @param length The number of chars readn by the rule.
+   * @param length The number of chars read by the rule.
    */
   token(rule: Rule<S, C>, offset: number, length: number): void;
 
