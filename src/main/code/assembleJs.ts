@@ -31,7 +31,7 @@ export function assembleJs(code: Code, varRenamer = createVarRenamer()): string 
     return varRenamer(code.var) + '=' + assembleJs(children, varRenamer) + ';';
   }
 
-  // varDeclare
+  // Var declaration
   let src = 'var ' + varRenamer(code.var);
 
   if (children.length) {

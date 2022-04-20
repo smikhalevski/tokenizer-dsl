@@ -1,21 +1,21 @@
 import {assembleJs} from '../../main/code';
-import {comment, docComment, prop, propAccess} from '../../main/code/code-dsl';
+import {comment, docComment, objectKey, propAccess} from '../../main/code/code-dsl';
 
-describe('prop', () => {
+describe('objectKey', () => {
 
   test('compiles identifier', () => {
-    expect(assembleJs(prop('okay'))).toBe('okay');
-    expect(assembleJs(prop('$okay'))).toBe('$okay');
-    expect(assembleJs(prop(' _okay'))).toBe('" _okay"');
-    expect(assembleJs(prop('#$%@'))).toBe('"#$%@"');
-    expect(assembleJs(prop(''))).toBe('""');
+    expect(assembleJs(objectKey('okay'))).toBe('okay');
+    expect(assembleJs(objectKey('$okay'))).toBe('$okay');
+    expect(assembleJs(objectKey(' _okay'))).toBe('" _okay"');
+    expect(assembleJs(objectKey('#$%@'))).toBe('"#$%@"');
+    expect(assembleJs(objectKey(''))).toBe('""');
   });
 
   test('compiles array index', () => {
-    expect(assembleJs(prop('123'))).toBe('123');
-    expect(assembleJs(prop('0'))).toBe('0');
-    expect(assembleJs(prop('0123'))).toBe('"0123"');
-    expect(assembleJs(prop('0.123'))).toBe('"0.123"');
+    expect(assembleJs(objectKey('123'))).toBe('123');
+    expect(assembleJs(objectKey('0'))).toBe('0');
+    expect(assembleJs(objectKey('0123'))).toBe('"0123"');
+    expect(assembleJs(objectKey('0.123'))).toBe('"0.123"');
   });
 });
 

@@ -25,26 +25,28 @@ export function varDeclare(v: Var, value: Code = [], retained = false): Code {
  * Wraps given property key with quotes if needed so it can be used as a property name in an object declaration.
  *
  * ```ts
- * prop('foo bar'); // → '"foo bar"'
+ * objectKey('foo bar'); // → '"foo bar"'
  *
- * prop('fooBar'); // → 'fooBar'
+ * objectKey('fooBar'); // → 'fooBar'
  *
- * prop('0'); // → '0'
+ * objectKey('0'); // → '0'
  *
- * prop('0123'); // → '"0123"'
+ * objectKey('0123'); // → '"0123"'
  * ```
  */
-export function prop(name: string | number): Code {
+export function objectKey(name: string | number): Code {
   return typeof name === 'string' && !reIdentifier.test(name) && !reArrayIndex.test(name) ? JSON.stringify(name) : name;
 }
 
 /**
- * Returns a getter of the property.
+ * Returns a property accessor code.
  *
  * ```ts
- * propAccess('{}', 'foo'); // → {}.foo
+ * propAccess('obj', 'foo'); // → obj.foo
  *
- * propAccess('{}', 'foo bar', true); // → {}?.["foo bar"]
+ * propAccess('obj', 9); // → obj[9]
+ *
+ * propAccess('obj', 'foo bar', true); // → obj?.["foo bar"]
  * ```
  *
  * @param code The value from which the property is read.
@@ -55,13 +57,19 @@ export function propAccess(code: Code, name: Var | string | number, optional?: b
   if (typeof name === 'string' && reIdentifier.test(name)) {
     return [code, optional ? '?.' : '.', name];
   }
-  return [code, optional ? '?.[' : '[', typeof name === 'symbol' ? name : prop(name), ']'];
+  return [code, optional ? '?.[' : '[', typeof name === 'symbol' ? name : objectKey(name), ']'];
 }
 
+/**
+ * Returns a doc comment code.
+ */
 export function docComment(str: unknown): Code {
   return str == null || str === '' ? '' : '\n/**\n * ' + String(str).replace(reLf, '\n * ') + '\n */\n';
 }
 
+/**
+ * Returns a comment code.
+ */
 export function comment(str: unknown): Code {
   return str == null || str === '' ? '' : '// ' + String(str).replace(reLf, '\n// ') + '\n';
 }

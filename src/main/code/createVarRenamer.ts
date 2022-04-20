@@ -4,14 +4,14 @@ import {encodeAlpha} from './encodeAlpha';
 /**
  * Creates callback that returns a unique name for a variable.
  *
- * @param pinnedNames Var-name pairs that are predefined.
+ * @param varMapping The iterable list of var-name pairs.
  * @returns The unique variable name.
  */
-export function createVarRenamer(pinnedNames?: [Var, string][] | Iterable<[Var, string]>): VarRenamer {
+export function createVarRenamer(varMapping?: [Var, string][] | Iterable<[Var, string]>): VarRenamer {
 
   let index = 0;
 
-  const map = new Map(pinnedNames);
+  const map = new Map(varMapping);
   const names = new Set(map.values());
 
   return (v) => {

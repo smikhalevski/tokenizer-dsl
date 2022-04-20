@@ -8,6 +8,7 @@
  * ```
  *
  * @param value The number to encode.
+ * @returns The value encoded as a string.
  */
 export function encodeAlpha(value: number): string {
   let str = '';

@@ -27,6 +27,9 @@ export interface VarAssign {
  */
 export type Code = Code[] | Var | VarDeclare | VarAssign | string | number | boolean | null | undefined;
 
+/**
+ * Var-value pair.
+ */
 export type Binding = [Var, unknown];
 
 /**

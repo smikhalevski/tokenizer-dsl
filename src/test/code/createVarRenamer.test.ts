@@ -13,7 +13,7 @@ describe('createVarRenamer', () => {
     expect(varRenamer(var2)).toBe('b');
   });
 
-  test('returns a pinned name', () => {
+  test('returns a predefined variable name', () => {
     const var1 = createVar();
     const var2 = createVar();
 
