@@ -51,12 +51,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
 
   const iterationPlan = createRuleIterationPlan(rules);
   const bindings: Binding[] = [];
-
-  const stagesVar = createVar();
-
-  if (iterationPlan.stagesComputed) {
-    bindings.push([stagesVar, iterationPlan.stages]);
-  }
+  const stages = iterationPlan.stages;
 
   const stateVar = createVar();
   const streamingVar = createVar();
@@ -72,12 +67,19 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
   const offsetVar = createVar();
   const chunkOffsetVar = createVar();
 
-  const prevReaderVar = createVar();
-  const prefixOffsetVar = createVar();
+  const lastMatchedReaderVar = createVar();
   const nextOffsetVar = createVar();
   const chunkLengthVar = createVar();
 
-  const createRulePlansCode = (plans: RulePlan<S, C>[], prevPrefixOffsetVar: Var): Code => {
+  const stagesVar = createVar();
+
+  // If there are rules that use callbacks to compute nextStage, then stages must be available in the iterator to
+  // convert the returned stage to its index
+  if (iterationPlan.stagesComputed) {
+    bindings.push([stagesVar, stages]);
+  }
+
+  const createRulePlansCode = (plans: RulePlan<S, C>[], prefixOffsetVar: Var): Code => {
 
     const readerResultVar = createVar();
 
@@ -85,58 +87,62 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
       'var ', readerResultVar, ';',
     ];
 
-    for (const plan of plans) {
+    for (const {prefix, children, rule} of plans) {
 
-      // Check the prefix
       code.push(
-          prefixOffsetVar, '=', prevPrefixOffsetVar, ';',
-          createReaderCallCode(seq(...plan.prefix), chunkVar, prefixOffsetVar, contextVar, readerResultVar, bindings),
+          // Read the prefix
+          createReaderCallCode(seq(...prefix), chunkVar, prefixOffsetVar, contextVar, readerResultVar, bindings),
+
+          // Proceed if the prefix reader read something
           'if(', readerResultVar, '!==', NO_MATCH, '&&', readerResultVar, '!==', prefixOffsetVar, '){',
       );
 
       // Apply nested plans
-      if (plan.children) {
-        code.push(createRulePlansCode(plan.children, readerResultVar));
+      if (children) {
+        code.push(createRulePlansCode(children, readerResultVar));
+      }
+
+      // If there's no termination rule then exit
+      if (!rule) {
+        code.push('}');
+        continue;
       }
 
       // Apply plan rule
-      if (plan.rule) {
+      const ruleVar = createVar();
 
-        const ruleVar = createVar();
+      bindings.push([ruleVar, rule]);
 
-        bindings.push([ruleVar, plan.rule]);
+      code.push([
 
-        code.push([
+        // Emit an error if a reader returned a negative offset
+        'if(', readerResultVar, '<0){',
+        errorCallbackVar, '(', ruleVar, ',', chunkOffsetVar, '+', nextOffsetVar, ',', readerResultVar, ');',
+        'return}',
 
-          // Emit error
-          'if(', readerResultVar, '<0){',
-          errorCallbackVar, '(', ruleVar, ',', chunkOffsetVar, '+', nextOffsetVar, ',', readerResultVar, ');',
-          'return}',
+        // Emit confirmed token
+        'if(', lastMatchedReaderVar, '!==null){',
+        tokenCallbackVar, '(', lastMatchedReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', nextOffsetVar, '-', offsetVar, ');',
+        lastMatchedReaderVar, '=null}',
 
-          // Emit confirmed token
-          'if(', prevReaderVar, '){',
-          tokenCallbackVar, '(', prevReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', nextOffsetVar, '-', offsetVar, ');',
-          prevReaderVar, '=undefined;',
-          '}',
+        stateVar, '.stageIndex=', stageIndexVar, ';',
+        stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
-          stateVar, '.stageIndex=', stageIndexVar, ';',
-          stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
+        rule.nextStage === undefined ? '' : [
+          stageIndexVar, '=',
+          typeof rule.nextStage === 'function'
+              ? [stagesVar, '.indexOf(', ruleVar, '.nextStage(', chunkVar, ',', nextOffsetVar, ',', readerResultVar, '-', nextOffsetVar, ',', contextVar, '))']
+              : stages.indexOf(rule.nextStage),
+          ';'
+        ],
 
-          plan.rule.nextStage === undefined ? '' :
-              typeof plan.rule.nextStage === 'function'
-                  ? [stageIndexVar, '=', stagesVar, '.indexOf(', ruleVar, '.nextStage(', chunkVar, ',', nextOffsetVar, ',', readerResultVar, '-', nextOffsetVar, ',', contextVar, '));']
-                  : [stageIndexVar, '=', iterationPlan.stages.indexOf(plan.rule.nextStage), ';']
-          ,
+        rule.silent ? '' : [lastMatchedReaderVar, '=', ruleVar, ';'],
+        nextOffsetVar, '=', readerResultVar, ';',
 
-          plan.rule.silent ? '' : [prevReaderVar, '=', ruleVar, ';'],
-          nextOffsetVar, '=', readerResultVar, ';',
+        // Restart the looping over characters in the input chunk
+        'continue}',
+      ]);
 
-          // Continue the looping over characters in the input chunk
-          'continue',
-        ]);
-      }
-
-      code.push('}');
     }
 
     return code;
@@ -153,8 +159,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
     errorCallbackVar, '=', handlerVar, '.error,',
     unrecognizedTokenCallbackVar, '=', handlerVar, '.unrecognizedToken,',
 
-    prevReaderVar, ',',
-    prefixOffsetVar, ',',
+    lastMatchedReaderVar, '=null,',
     nextOffsetVar, '=', offsetVar, ',',
     chunkLengthVar, '=', chunkVar, '.length;',
 
@@ -176,8 +181,8 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
     'if(', streamingVar, ')return;',
 
     // Emit trailing unconfirmed token
-    'if(', prevReaderVar, '){',
-    tokenCallbackVar, '(', prevReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', nextOffsetVar, '-', offsetVar, ');',
+    'if(', lastMatchedReaderVar, '!==null){',
+    tokenCallbackVar, '(', lastMatchedReaderVar, ',', chunkOffsetVar, '+', offsetVar, ',', nextOffsetVar, '-', offsetVar, ');',
     stateVar, '.stageIndex=', stageIndexVar, ';',
     stateVar, '.offset=', nextOffsetVar, ';',
     '}',
@@ -189,7 +194,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
 
   const ruleIterator = compileFunction<RuleIterator<S, C>>([stateVar, streamingVar, handlerVar, contextVar], code, bindings);
 
-  ruleIterator.stages = iterationPlan.stages;
+  ruleIterator.stages = stages;
 
   return ruleIterator;
 }

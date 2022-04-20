@@ -9,6 +9,10 @@ export interface RuleIterationPlan<S, C> {
 }
 
 export interface RulePlan<S, C> {
+
+  /**
+   * Non-empty list of readers.
+   */
   prefix: Reader<C>[];
   children?: RulePlan<S, C>[];
   rule?: Rule<S, C>;
