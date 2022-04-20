@@ -34,6 +34,7 @@ export class Tokenizer<S = any, C = void> implements RuleIteratorState {
       this.offset = 0;
     }
     this.ruleIterator(this, false, this.handler, this.context);
+    this.reset();
   }
 
   reset(): void {
