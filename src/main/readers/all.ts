@@ -31,7 +31,7 @@ export interface AllOptions {
  * @param reader The reader that reads chars.
  * @param options Reader options.
  */
-export function all<C = any>(reader: Reader<C>, options: AllOptions = {}): Reader<C> {
+export function all<Context = any>(reader: Reader<Context>, options: AllOptions = {}): Reader<Context> {
 
   let {
     minimumCount = 0,
@@ -171,9 +171,9 @@ export class AllRegexReader implements ReaderCodegen {
   }
 }
 
-export class AllReader<C> implements ReaderCodegen {
+export class AllReader<Context> implements ReaderCodegen {
 
-  constructor(public reader: Reader<C>, public minimumCount: number, public maximumCount: number) {
+  constructor(public reader: Reader<Context>, public minimumCount: number, public maximumCount: number) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {

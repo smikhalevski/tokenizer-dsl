@@ -9,16 +9,16 @@ import {createCodeBindings, createReaderCallCode} from './reader-utils';
  *
  * @param reader The reader which match must be considered optional.
  */
-export function maybe<C = any>(reader: Reader<C>): Reader<C> {
+export function maybe<Context = any>(reader: Reader<Context>): Reader<Context> {
   if (reader === none || reader === never) {
     return none;
   }
   return new MaybeReader(reader);
 }
 
-export class MaybeReader<C> implements ReaderCodegen {
+export class MaybeReader<Context> implements ReaderCodegen {
 
-  constructor(public reader: Reader<C>) {
+  constructor(public reader: Reader<Context>) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {

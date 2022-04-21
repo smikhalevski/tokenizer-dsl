@@ -9,9 +9,9 @@ import {createCodeBindings, createReaderCallCode} from './reader-utils';
  *
  * @param readers Readers that are called.
  */
-export function seq<C = any>(...readers: Reader<C>[]): Reader<C> {
+export function seq<Context = any>(...readers: Reader<Context>[]): Reader<Context> {
 
-  const children: Reader<C>[] = [];
+  const children: Reader<Context>[] = [];
 
   for (const reader of readers) {
     if (reader instanceof SeqReader) {
@@ -35,9 +35,9 @@ export function seq<C = any>(...readers: Reader<C>[]): Reader<C> {
   return new SeqReader(children);
 }
 
-export class SeqReader<C> implements ReaderCodegen {
+export class SeqReader<Context> implements ReaderCodegen {
 
-  constructor(public readers: Reader<C>[]) {
+  constructor(public readers: Reader<Context>[]) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {

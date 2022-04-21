@@ -1,6 +1,6 @@
 import {Binding, Code, Var} from '../code';
 
-export type Reader<C> = ReaderFunction<C> | ReaderCodegen;
+export type Reader<Context> = ReaderFunction<Context> | ReaderCodegen;
 
 /**
  * Takes the string `input` and the offset in this string `offset` and returns the new offset in `input` if reader
@@ -13,7 +13,7 @@ export type Reader<C> = ReaderFunction<C> | ReaderCodegen;
  * };
  * ```
  */
-export type ReaderFunction<C> = (input: string, offset: number, context: C) => number;
+export type ReaderFunction<Context> = (input: string, offset: number, context: Context) => number;
 
 /**
  * Factory that returns the reader code and values for variables that must be bound to the reader.
@@ -33,6 +33,12 @@ export interface ReaderCodegen {
    *   };
    * };
    * ```
+   *
+   * @param inputVar The variable that holds the input string.
+   * @param offsetVar The variable that holds the offset in the input string from which the reader must be applied.
+   * @param contextVar The variable that holds the reader context.
+   * @param resultVar The variable to which the reader result must be assigned.
+   * @returns The source code and required variable bindings.
    */
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings;
 }
@@ -43,6 +49,6 @@ export interface CodeBindings {
 }
 
 /**
- * OK return code that means that reader didn't match any chars.
+ * OK code returned from the {@link Reader} that means that it didn't match any chars.
  */
 export const NO_MATCH = -1;

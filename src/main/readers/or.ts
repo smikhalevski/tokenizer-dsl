@@ -9,9 +9,9 @@ import {createCodeBindings, createReaderCallCode} from './reader-utils';
  *
  * @param readers Readers that are called.
  */
-export function or<C = any>(...readers: Reader<C>[]): Reader<C> {
+export function or<Context = any>(...readers: Reader<Context>[]): Reader<Context> {
 
-  const children: Reader<C>[] = [];
+  const children: Reader<Context>[] = [];
 
   for (const reader of readers) {
     if (reader === none) {
@@ -35,9 +35,9 @@ export function or<C = any>(...readers: Reader<C>[]): Reader<C> {
   return new OrReader(children);
 }
 
-export class OrReader<C> implements ReaderCodegen {
+export class OrReader<Context> implements ReaderCodegen {
 
-  constructor(public readers: Reader<C>[]) {
+  constructor(public readers: Reader<Context>[]) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {

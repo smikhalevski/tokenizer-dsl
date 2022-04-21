@@ -23,7 +23,7 @@ export interface UntilOptions {
  * @param reader The reader that reads chars.
  * @param options Reader options.
  */
-export function until<C = any>(reader: Reader<C>, options: UntilOptions = {}): Reader<C> {
+export function until<Context = any>(reader: Reader<Context>, options: UntilOptions = {}): Reader<Context> {
 
   const {inclusive = false} = options;
 
@@ -116,9 +116,9 @@ export class UntilRegexReader implements ReaderCodegen {
   }
 }
 
-export class UntilReader<C> implements ReaderCodegen {
+export class UntilReader<Context> implements ReaderCodegen {
 
-  constructor(public reader: Reader<C>, public inclusive: boolean) {
+  constructor(public reader: Reader<Context>, public inclusive: boolean) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {

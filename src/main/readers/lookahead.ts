@@ -7,16 +7,16 @@ import {createCodeBindings, createReaderCallCode} from './reader-utils';
 /**
  * Creates a reader that returns the current offset if the reader matches.
  */
-export function lookahead<C>(reader: Reader<C>): Reader<C> {
+export function lookahead<Context>(reader: Reader<Context>): Reader<Context> {
   if (reader === none || reader === never) {
     return reader;
   }
   return new LookaheadReader(reader);
 }
 
-export class LookaheadReader<C> implements ReaderCodegen {
+export class LookaheadReader<Context> implements ReaderCodegen {
 
-  constructor(public reader: Reader<C>) {
+  constructor(public reader: Reader<Context>) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {

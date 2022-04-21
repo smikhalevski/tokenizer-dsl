@@ -10,7 +10,7 @@ export function toCharCodes(str: string): number[] {
   return charCodes;
 }
 
-export function createReaderCallCode<C>(reader: Reader<C>, inputVar: Var, offsetVar: Var, contextVar: Var, returnVar: Var, bindings: Binding[]): Code {
+export function createReaderCallCode<Context>(reader: Reader<Context>, inputVar: Var, offsetVar: Var, contextVar: Var, returnVar: Var, bindings: Binding[]): Code {
 
   if ('factory' in reader) {
     const codeBindings = reader.factory(inputVar, offsetVar, contextVar, returnVar);
@@ -31,7 +31,7 @@ export function createCodeBindings(code: Code, bindings?: Binding[]): CodeBindin
   return {code, bindings};
 }
 
-export function toReaderFunction<C = void>(reader: Reader<C>): ReaderFunction<C> {
+export function toReaderFunction<Context = void>(reader: Reader<Context>): ReaderFunction<Context> {
   if (typeof reader === 'function') {
     return reader;
   }
