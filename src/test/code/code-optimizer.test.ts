@@ -1,5 +1,4 @@
-import {Code, createVar} from '../../main/code';
-import {varAssign} from '../../main/code/code-dsl';
+import {Code, createVar, varAssign} from '../../main/code';
 import {countVarRefs, Direction, inlineVars, walkChildren} from '../../main/code/code-optimizer';
 
 describe('walkChildren', () => {

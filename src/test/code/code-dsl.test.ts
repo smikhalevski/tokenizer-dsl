@@ -1,5 +1,4 @@
-import {assembleJs} from '../../main/code';
-import {comment, docComment, objectKey, propAccess} from '../../main/code/code-dsl';
+import {assembleJs, comment, docComment, objectKey, propAccess} from '../../main/code';
 
 describe('objectKey', () => {
 

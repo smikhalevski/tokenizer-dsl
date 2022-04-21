@@ -1,6 +1,5 @@
-import {seq} from '../../main/readers/seq';
-import {appendRule, createRuleIteratorPlan, RuleIteratorBranch, RuleIteratorPlan} from '../../main/rules/createRuleIteratorPlan';
-import {Rule} from '../../main/rules/rule-types';
+import {seq} from '../../main';
+import {appendRule, createRuleIteratorPlan, Rule, RuleIteratorBranch, RuleIteratorPlan} from '../../main/rules';
 
 describe('createRuleIterationPlan', () => {
 

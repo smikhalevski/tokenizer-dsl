@@ -1,5 +1,4 @@
-import {assembleJs, createVar} from '../../main/code';
-import {varAssign, varDeclare} from '../../main/code/code-dsl';
+import {assembleJs, createVar, varAssign, varDeclare} from '../../main/code';
 
 describe('assembleJs', () => {
 

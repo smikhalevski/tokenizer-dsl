@@ -1,6 +1,5 @@
 import {all, ReaderFunction, Rule, seq, text} from '../../main';
-import {compileRuleIterator, TokenHandler, RuleIteratorState} from '../../main/rules';
-import {createRuleIteratorPlan} from '../../main/rules/createRuleIteratorPlan';
+import {compileRuleIterator, createRuleIteratorPlan, RuleIteratorState, TokenHandler} from '../../main/rules';
 
 describe('compileRuleIterator', () => {
 

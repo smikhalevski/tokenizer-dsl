@@ -1,5 +1,4 @@
-import {compileRuleIterator, Rule, RuleIteratorState, TokenHandler} from './rules';
-import {createRuleIteratorPlan} from './rules/createRuleIteratorPlan';
+import {compileRuleIterator, createRuleIteratorPlan, Rule, RuleIteratorState, TokenHandler} from './rules';
 import {die} from './utils';
 
 export class Tokenizer<Type, Stage, Context> implements RuleIteratorState {
