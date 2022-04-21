@@ -315,4 +315,36 @@ describe('compileRuleIterator', () => {
       stageIndex: -1,
     });
   });
+
+  test('does not emit tokens for silent rules', () => {
+
+    const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('a')};
+    const ruleB: Rule<any, any, any> = {type: 'TypeB', reader: text('b'), silent: true};
+
+    const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA, ruleB]));
+
+    const state: RuleIteratorState = {
+      chunk: 'ababa',
+      offset: 0,
+      chunkOffset: 0,
+      stageIndex: -1,
+    };
+
+    ruleIterator(state, false, handler, undefined);
+
+    expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 2, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 4, 1);
+
+    expect(errorCallbackMock).not.toHaveBeenCalled();
+    expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
+
+    expect(state).toEqual({
+      chunk: 'ababa',
+      offset: 5,
+      chunkOffset: 0,
+      stageIndex: -1,
+    });
+  });
 });
