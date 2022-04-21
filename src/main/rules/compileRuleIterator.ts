@@ -101,7 +101,7 @@ export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan
 
         // Emit an error
         'if(', branchResultVar, '<0){',
-        errorCallbackVar, '(', ruleTypeVar, ',', chunkOffsetVar, '+', nextOffsetVar, ',', branchResultVar, ');',
+        errorCallbackVar, '&&', errorCallbackVar, '(', ruleTypeVar, ',', chunkOffsetVar, '+', nextOffsetVar, ',', branchResultVar, ');',
         'return}',
 
         // Emit confirmed token
@@ -172,8 +172,9 @@ export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan
     '}',
 
     // Trigger unrecognized token
-    'if(', nextOffsetVar, '!==', chunkLengthVar, ')',
-    unrecognizedTokenCallbackVar, '(', chunkOffsetVar, '+', nextOffsetVar, ');',
+    nextOffsetVar, '!==', chunkLengthVar,
+    '&&', unrecognizedTokenCallbackVar,
+    '&&', unrecognizedTokenCallbackVar, '(', chunkOffsetVar, '+', nextOffsetVar, ');',
   ];
 
   return compileFunction<RuleIterator<Type, Context>>([stateVar, streamingVar, handlerVar, contextVar], code, bindings);

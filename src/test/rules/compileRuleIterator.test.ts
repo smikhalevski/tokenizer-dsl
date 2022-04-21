@@ -175,6 +175,21 @@ describe('compileRuleIterator', () => {
     });
   });
 
+  test('does not fail if unrecognizedToken is missing in handler', () => {
+
+    const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('a')};
+    const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA]));
+
+    const state: RuleIteratorState = {
+      chunk: 'b',
+      offset: 0,
+      chunkOffset: 0,
+      stageIndex: -1,
+    };
+
+    ruleIterator(state, false, {token: tokenCallbackMock}, undefined);
+  });
+
   test('triggers error in streaming mode', () => {
 
     const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('aaa')};
@@ -207,6 +222,22 @@ describe('compileRuleIterator', () => {
       chunkOffset: 1000,
       stageIndex: -1,
     });
+  });
+
+  test('does not fail if error is missing in handler', () => {
+
+    const ruleError: Rule<any, any, any> = {type: 'TypeError', reader: () => -777};
+
+    const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleError]));
+
+    const state: RuleIteratorState = {
+      chunk: 'a',
+      offset: 0,
+      chunkOffset: 0,
+      stageIndex: -1,
+    };
+
+    ruleIterator(state, false, {token: tokenCallbackMock}, undefined);
   });
 
   test('respects literal stages', () => {
