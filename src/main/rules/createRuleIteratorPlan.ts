@@ -38,9 +38,9 @@ export interface RuleIteratorBranch<Type, Stage, Context> {
   rule?: Rule<Type, Stage, Context>;
 
   /**
-   * The unique rule identifier.
+   * The rule index, can be used as a rule UID.
    */
-  ruleId?: number;
+  ruleIndex?: number;
 }
 
 /**
@@ -70,21 +70,21 @@ export function createRuleIteratorPlan<Type, Stage, Context>(rules: Rule<Type, S
   for (const rule of rules) {
 
     // Ensure the ID is unique and rule always has the same ID
-    const ruleId = rules.indexOf(rule);
+    const ruleIndex = rules.indexOf(rule);
 
     // Append the rule to branches
     if (rule.on) {
       for (const stage of rule.on) {
-        appendRule(branchesByStageIndex[stages.indexOf(stage)], rule, ruleId);
+        appendRule(branchesByStageIndex[stages.indexOf(stage)], rule, ruleIndex);
       }
       continue;
     }
 
     // Rule has no stages defined, so it is applied on every stage
     for (const stagePlan of branchesByStageIndex) {
-      appendRule(stagePlan, rule, ruleId);
+      appendRule(stagePlan, rule, ruleIndex);
     }
-    appendRule(branches, rule, ruleId);
+    appendRule(branches, rule, ruleIndex);
   }
 
   return {
@@ -99,18 +99,18 @@ export function createRuleIteratorPlan<Type, Stage, Context>(rules: Rule<Type, S
  *
  * @param branches The mutable list of branches to which the rule must be appended.
  * @param rule The rule to append.
- * @param ruleId The unique rule identifier.
+ * @param ruleIndex The rule UID.
  * @returns The updated list of branches.
  */
-export function appendRule<Type, Stage, Context>(branches: RuleIteratorBranch<Type, Stage, Context>[], rule: Rule<Type, Stage, Context>, ruleId: number): RuleIteratorBranch<Type, Stage, Context>[] {
+export function appendRule<Type, Stage, Context>(branches: RuleIteratorBranch<Type, Stage, Context>[], rule: Rule<Type, Stage, Context>, ruleIndex: number): RuleIteratorBranch<Type, Stage, Context>[] {
   const {reader} = rule;
 
-  distributeRule(branches, reader instanceof SeqReader ? reader.readers : [reader], rule, ruleId);
+  distributeRule(branches, reader instanceof SeqReader ? reader.readers : [reader], rule, ruleIndex);
 
   return branches;
 }
 
-function distributeRule<Type, Stage, Context>(branches: RuleIteratorBranch<Type, Stage, Context>[], readers: Reader<Context>[], rule: Rule<Type, Stage, Context>, ruleId: number): void {
+function distributeRule<Type, Stage, Context>(branches: RuleIteratorBranch<Type, Stage, Context>[], readers: Reader<Context>[], rule: Rule<Type, Stage, Context>, ruleIndex: number): void {
 
   const readersLength = readers.length;
 
@@ -143,12 +143,12 @@ function distributeRule<Type, Stage, Context>(branches: RuleIteratorBranch<Type,
       if (j === readersLength) {
         // Terminates the branch
         branch.rule = rule;
-        branch.ruleId = ruleId;
+        branch.ruleIndex = ruleIndex;
         return;
       }
 
       // Distribute remaining readers
-      distributeRule(branch.children!, readers.slice(j), rule, ruleId);
+      distributeRule(branch.children!, readers.slice(j), rule, ruleIndex);
       return;
     }
 
@@ -159,21 +159,21 @@ function distributeRule<Type, Stage, Context>(branches: RuleIteratorBranch<Type,
           readers: branchReaders.slice(j),
           children: branch.children,
           rule: branch.rule,
-          ruleId: branch.ruleId,
+          ruleIndex: branch.ruleIndex,
         }
       ],
     };
 
     if (j === readersLength) {
       branch.rule = rule;
-      branch.ruleId = ruleId;
+      branch.ruleIndex = ruleIndex;
       return;
     }
 
     branch.children!.push({
       readers: readers.slice(j),
       rule,
-      ruleId,
+      ruleIndex,
     });
     return;
   }
@@ -181,6 +181,6 @@ function distributeRule<Type, Stage, Context>(branches: RuleIteratorBranch<Type,
   branches.push({
     readers,
     rule,
-    ruleId,
+    ruleIndex,
   });
 }

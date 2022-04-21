@@ -44,13 +44,6 @@ export interface Rule<Type, Stage, Context> {
    * @default false
    */
   silent?: boolean;
-
-  /**
-   * If set to `true` then multiple sequential tokens read by this rule are emitted as a single token.
-   *
-   * @default false
-   */
-  continuous?: boolean;
 }
 
 /**

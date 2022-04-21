@@ -3,9 +3,6 @@ import {createReaderCallCode, NO_MATCH, seq} from '../readers';
 import {RuleIteratorBranch, RuleIteratorPlan} from './createRuleIteratorPlan';
 import {TokenHandler} from './rule-types';
 
-/**
- * The mutable iterator state.
- */
 export interface RuleIteratorState {
 
   /**
@@ -56,7 +53,7 @@ export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan
   const errorCallbackVar = createVar();
   const unrecognizedTokenCallbackVar = createVar();
 
-  const prevRuleIdVar = createVar();
+  const prevRuleIndexVar = createVar();
   const prevRuleTypeVar = createVar();
   const nextOffsetVar = createVar();
   const chunkLengthVar = createVar();
@@ -108,15 +105,15 @@ export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan
         'return}',
 
         // Emit confirmed token
-        'if(', prevRuleIdVar, '!==-1){',
+        'if(', prevRuleIndexVar, '!==-1){',
         tokenCallbackVar, '(', prevRuleTypeVar, ',', chunkOffsetVar, '+', offsetVar, ',', nextOffsetVar, '-', offsetVar, ');',
-        prevRuleIdVar, '=-1}',
+        prevRuleIndexVar, '=-1}',
 
         stateVar, '.stageIndex=', stageIndexVar, ';',
         stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
         rule.silent ? '' : [
-          prevRuleIdVar, '=', branch.ruleId, ';',
+          prevRuleIndexVar, '=', branch.ruleIndex, ';',
           prevRuleTypeVar, '=', ruleTypeVar, ';',
         ],
 
@@ -146,7 +143,7 @@ export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan
     errorCallbackVar, '=', handlerVar, '.error,',
     unrecognizedTokenCallbackVar, '=', handlerVar, '.unrecognizedToken,',
 
-    prevRuleIdVar, '=-1,',
+    prevRuleIndexVar, '=-1,',
     prevRuleTypeVar, ',',
     nextOffsetVar, '=', offsetVar, ',',
     chunkLengthVar, '=', chunkVar, '.length;',
@@ -168,7 +165,7 @@ export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan
     'if(', streamingVar, ')return;',
 
     // Emit trailing unconfirmed token
-    'if(', prevRuleIdVar, '!==-1){',
+    'if(', prevRuleIndexVar, '!==-1){',
     tokenCallbackVar, '(', prevRuleTypeVar, ',', chunkOffsetVar, '+', offsetVar, ',', nextOffsetVar, '-', offsetVar, ');',
     stateVar, '.stageIndex=', stageIndexVar, ';',
     stateVar, '.offset=', nextOffsetVar, ';',
