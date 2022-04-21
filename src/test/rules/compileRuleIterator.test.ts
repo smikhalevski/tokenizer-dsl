@@ -1,5 +1,6 @@
 import {all, createRule, ReaderFunction, seq, text} from '../../main';
 import {compileRuleIterator, RuleHandler, RuleIteratorState} from '../../main/rules';
+import {createRuleIterationPlan} from '../../main/rules/createRuleIterationPlan';
 
 describe('compileRuleIterator', () => {
 
@@ -24,10 +25,10 @@ describe('compileRuleIterator', () => {
     const ruleA = createRule(all(text('a')));
     const ruleB = createRule(all(text('b')));
 
-    const ruleIterator = compileRuleIterator([
+    const ruleIterator = compileRuleIterator(createRuleIterationPlan([
       ruleA,
       ruleB,
-    ]);
+    ]));
 
     const state: RuleIteratorState = {
       chunk: 'abaabb',
@@ -57,7 +58,7 @@ describe('compileRuleIterator', () => {
 
   test('reads a non-empty token from the string at chunk start in streaming mode', () => {
     const ruleA = createRule(text('a'));
-    const ruleIterator = compileRuleIterator([ruleA]);
+    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA]));
 
     const state: RuleIteratorState = {
       chunk: 'aaa',
@@ -85,7 +86,7 @@ describe('compileRuleIterator', () => {
 
   test('reads a non-empty token from the string at chunk start in non-streaming mode', () => {
     const ruleA = createRule(text('a'));
-    const ruleIterator = compileRuleIterator([ruleA]);
+    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA]));
 
     const state: RuleIteratorState = {
       chunk: 'aaa',
@@ -114,7 +115,7 @@ describe('compileRuleIterator', () => {
 
   test('reads a non-empty token from the string with offset in streaming mode', () => {
     const ruleA = createRule(text('a'));
-    const ruleIterator = compileRuleIterator([ruleA]);
+    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA]));
 
     const state: RuleIteratorState = {
       chunk: 'bbaaa',
@@ -143,7 +144,7 @@ describe('compileRuleIterator', () => {
 
   test('triggers unrecognizedToken in non-streaming mode', () => {
     const ruleA = createRule(text('a'));
-    const ruleIterator = compileRuleIterator([ruleA]);
+    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA]));
 
     const state: RuleIteratorState = {
       chunk: 'bbaac',
@@ -175,7 +176,7 @@ describe('compileRuleIterator', () => {
     const ruleA = createRule(text('aaa'));
     const ruleC = createRule(text('cc'));
     const ruleError = createRule(() => -777);
-    const ruleIterator = compileRuleIterator([ruleA, ruleC, ruleError]);
+    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA, ruleC, ruleError]));
 
     const state: RuleIteratorState = {
       chunk: 'bbaaacceee',
@@ -207,7 +208,7 @@ describe('compileRuleIterator', () => {
     const ruleA = createRule(text('a'), ['A'], 'B');
     const ruleB = createRule(text('b'), ['B'], 'A');
 
-    const ruleIterator = compileRuleIterator([ruleA, ruleB]);
+    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA, ruleB]));
 
     const state: RuleIteratorState = {
       chunk: 'ababbbb',
@@ -241,7 +242,7 @@ describe('compileRuleIterator', () => {
     const ruleA = createRule(text('a'), ['A'], ruleANextStageMock);
     const ruleB = createRule(text('b'), ['B'], ruleBNextStageMock);
 
-    const ruleIterator = compileRuleIterator([ruleA, ruleB]);
+    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA, ruleB]));
 
     const state: RuleIteratorState = {
       chunk: 'ababbbb',
@@ -285,7 +286,7 @@ describe('compileRuleIterator', () => {
     const ruleA = createRule(seq(prefixReaderMock, text('a')));
     const ruleB = createRule(seq(prefixReaderMock, text('b')));
 
-    const ruleIterator = compileRuleIterator([ruleA, ruleB]);
+    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA, ruleB]));
 
     const state: RuleIteratorState = {
       chunk: '_b',

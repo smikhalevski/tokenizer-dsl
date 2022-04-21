@@ -1,7 +1,7 @@
 import {Binding, Code, compileFunction, createVar, Var} from '../code';
 import {createReaderCallCode, NO_MATCH, seq} from '../readers';
-import {createRuleIterationPlan, RulePlan} from './createRuleIterationPlan';
-import {Rule, RuleHandler} from './rule-types';
+import {RuleIterationPlan, RulePlan} from './createRuleIterationPlan';
+import {RuleHandler} from './rule-types';
 
 /**
  * The mutable iterator state.
@@ -44,28 +44,25 @@ export interface RuleIterator<S, C> {
 
 /**
  * Compiles tokens into a token iterator function.
- *
- * @param rules The list of tokes that iterator can process.
  */
-export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, C> {
+export function compileRuleIterator<S, C>(iterationPlan: RuleIterationPlan<S, C>): RuleIterator<S, C> {
 
-  const iterationPlan = createRuleIterationPlan(rules);
   const bindings: Binding[] = [];
-  const stages = iterationPlan.stages;
+  const {stages, stagePlans, defaultPlans, stagesComputed} = iterationPlan;
 
   const stateVar = createVar();
   const streamingVar = createVar();
   const handlerVar = createVar();
   const contextVar = createVar();
 
-  const tokenCallbackVar = createVar();
-  const errorCallbackVar = createVar();
-  const unrecognizedTokenCallbackVar = createVar();
-
   const stageIndexVar = createVar();
   const chunkVar = createVar();
   const offsetVar = createVar();
   const chunkOffsetVar = createVar();
+
+  const tokenCallbackVar = createVar();
+  const errorCallbackVar = createVar();
+  const unrecognizedTokenCallbackVar = createVar();
 
   const lastMatchedReaderVar = createVar();
   const nextOffsetVar = createVar();
@@ -75,7 +72,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
 
   // If there are rules that use callbacks to compute nextStage, then stages must be available in the iterator to
   // convert the returned stage to its index
-  if (iterationPlan.stagesComputed) {
+  if (stagesComputed) {
     bindings.push([stagesVar, stages]);
   }
 
@@ -128,6 +125,7 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
         stateVar, '.stageIndex=', stageIndexVar, ';',
         stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
+        rule.silent ? '' : [lastMatchedReaderVar, '=', ruleVar, ';'],
         rule.nextStage === undefined ? '' : [
           stageIndexVar, '=',
           typeof rule.nextStage === 'function'
@@ -135,8 +133,6 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
               : stages.indexOf(rule.nextStage),
           ';'
         ],
-
-        rule.silent ? '' : [lastMatchedReaderVar, '=', ruleVar, ';'],
         nextOffsetVar, '=', readerResultVar, ';',
 
         // Restart the looping over characters in the input chunk
@@ -165,16 +161,12 @@ export function compileRuleIterator<S, C>(rules: Rule<S, C>[]): RuleIterator<S, 
 
     'while(', nextOffsetVar, '<', chunkLengthVar, '){',
 
-    iterationPlan.stagePlans.length ? [
+    stagePlans.length ? [
       'switch(', stageIndexVar, '){',
-      iterationPlan.stagePlans.map((plans, i) => [
-        'case ', i, ':',
-        createRulePlansCode(plans, nextOffsetVar),
-        'break;',
-      ]),
-      iterationPlan.defaultPlans.length ? ['default:', createRulePlansCode(iterationPlan.defaultPlans, nextOffsetVar)] : '',
+      stagePlans.map((plans, stageIndex) => ['case ', stageIndex, ':', createRulePlansCode(plans, nextOffsetVar), 'break;']),
+      defaultPlans.length ? ['default:', createRulePlansCode(defaultPlans, nextOffsetVar)] : '',
       '}',
-    ] : createRulePlansCode(iterationPlan.defaultPlans, nextOffsetVar),
+    ] : createRulePlansCode(defaultPlans, nextOffsetVar),
 
     'break}',
 
