@@ -1,57 +1,55 @@
-import {compileTokenIterator, TokenIteratorState} from './compileTokenIterator';
-import {Token, TokenHandler} from './token-types';
+import {compileRuleIterator, createRuleIteratorPlan, Rule, RuleIteratorState, TokenHandler} from './rules';
+import {die} from './utils';
 
-export class Tokenizer {
+export class Tokenizer<Type, Stage, Context> implements RuleIteratorState {
 
-  private readonly initialStage;
-  private readonly iterator;
-  private readonly state: TokenIteratorState = {
-    stage: -1,
-    chunk: '',
-    offset: 0,
-    chunkOffset: 0,
-  };
-  private handler;
+  stageIndex;
+  chunk = '';
+  offset = 0;
+  chunkOffset = 0;
 
-  public constructor(tokens: Token[], handler: TokenHandler, initialStage?: unknown) {
-    if (tokens.length === 0) {
-      throw new Error('Tokens expected');
+  private readonly _initialStageIndex;
+  private readonly _ruleIterator;
+
+  /**
+   * Creates a new {@link Tokenizer} instance.
+   *
+   * @param rules The list of rules that tokenizer uses to read tokens from the input chunks.
+   * @param handler The set of callbacks that are invoked in response to tokenization events.
+   * @param context The context value passed to {@link Reader} and {@link StageResolver} instances.
+   * @param initialStage The initial state from which tokenization starts.
+   */
+  constructor(rules: Rule<Type, Stage, Context>[], public handler: TokenHandler<Type>, public context: Context, initialStage: Stage) {
+    if (rules.length === 0) {
+      die('Rules expected');
     }
 
-    const tokenIterator = this.iterator = compileTokenIterator(tokens);
-    this.initialStage = this.state.stage = tokenIterator.uniqueStages.indexOf(initialStage);
-    this.handler = handler;
+    const plan = createRuleIteratorPlan(rules);
+
+    this.stageIndex = this._initialStageIndex = plan.stages.indexOf(initialStage);
+    this._ruleIterator = compileRuleIterator(plan);
   }
 
-  public setHandler(handler: TokenHandler): void {
-    this.handler = handler;
+  write(chunk: string): void {
+    this.chunk = this.chunk.slice(this.offset) + chunk;
+    this.chunkOffset += this.offset;
+    this.offset = 0;
+    this._ruleIterator(this, true, this.handler, this.context);
   }
 
-  public write(chunk: string): void {
-    const {state} = this;
-
-    state.chunk = state.chunk.slice(state.offset) + chunk;
-    state.chunkOffset += state.offset;
-    state.offset = 0;
-    this.iterator(this.state, true, this.handler);
-  }
-
-  public end(chunk?: string): void {
-    const {state} = this;
-
+  end(chunk?: string): void {
     if (chunk) {
-      state.chunk = state.chunk.slice(state.offset) + chunk;
-      state.chunkOffset += state.offset;
-      state.offset = 0;
+      this.chunk = this.chunk.slice(this.offset) + chunk;
+      this.chunkOffset += this.offset;
+      this.offset = 0;
     }
-    this.iterator(state, false, this.handler);
+    this._ruleIterator(this, false, this.handler, this.context);
+    this.reset();
   }
 
-  public reset(): void {
-    const {state} = this;
-
-    state.stage = this.initialStage;
-    state.chunk = '';
-    state.offset = state.chunkOffset = 0;
+  reset(): void {
+    this.stageIndex = this._initialStageIndex;
+    this.chunk = '';
+    this.offset = this.chunkOffset = 0;
   }
 }
