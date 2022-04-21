@@ -29,11 +29,11 @@ describe('compileRuleIterator', () => {
       ruleB,
     ]));
 
-    const state: RuleIteratorState = {
+    const state: RuleIteratorState<any> = {
       chunk: 'abaabb',
       offset: 0,
       chunkOffset: 0,
-      stageIndex: -1,
+      stage: undefined,
     };
 
     ruleIterator(state, false, handler, undefined);
@@ -51,7 +51,7 @@ describe('compileRuleIterator', () => {
       chunk: 'abaabb',
       offset: 6,
       chunkOffset: 0,
-      stageIndex: -1,
+      stage: undefined,
     });
   });
 
@@ -60,11 +60,11 @@ describe('compileRuleIterator', () => {
     const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('a')};
     const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA]));
 
-    const state: RuleIteratorState = {
+    const state: RuleIteratorState<any> = {
       chunk: 'aaa',
       offset: 0,
       chunkOffset: 0,
-      stageIndex: -1,
+      stage: undefined,
     };
 
     ruleIterator(state, true, handler, undefined);
@@ -80,7 +80,7 @@ describe('compileRuleIterator', () => {
       chunk: 'aaa',
       offset: 2,
       chunkOffset: 0,
-      stageIndex: -1,
+      stage: undefined,
     });
   });
 
@@ -89,11 +89,11 @@ describe('compileRuleIterator', () => {
     const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('a')};
     const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA]));
 
-    const state: RuleIteratorState = {
+    const state: RuleIteratorState<any> = {
       chunk: 'aaa',
       offset: 0,
       chunkOffset: 0,
-      stageIndex: -1,
+      stage: undefined,
     };
 
     ruleIterator(state, false, handler, undefined);
@@ -110,7 +110,7 @@ describe('compileRuleIterator', () => {
       chunk: 'aaa',
       offset: 3,
       chunkOffset: 0,
-      stageIndex: -1,
+      stage: undefined,
     });
   });
 
@@ -119,11 +119,11 @@ describe('compileRuleIterator', () => {
     const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('a')};
     const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA]));
 
-    const state: RuleIteratorState = {
+    const state: RuleIteratorState<any> = {
       chunk: 'bbaaa',
       offset: 2,
       chunkOffset: 1000,
-      stageIndex: -1,
+      stage: undefined,
     };
 
     ruleIterator(state, false, handler, undefined);
@@ -140,7 +140,7 @@ describe('compileRuleIterator', () => {
       chunk: 'bbaaa',
       offset: 5,
       chunkOffset: 1000,
-      stageIndex: -1,
+      stage: undefined,
     });
   });
 
@@ -149,11 +149,11 @@ describe('compileRuleIterator', () => {
     const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('a')};
     const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA]));
 
-    const state: RuleIteratorState = {
+    const state: RuleIteratorState<any> = {
       chunk: 'bbaac',
       offset: 2,
       chunkOffset: 1000,
-      stageIndex: -1,
+      stage: undefined,
     };
 
     ruleIterator(state, false, handler, undefined);
@@ -171,7 +171,7 @@ describe('compileRuleIterator', () => {
       chunk: 'bbaac',
       offset: 4,
       chunkOffset: 1000,
-      stageIndex: -1,
+      stage: undefined,
     });
   });
 
@@ -180,11 +180,11 @@ describe('compileRuleIterator', () => {
     const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('a')};
     const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA]));
 
-    const state: RuleIteratorState = {
+    const state: RuleIteratorState<any> = {
       chunk: 'b',
       offset: 0,
       chunkOffset: 0,
-      stageIndex: -1,
+      stage: undefined,
     };
 
     ruleIterator(state, false, {token: tokenCallbackMock}, undefined);
@@ -198,11 +198,11 @@ describe('compileRuleIterator', () => {
 
     const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA, ruleC, ruleError]));
 
-    const state: RuleIteratorState = {
+    const state: RuleIteratorState<any> = {
       chunk: 'bbaaacceee',
       offset: 2,
       chunkOffset: 1000,
-      stageIndex: -1,
+      stage: undefined,
     };
 
     ruleIterator(state, false, handler, undefined);
@@ -220,7 +220,7 @@ describe('compileRuleIterator', () => {
       chunk: 'bbaaacceee',
       offset: 5,
       chunkOffset: 1000,
-      stageIndex: -1,
+      stage: undefined,
     });
   });
 
@@ -230,11 +230,11 @@ describe('compileRuleIterator', () => {
 
     const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleError]));
 
-    const state: RuleIteratorState = {
+    const state: RuleIteratorState<any> = {
       chunk: 'a',
       offset: 0,
       chunkOffset: 0,
-      stageIndex: -1,
+      stage: undefined,
     };
 
     ruleIterator(state, false, {token: tokenCallbackMock}, undefined);
@@ -246,11 +246,11 @@ describe('compileRuleIterator', () => {
 
     const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA, ruleB]));
 
-    const state: RuleIteratorState = {
+    const state: RuleIteratorState<any> = {
       chunk: 'ababbbb',
       offset: 0,
       chunkOffset: 0,
-      stageIndex: 0,
+      stage: 'A',
     };
 
     ruleIterator(state, true, handler, undefined);
@@ -267,7 +267,7 @@ describe('compileRuleIterator', () => {
       chunk: 'ababbbb',
       offset: 3,
       chunkOffset: 0,
-      stageIndex: 1,
+      stage: 'B',
     });
   });
 
@@ -280,11 +280,11 @@ describe('compileRuleIterator', () => {
 
     const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA, ruleB]));
 
-    const state: RuleIteratorState = {
+    const state: RuleIteratorState<any> = {
       chunk: 'ababbbb',
       offset: 0,
       chunkOffset: 0,
-      stageIndex: 0,
+      stage: 'A',
     };
 
     const context = Symbol('context');
@@ -311,7 +311,7 @@ describe('compileRuleIterator', () => {
       chunk: 'ababbbb',
       offset: 3,
       chunkOffset: 0,
-      stageIndex: 1,
+      stage: 'B',
     });
   });
 
@@ -324,11 +324,11 @@ describe('compileRuleIterator', () => {
 
     const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA, ruleB]));
 
-    const state: RuleIteratorState = {
+    const state: RuleIteratorState<any> = {
       chunk: '_b',
       offset: 0,
       chunkOffset: 0,
-      stageIndex: -1,
+      stage: undefined,
     };
 
     ruleIterator(state, false, handler, undefined);
@@ -343,7 +343,7 @@ describe('compileRuleIterator', () => {
       chunk: '_b',
       offset: 2,
       chunkOffset: 0,
-      stageIndex: -1,
+      stage: undefined,
     });
   });
 
@@ -354,11 +354,11 @@ describe('compileRuleIterator', () => {
 
     const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA, ruleB]));
 
-    const state: RuleIteratorState = {
+    const state: RuleIteratorState<any> = {
       chunk: 'ababa',
       offset: 0,
       chunkOffset: 0,
-      stageIndex: -1,
+      stage: undefined,
     };
 
     ruleIterator(state, false, handler, undefined);
@@ -375,7 +375,7 @@ describe('compileRuleIterator', () => {
       chunk: 'ababa',
       offset: 5,
       chunkOffset: 0,
-      stageIndex: -1,
+      stage: undefined,
     });
   });
 });

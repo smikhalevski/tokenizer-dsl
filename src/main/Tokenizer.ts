@@ -1,14 +1,14 @@
 import {compileRuleIterator, createRuleIteratorPlan, Rule, RuleIteratorState, TokenHandler} from './rules';
 import {die} from './utils';
 
-export class Tokenizer<Type, Stage, Context> implements RuleIteratorState {
+export class Tokenizer<Type, Stage, Context> implements RuleIteratorState<Stage> {
 
-  stageIndex;
+  stage;
   chunk = '';
   offset = 0;
   chunkOffset = 0;
 
-  private readonly _initialStageIndex;
+  private readonly _initialStage;
   private readonly _ruleIterator;
 
   /**
@@ -24,10 +24,8 @@ export class Tokenizer<Type, Stage, Context> implements RuleIteratorState {
       die('Rules expected');
     }
 
-    const plan = createRuleIteratorPlan(rules);
-
-    this.stageIndex = this._initialStageIndex = plan.stages.indexOf(initialStage);
-    this._ruleIterator = compileRuleIterator(plan);
+    this.stage = this._initialStage = initialStage;
+    this._ruleIterator = compileRuleIterator(createRuleIteratorPlan(rules));
   }
 
   write(chunk: string): void {
@@ -48,7 +46,7 @@ export class Tokenizer<Type, Stage, Context> implements RuleIteratorState {
   }
 
   reset(): void {
-    this.stageIndex = this._initialStageIndex;
+    this.stage = this._initialStage;
     this.chunk = '';
     this.offset = this.chunkOffset = 0;
   }

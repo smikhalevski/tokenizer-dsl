@@ -3,12 +3,12 @@ import {createReaderCallCode, NO_MATCH, seq} from '../readers';
 import {RuleIteratorBranch, RuleIteratorPlan} from './createRuleIteratorPlan';
 import {TokenHandler} from './rule-types';
 
-export interface RuleIteratorState {
+export interface RuleIteratorState<Stage> {
 
   /**
-   * The index of the current tokenizer stage. A non-negative integer or -1 if stage is undefined.
+   * The current tokenizer stage.
    */
-  stageIndex: number;
+  stage: Stage;
 
   /**
    * The chunk that is being processed.
@@ -29,15 +29,12 @@ export interface RuleIteratorState {
 /**
  * The callback that reads tokens from the input defined by iterator state.
  */
-export type RuleIterator<Type, Context> = (state: RuleIteratorState, streaming: boolean, handler: TokenHandler<Type>, context: Context) => void;
+export type RuleIterator<Type, Stage, Context> = (state: RuleIteratorState<Stage>, streaming: boolean, handler: TokenHandler<Type>, context: Context) => void;
 
 /**
  * Compiles tokens into a token iterator function.
  */
-export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan<Type, Stage, Context>): RuleIterator<Type, Context> {
-
-  const bindings: Binding[] = [];
-  const {stages, branchesByStageIndex, branches} = plan;
+export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan<Type, Stage, Context>): RuleIterator<Type, Stage, Context> {
 
   const stateVar = createVar();
   const streamingVar = createVar();
@@ -59,6 +56,9 @@ export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan
   const chunkLengthVar = createVar();
 
   const stagesVar = createVar();
+
+  const {stages, branchesByStageIndex, branches} = plan;
+  const bindings: Binding[] = [[stagesVar, stages]];
 
   const createRuleIteratorBranchesCode = (branches: RuleIteratorBranch<Type, Stage, Context>[], branchOffsetVar: Var): Code => {
 
@@ -94,7 +94,7 @@ export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan
       bindings.push([ruleTypeVar, rule.type]);
 
       if (typeof rule.to === 'function') {
-        bindings.push([ruleToCallbackVar, rule.to], [stagesVar, stages]);
+        bindings.push([ruleToCallbackVar, rule.to]);
       }
 
       code.push([
@@ -109,7 +109,7 @@ export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan
         tokenCallbackVar, '(', prevRuleTypeVar, ',', chunkOffsetVar, '+', offsetVar, ',', nextOffsetVar, '-', offsetVar, ');',
         prevRuleIndexVar, '=-1}',
 
-        stateVar, '.stageIndex=', stageIndexVar, ';',
+        stateVar, '.stage=', stagesVar, '[', stageIndexVar, '];',
         stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
         rule.silent ? '' : [
@@ -134,7 +134,7 @@ export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan
 
   const code: Code = [
     'var ',
-    stageIndexVar, '=', stateVar, '.stageIndex,',
+    stageIndexVar, '=', stagesVar, '.indexOf(', stateVar, '.stage),',
     chunkVar, '=', stateVar, '.chunk,',
     offsetVar, '=', stateVar, '.offset,',
     chunkOffsetVar, '=', stateVar, '.chunkOffset,',
@@ -167,7 +167,7 @@ export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan
     // Emit trailing unconfirmed token
     'if(', prevRuleIndexVar, '!==-1){',
     tokenCallbackVar, '(', prevRuleTypeVar, ',', chunkOffsetVar, '+', offsetVar, ',', nextOffsetVar, '-', offsetVar, ');',
-    stateVar, '.stageIndex=', stageIndexVar, ';',
+    stateVar, '.stage=', stagesVar, '[', stageIndexVar, '];',
     stateVar, '.offset=', nextOffsetVar, ';',
     '}',
 
@@ -177,5 +177,5 @@ export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan
     '&&', unrecognizedTokenCallbackVar, '(', chunkOffsetVar, '+', nextOffsetVar, ');',
   ];
 
-  return compileFunction<RuleIterator<Type, Context>>([stateVar, streamingVar, handlerVar, contextVar], code, bindings);
+  return compileFunction<RuleIterator<Type, Stage, Context>>([stateVar, streamingVar, handlerVar, contextVar], code, bindings);
 }
