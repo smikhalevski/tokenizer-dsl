@@ -1,6 +1,6 @@
-import {all, createRule, ReaderFunction, seq, text} from '../../main';
-import {compileRuleIterator, RuleHandler, RuleIteratorState} from '../../main/rules';
-import {createRuleIterationPlan} from '../../main/rules/createRuleIterationPlan';
+import {all, ReaderFunction, Rule, seq, text} from '../../main';
+import {compileRuleIterator, TokenHandler, RuleIteratorState} from '../../main/rules';
+import {createRuleIteratorPlan} from '../../main/rules/createRuleIteratorPlan';
 
 describe('compileRuleIterator', () => {
 
@@ -8,7 +8,7 @@ describe('compileRuleIterator', () => {
   let errorCallbackMock = jest.fn();
   let unrecognizedTokenCallbackMock = jest.fn();
 
-  const handler: RuleHandler<never, void> = {
+  const handler: TokenHandler<any> = {
     token: tokenCallbackMock,
     error: errorCallbackMock,
     unrecognizedToken: unrecognizedTokenCallbackMock,
@@ -22,10 +22,10 @@ describe('compileRuleIterator', () => {
 
   test('emits tokens', () => {
 
-    const ruleA = createRule(all(text('a')));
-    const ruleB = createRule(all(text('b')));
+    const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: all(text('a'))};
+    const ruleB: Rule<any, any, any> = {type: 'TypeB', reader: all(text('b'))};
 
-    const ruleIterator = compileRuleIterator(createRuleIterationPlan([
+    const ruleIterator = compileRuleIterator(createRuleIteratorPlan([
       ruleA,
       ruleB,
     ]));
@@ -40,10 +40,10 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, false, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(4);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleB, 1, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleA, 2, 2);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, ruleB, 4, 2);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeB', 1, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 2, 2);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, 'TypeB', 4, 2);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -57,8 +57,9 @@ describe('compileRuleIterator', () => {
   });
 
   test('reads a non-empty token from the string at chunk start in streaming mode', () => {
-    const ruleA = createRule(text('a'));
-    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA]));
+
+    const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('a')};
+    const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA]));
 
     const state: RuleIteratorState = {
       chunk: 'aaa',
@@ -70,8 +71,8 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, true, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(2);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -85,8 +86,9 @@ describe('compileRuleIterator', () => {
   });
 
   test('reads a non-empty token from the string at chunk start in non-streaming mode', () => {
-    const ruleA = createRule(text('a'));
-    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA]));
+
+    const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('a')};
+    const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA]));
 
     const state: RuleIteratorState = {
       chunk: 'aaa',
@@ -98,9 +100,9 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, false, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleA, 2, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 2, 1);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -114,8 +116,9 @@ describe('compileRuleIterator', () => {
   });
 
   test('reads a non-empty token from the string with offset in streaming mode', () => {
-    const ruleA = createRule(text('a'));
-    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA]));
+
+    const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('a')};
+    const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA]));
 
     const state: RuleIteratorState = {
       chunk: 'bbaaa',
@@ -127,9 +130,9 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, false, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 1002, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1003, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleA, 1004, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 1002, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1003, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 1004, 1);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -143,8 +146,9 @@ describe('compileRuleIterator', () => {
   });
 
   test('triggers unrecognizedToken in non-streaming mode', () => {
-    const ruleA = createRule(text('a'));
-    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA]));
+
+    const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('a')};
+    const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA]));
 
     const state: RuleIteratorState = {
       chunk: 'bbaac',
@@ -156,8 +160,8 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, false, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(2);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 1002, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1003, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 1002, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1003, 1);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
 
@@ -173,10 +177,12 @@ describe('compileRuleIterator', () => {
   });
 
   test('triggers error in streaming mode', () => {
-    const ruleA = createRule(text('aaa'));
-    const ruleC = createRule(text('cc'));
-    const ruleError = createRule(() => -777);
-    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA, ruleC, ruleError]));
+
+    const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('aaa')};
+    const ruleC: Rule<any, any, any> = {type: 'TypeC', reader: text('cc')};
+    const ruleError: Rule<any, any, any> = {type: 'TypeError', reader: () => -777};
+
+    const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA, ruleC, ruleError]));
 
     const state: RuleIteratorState = {
       chunk: 'bbaaacceee',
@@ -188,11 +194,11 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, false, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 1002, 3);
-    // Token readn by ruleB is not emitted because no confirmation was given
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 1002, 3);
+    // Token read by ruleC is not emitted because no confirmation was given
 
     expect(errorCallbackMock).toHaveBeenCalledTimes(1);
-    expect(errorCallbackMock).toHaveBeenNthCalledWith(1, ruleError, 1007, -777);
+    expect(errorCallbackMock).toHaveBeenNthCalledWith(1, 'TypeError', 1007, -777);
 
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
 
@@ -205,10 +211,10 @@ describe('compileRuleIterator', () => {
   });
 
   test('respects literal stages', () => {
-    const ruleA = createRule(text('a'), ['A'], 'B');
-    const ruleB = createRule(text('b'), ['B'], 'A');
+    const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('a'), on: ['A'], to: 'B'};
+    const ruleB: Rule<any, any, any> = {type: 'TypeB', reader: text('b'), on: ['B'], to: 'A'};
 
-    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA, ruleB]));
+    const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA, ruleB]));
 
     const state: RuleIteratorState = {
       chunk: 'ababbbb',
@@ -220,9 +226,9 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, true, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleB, 1, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleA, 2, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeB', 1, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 2, 1);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -236,13 +242,13 @@ describe('compileRuleIterator', () => {
   });
 
   test('respects computed stages', () => {
-    const ruleANextStageMock = jest.fn(() => 'B');
-    const ruleBNextStageMock = jest.fn(() => 'A');
+    const ruleAToMock = jest.fn(() => 'B');
+    const ruleBToMock = jest.fn(() => 'A');
 
-    const ruleA = createRule(text('a'), ['A'], ruleANextStageMock);
-    const ruleB = createRule(text('b'), ['B'], ruleBNextStageMock);
+    const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('a'), on: ['A'], to: ruleAToMock};
+    const ruleB: Rule<any, any, any> = {type: 'TypeB', reader: text('b'), on: ['B'], to: ruleBToMock};
 
-    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA, ruleB]));
+    const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA, ruleB]));
 
     const state: RuleIteratorState = {
       chunk: 'ababbbb',
@@ -256,20 +262,20 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, true, handler, context);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleB, 1, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleA, 2, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeB', 1, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 2, 1);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
 
-    expect(ruleANextStageMock).toHaveBeenCalledTimes(2);
-    expect(ruleANextStageMock).toHaveBeenNthCalledWith(1, 'ababbbb', 0, 1, context);
-    expect(ruleANextStageMock).toHaveBeenNthCalledWith(2, 'ababbbb', 2, 1, context);
+    expect(ruleAToMock).toHaveBeenCalledTimes(2);
+    expect(ruleAToMock).toHaveBeenNthCalledWith(1, 'ababbbb', 0, 1, context);
+    expect(ruleAToMock).toHaveBeenNthCalledWith(2, 'ababbbb', 2, 1, context);
 
-    expect(ruleBNextStageMock).toHaveBeenCalledTimes(2);
-    expect(ruleBNextStageMock).toHaveBeenNthCalledWith(1, 'ababbbb', 1, 1, context);
-    expect(ruleBNextStageMock).toHaveBeenNthCalledWith(2, 'ababbbb', 3, 1, context);
+    expect(ruleBToMock).toHaveBeenCalledTimes(2);
+    expect(ruleBToMock).toHaveBeenNthCalledWith(1, 'ababbbb', 1, 1, context);
+    expect(ruleBToMock).toHaveBeenNthCalledWith(2, 'ababbbb', 3, 1, context);
 
     expect(state).toEqual({
       chunk: 'ababbbb',
@@ -283,10 +289,10 @@ describe('compileRuleIterator', () => {
 
     const prefixReaderMock: ReaderFunction<any> = jest.fn((input, offset) => offset + 1);
 
-    const ruleA = createRule(seq(prefixReaderMock, text('a')));
-    const ruleB = createRule(seq(prefixReaderMock, text('b')));
+    const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: seq(prefixReaderMock, text('a'))};
+    const ruleB: Rule<any, any, any> = {type: 'TypeB', reader: seq(prefixReaderMock, text('b'))};
 
-    const ruleIterator = compileRuleIterator(createRuleIterationPlan([ruleA, ruleB]));
+    const ruleIterator = compileRuleIterator(createRuleIteratorPlan([ruleA, ruleB]));
 
     const state: RuleIteratorState = {
       chunk: '_b',
@@ -298,7 +304,7 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, false, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleB, 0, 2);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeB', 0, 2);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();

@@ -13,6 +13,5 @@ export {text, TextOptions} from './readers/text';
 export {until, UntilOptions} from './readers/until';
 export * from './readers/reader-types';
 export {Code, Var, Binding} from './code';
-export {createRule} from './rules/createRule';
-export {Rule, RuleHandler, StageProvider} from './rules/rule-types';
+export {Rule, TokenHandler, StageResolver} from './rules/rule-types';
 export {Tokenizer} from './Tokenizer';

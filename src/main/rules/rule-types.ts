@@ -32,7 +32,7 @@ export interface Rule<Type, Stage, Context> {
   /**
    * Provides the stage to which tokenizer transitions if this rule successfully reads a token.
    *
-   * If `undefined` the next stage is set to the current stage.
+   * If `undefined` then the stage is left unchanged.
    *
    * @default undefined
    */
@@ -76,12 +76,12 @@ export interface TokenHandler<Type> {
    * @param offset The offset at which the rule was used.
    * @param errorCode The error code. A negative integer <= -2.
    */
-  error(type: Type, offset: number, errorCode: number): void;
+  error?(type: Type, offset: number, errorCode: number): void;
 
   /**
    * Triggered if there was no rule that could successfully read a token at the offset.
    *
    * @param offset The offset at which the unrecognized token starts.
    */
-  unrecognizedToken(offset: number): void;
+  unrecognizedToken?(offset: number): void;
 }

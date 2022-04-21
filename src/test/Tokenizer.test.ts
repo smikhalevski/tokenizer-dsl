@@ -1,4 +1,4 @@
-import {all, char, createRule, RuleHandler, text, Tokenizer} from '../main';
+import {all, char, Rule, text, TokenHandler, Tokenizer} from '../main';
 
 describe('Tokenizer', () => {
 
@@ -6,7 +6,7 @@ describe('Tokenizer', () => {
   let errorCallbackMock = jest.fn();
   let unrecognizedTokenCallbackMock = jest.fn();
 
-  const handler: RuleHandler<unknown, void> = {
+  const handler: TokenHandler<any> = {
     token: tokenCallbackMock,
     error: errorCallbackMock,
     unrecognizedToken: unrecognizedTokenCallbackMock,
@@ -19,19 +19,24 @@ describe('Tokenizer', () => {
   });
 
   test('reads streaming tokens', () => {
-    const ruleA = createRule(text('a'));
-    const ruleB = createRule(all(char(['b'.charCodeAt(0), 'B'.charCodeAt(0)])));
+    const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('a')};
+    const ruleB: Rule<any, any, any> = {type: 'TypeB', reader: all(char(['b'.charCodeAt(0), 'B'.charCodeAt(0)]))};
 
-    const tokenizer = new Tokenizer([
-      ruleA,
-      ruleB,
-    ], handler, undefined);
+    const tokenizer = new Tokenizer(
+        [
+          ruleA,
+          ruleB,
+        ],
+        handler,
+        undefined,
+        undefined,
+    );
 
     tokenizer.write('aabbb');
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(2);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1);
 
     tokenizer.write('BBB');
 
@@ -40,38 +45,43 @@ describe('Tokenizer', () => {
     tokenizer.write('a');
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleB, 2, 6);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeB', 2, 6);
 
     tokenizer.end();
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(4);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, ruleA, 8, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, 'TypeA', 8, 1);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
   });
 
   test('can be reset', () => {
-    const ruleA = createRule(text('a'));
-    const ruleB = createRule(all(char(['b'.charCodeAt(0), 'B'.charCodeAt(0)])));
+    const ruleA: Rule<any, any, any> = {type: 'TypeA', reader: text('a')};
+    const ruleB: Rule<any, any, any> = {type: 'TypeB', reader: all(char(['b'.charCodeAt(0), 'B'.charCodeAt(0)]))};
 
-    const tokenizer = new Tokenizer([
-      ruleA,
-      ruleB,
-    ], handler, undefined);
+    const tokenizer = new Tokenizer(
+        [
+          ruleA,
+          ruleB,
+        ],
+        handler,
+        undefined,
+        undefined,
+    );
 
     tokenizer.end('aab');
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, ruleA, 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, ruleA, 1, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, ruleB, 2, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeB', 2, 1);
 
     tokenizer.reset();
     tokenizer.end('BBB');
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(4);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, ruleB, 0, 3);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, 'TypeB', 0, 3);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();

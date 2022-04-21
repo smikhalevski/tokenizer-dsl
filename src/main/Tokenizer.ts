@@ -1,8 +1,8 @@
-import {compileRuleIterator, Rule, RuleHandler, RuleIteratorState} from './rules';
-import {createRuleIterationPlan} from './rules/createRuleIterationPlan';
+import {compileRuleIterator, Rule, RuleIteratorState, TokenHandler} from './rules';
+import {createRuleIteratorPlan} from './rules/createRuleIteratorPlan';
 import {die} from './utils';
 
-export class Tokenizer<S = any, C = void> implements RuleIteratorState {
+export class Tokenizer<Type, Stage, Context> implements RuleIteratorState {
 
   stageIndex;
   chunk = '';
@@ -12,13 +12,23 @@ export class Tokenizer<S = any, C = void> implements RuleIteratorState {
   private readonly _initialStageIndex;
   private readonly _ruleIterator;
 
-  constructor(rules: Rule<S, C>[], public handler: RuleHandler<S, C>, public context: C, initialStage?: S) {
+  /**
+   * Creates a new {@link Tokenizer} instance.
+   *
+   * @param rules The list of rules that tokenizer uses to read tokens from the input chunks.
+   * @param handler The set of callbacks that are invoked in response to tokenization events.
+   * @param context The context value passed to {@link Reader} and {@link StageResolver} instances.
+   * @param initialStage The initial state from which tokenization starts.
+   */
+  constructor(rules: Rule<Type, Stage, Context>[], public handler: TokenHandler<Type>, public context: Context, initialStage: Stage) {
     if (rules.length === 0) {
       die('Rules expected');
     }
 
-    const ruleIterator = this._ruleIterator = compileRuleIterator(createRuleIterationPlan(rules));
-    this.stageIndex = this._initialStageIndex = ruleIterator.stages.indexOf(initialStage as S);
+    const plan = createRuleIteratorPlan(rules);
+
+    this.stageIndex = this._initialStageIndex = plan.stages.indexOf(initialStage);
+    this._ruleIterator = compileRuleIterator(plan);
   }
 
   write(chunk: string): void {
