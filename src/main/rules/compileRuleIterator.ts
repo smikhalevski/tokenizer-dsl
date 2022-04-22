@@ -1,45 +1,22 @@
 import {Binding, Code, compileFunction, createVar, Var} from '../code';
 import {createReaderCallCode, NO_MATCH, seq} from '../readers';
-import {RuleIteratorBranch, RuleIteratorPlan} from './createRuleIteratorPlan';
-import {TokenHandler} from './rule-types';
-
-export interface RuleIteratorState<Stage> {
-
-  /**
-   * The current tokenizer stage.
-   */
-  stage: Stage;
-
-  /**
-   * The chunk that is being processed.
-   */
-  chunk: string;
-
-  /**
-   * The offset in the {@link chunk} from which the tokenization should proceed.
-   */
-  offset: number;
-
-  /**
-   * The offset of the {@link chunk} in the stream.
-   */
-  chunkOffset: number;
-}
+import {RuleBranch, RuleTree} from './createRuleTree';
+import {TokenHandler, TokenizerState} from './rule-types';
 
 /**
  * The callback that reads tokens from the input defined by iterator state.
  */
-export type RuleIterator<Type, Stage, Context> = (state: RuleIteratorState<Stage>, streaming: boolean, handler: TokenHandler<Type>, context: Context) => void;
+export type RuleIterator<Type, Stage, Context> = (state: TokenizerState<Stage>, handler: TokenHandler<Type>, context: Context, streaming?: boolean) => void;
 
 /**
- * Compiles tokens into a token iterator function.
+ * Compiles rules into a function that applies them one after another in a loop.
  */
-export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan<Type, Stage, Context>): RuleIterator<Type, Stage, Context> {
+export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, Stage, Context>): RuleIterator<Type, Stage, Context> {
 
   const stateVar = createVar();
-  const streamingVar = createVar();
   const handlerVar = createVar();
   const contextVar = createVar();
+  const streamingVar = createVar();
 
   const stageIndexVar = createVar();
   const chunkVar = createVar();
@@ -57,10 +34,10 @@ export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan
 
   const stagesVar = createVar();
 
-  const {stages, branchesByStageIndex, branches} = plan;
+  const {stages, branchesByStageIndex, branches} = tree;
   const bindings: Binding[] = [[stagesVar, stages]];
 
-  const createRuleIteratorBranchesCode = (branches: RuleIteratorBranch<Type, Stage, Context>[], branchOffsetVar: Var): Code => {
+  const createRuleIteratorBranchesCode = (branches: RuleBranch<Type, Stage, Context>[], branchOffsetVar: Var): Code => {
 
     const branchResultVar = createVar();
 
@@ -177,5 +154,5 @@ export function compileRuleIterator<Type, Stage, Context>(plan: RuleIteratorPlan
     '&&', unrecognizedTokenCallbackVar, '(', chunkOffsetVar, '+', nextOffsetVar, ');',
   ];
 
-  return compileFunction<RuleIterator<Type, Stage, Context>>([stateVar, streamingVar, handlerVar, contextVar], code, bindings);
+  return compileFunction<RuleIterator<Type, Stage, Context>>([stateVar, handlerVar, contextVar, streamingVar], code, bindings);
 }

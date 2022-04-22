@@ -1,3 +1,3 @@
 export * from './compileRuleIterator';
-export * from './createRuleIteratorPlan';
+export * from './createRuleTree';
 export * from './rule-types';

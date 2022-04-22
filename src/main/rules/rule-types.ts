@@ -1,25 +1,26 @@
 import {Reader} from '../readers';
 
-export type StageResolver<Stage, Context> = (input: string, offset: number, length: number, context: Context) => Stage;
-
 /**
  * Defines how the token is read from the input string and how {@link Tokenizer} transitions between stages.
  *
+ * @template Type The type of the token emitted by this rule.
  * @template Stage The tokenizer stage type.
  * @template Context The context passed by tokenizer.
  */
-export interface Rule<Type, Stage, Context> {
-
-  /**
-   * The type of the token that is emitted when the rule successfully reads chars from the input string. Type isn't
-   * required to be unique, so multiple rules may share the same type if needed.
-   */
-  type: Type;
+export interface Rule<Type = unknown, Stage = void, Context = void> {
 
   /**
    * The reader that reads chars from the string.
    */
   reader: Reader<Context>;
+
+  /**
+   * The type of the token that is passed to {@link TokenHandler.token} when the rule successfully reads chars from the
+   * input string. Type isn't required to be unique, so multiple rules may share the same type if needed.
+   *
+   * @default undefined
+   */
+  type?: Type;
 
   /**
    * The list of stages at which the rule can be used. If `undefined` then the rule is used on all stages. If an empty
@@ -36,7 +37,7 @@ export interface Rule<Type, Stage, Context> {
    *
    * @default undefined
    */
-  to?: StageResolver<Stage, Context> | Stage | undefined;
+  to?: ((input: string, offset: number, length: number, context: Context) => Stage) | Stage | undefined;
 
   /**
    * If set to `true` then tokens read by this reader are not emitted.
@@ -47,11 +48,37 @@ export interface Rule<Type, Stage, Context> {
 }
 
 /**
+ * The state that is used by the {@link Tokenizer} to track tokenization progress.
+ */
+export interface TokenizerState<Stage = void> {
+
+  /**
+   * The current tokenizer stage.
+   */
+  stage: Stage;
+
+  /**
+   * The chunk that is being processed.
+   */
+  chunk: string;
+
+  /**
+   * The offset in the {@link chunk} from which the tokenization should proceed.
+   */
+  offset: number;
+
+  /**
+   * The offset of the {@link chunk} in the stream.
+   */
+  chunkOffset: number;
+}
+
+/**
  * Handles tokens read from the input string.
  *
  * @template Type The type of tokens emitted by rules.
  */
-export interface TokenHandler<Type> {
+export interface TokenHandler<Type = unknown> {
 
   /**
    * Triggered when a token was read from the input stream.

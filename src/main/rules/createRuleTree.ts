@@ -1,7 +1,7 @@
 import {Reader, SeqReader} from '../readers';
 import {Rule} from './rule-types';
 
-export interface RuleIteratorPlan<Type, Stage, Context> {
+export interface RuleTree<Type, Stage, Context> {
 
   /**
    * The set of the unique stages at which rules are applied. May be empty if rules didn't define any stages.
@@ -11,15 +11,15 @@ export interface RuleIteratorPlan<Type, Stage, Context> {
   /**
    * The list of branches parallel to {@link stages}. May be empty if rules didn't define any stages.
    */
-  branchesByStageIndex: RuleIteratorBranch<Type, Stage, Context>[][];
+  branchesByStageIndex: RuleBranch<Type, Stage, Context>[][];
 
   /**
    * The list of branches that are used if there are no stages and {@link branchesByStageIndex} is empty.
    */
-  branches: RuleIteratorBranch<Type, Stage, Context>[];
+  branches: RuleBranch<Type, Stage, Context>[];
 }
 
-export interface RuleIteratorBranch<Type, Stage, Context> {
+export interface RuleBranch<Type, Stage, Context> {
 
   /**
    * The non-empty list of readers that should sequentially read chars from the input to proceed to {@link children}
@@ -30,7 +30,7 @@ export interface RuleIteratorBranch<Type, Stage, Context> {
   /**
    * The optional list of branches that must be tried before the rule is applied.
    */
-  children?: RuleIteratorBranch<Type, Stage, Context>[];
+  children?: RuleBranch<Type, Stage, Context>[];
 
   /**
    * The optional rule that must be applied if none of the children matched.
@@ -44,9 +44,9 @@ export interface RuleIteratorBranch<Type, Stage, Context> {
 }
 
 /**
- * Creates an optimized iteration plan required to apply rules in the most efficient way.
+ * Creates a tree that describes the most efficient way to apply tokenization rules.
  */
-export function createRuleIteratorPlan<Type, Stage, Context>(rules: Rule<Type, Stage, Context>[]): RuleIteratorPlan<Type, Stage, Context> {
+export function createRuleTree<Type, Stage, Context>(rules: Rule<Type, Stage, Context>[]): RuleTree<Type, Stage, Context> {
   const stages: Stage[] = [];
 
   // Collect unique stages
@@ -60,8 +60,8 @@ export function createRuleIteratorPlan<Type, Stage, Context>(rules: Rule<Type, S
     }
   }
 
-  const branchesByStageIndex: RuleIteratorBranch<Type, Stage, Context>[][] = [];
-  const branches: RuleIteratorBranch<Type, Stage, Context>[] = [];
+  const branchesByStageIndex: RuleBranch<Type, Stage, Context>[][] = [];
+  const branches: RuleBranch<Type, Stage, Context>[] = [];
 
   for (let i = 0; i < stages.length; ++i) {
     branchesByStageIndex.push([]);
@@ -102,7 +102,7 @@ export function createRuleIteratorPlan<Type, Stage, Context>(rules: Rule<Type, S
  * @param ruleIndex The rule UID.
  * @returns The updated list of branches.
  */
-export function appendRule<Type, Stage, Context>(branches: RuleIteratorBranch<Type, Stage, Context>[], rule: Rule<Type, Stage, Context>, ruleIndex: number): RuleIteratorBranch<Type, Stage, Context>[] {
+export function appendRule<Type, Stage, Context>(branches: RuleBranch<Type, Stage, Context>[], rule: Rule<Type, Stage, Context>, ruleIndex: number): RuleBranch<Type, Stage, Context>[] {
   const {reader} = rule;
 
   distributeRule(branches, reader instanceof SeqReader ? reader.readers : [reader], rule, ruleIndex);
@@ -110,7 +110,7 @@ export function appendRule<Type, Stage, Context>(branches: RuleIteratorBranch<Ty
   return branches;
 }
 
-function distributeRule<Type, Stage, Context>(branches: RuleIteratorBranch<Type, Stage, Context>[], readers: Reader<Context>[], rule: Rule<Type, Stage, Context>, ruleIndex: number): void {
+function distributeRule<Type, Stage, Context>(branches: RuleBranch<Type, Stage, Context>[], readers: Reader<Context>[], rule: Rule<Type, Stage, Context>, ruleIndex: number): void {
 
   const readersLength = readers.length;
 

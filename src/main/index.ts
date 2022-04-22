@@ -14,4 +14,4 @@ export {until, UntilOptions} from './readers/until';
 export * from './readers/reader-types';
 export {Code, Var, Binding} from './code';
 export * from './rules/rule-types';
-export * from './Tokenizer';
+export * from './createTokenizer';
