@@ -18,16 +18,38 @@ describe('createTokenizer', () => {
     unrecognizedTokenCallbackMock.mockRestore();
   });
 
+  test('reads tokens', () => {
+    const ruleA: Rule = {type: 'TypeA', reader: text('a')};
+    const ruleB: Rule = {type: 'TypeB', reader: all(char(['b'.charCodeAt(0), 'B'.charCodeAt(0)]))};
+
+    const tokenizer = createTokenizer([
+      ruleA,
+      ruleB,
+    ]);
+
+    const state = tokenizer('aabbb', handler);
+
+    expect(state).toEqual({
+      stage: undefined,
+      chunk: 'aabbb',
+      chunkOffset: 0,
+      offset: 5
+    });
+
+    expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeB', 2, 3);
+  });
+
   test('reads streaming tokens', () => {
     const ruleA: Rule = {type: 'TypeA', reader: text('a')};
     const ruleB: Rule = {type: 'TypeB', reader: all(char(['b'.charCodeAt(0), 'B'.charCodeAt(0)]))};
 
-    const tokenizer = createTokenizer(
-        [
-          ruleA,
-          ruleB,
-        ],
-    );
+    const tokenizer = createTokenizer([
+      ruleA,
+      ruleB,
+    ]);
 
     const state = tokenizer.write('aabbb', handler);
 
