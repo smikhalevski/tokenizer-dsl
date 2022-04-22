@@ -37,9 +37,9 @@ describe('createTokenizer', () => {
     });
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeB', 2, 3);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeB', 2, 3, undefined);
   });
 
   test('reads streaming tokens', () => {
@@ -54,8 +54,8 @@ describe('createTokenizer', () => {
     const state = tokenizer.write('aabbb', handler);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(2);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1, undefined);
 
     tokenizer.write('BBB', handler, state);
 
@@ -64,12 +64,12 @@ describe('createTokenizer', () => {
     tokenizer.write('a', handler, state);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeB', 2, 6);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeB', 2, 6, undefined);
 
     tokenizer.end(handler, state);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(4);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, 'TypeA', 8, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, 'TypeA', 8, 1, undefined);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();

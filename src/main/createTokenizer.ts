@@ -2,11 +2,11 @@ import {compileRuleIterator, createRuleTree, Rule, TokenHandler, TokenizerState}
 
 export interface Tokenizer<Type = unknown, Stage = void, Context = void> {
 
-  (chunk: string, handler: TokenHandler<Type>, context: Context): TokenizerState<Stage>;
+  (chunk: string, handler: TokenHandler<Type, Context>, context: Context): TokenizerState<Stage>;
 
-  write(chunk: string, handler: TokenHandler<Type>, state: TokenizerState<Stage> | void, context: Context): TokenizerState<Stage>;
+  write(chunk: string, handler: TokenHandler<Type, Context>, state: TokenizerState<Stage> | void, context: Context): TokenizerState<Stage>;
 
-  end(handler: TokenHandler<Type>, state: TokenizerState<Stage>, context: Context): TokenizerState<Stage>;
+  end(handler: TokenHandler<Type, Context>, state: TokenizerState<Stage>, context: Context): TokenizerState<Stage>;
 }
 
 /**

@@ -77,8 +77,9 @@ export interface TokenizerState<Stage = void> {
  * Handles tokens read from the input string.
  *
  * @template Type The type of tokens emitted by rules.
+ * @template Context The context passed by tokenizer.
  */
-export interface TokenHandler<Type = unknown> {
+export interface TokenHandler<Type = unknown, Context = void> {
 
   /**
    * Triggered when a token was read from the input stream.
@@ -86,8 +87,9 @@ export interface TokenHandler<Type = unknown> {
    * @param type The type of the token as defined in {@link Rule.type}.
    * @param offset The absolute offset from the start of the input stream where the token starts.
    * @param length The number of chars read by the rule.
+   * @param context The context passed by tokenizer.
    */
-  token(type: Type, offset: number, length: number): void;
+  token(type: Type, offset: number, length: number, context: Context): void;
 
   /**
    * Triggered when the rule returned an error code.
@@ -95,13 +97,15 @@ export interface TokenHandler<Type = unknown> {
    * @param type The type of the token as defined in {@link Rule.type}.
    * @param offset The offset at which the rule was used.
    * @param errorCode The error code. A negative integer <= -2.
+   * @param context The context passed by tokenizer.
    */
-  error?(type: Type, offset: number, errorCode: number): void;
+  error?(type: Type, offset: number, errorCode: number, context: Context): void;
 
   /**
    * Triggered if there was no rule that could successfully read a token at the offset.
    *
    * @param offset The offset at which the unrecognized token starts.
+   * @param context The context passed by tokenizer.
    */
-  unrecognizedToken?(offset: number): void;
+  unrecognizedToken?(offset: number, context: Context): void;
 }

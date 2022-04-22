@@ -7,7 +7,7 @@ describe('compileRuleIterator', () => {
   let errorCallbackMock = jest.fn();
   let unrecognizedTokenCallbackMock = jest.fn();
 
-  const handler: TokenHandler = {
+  const handler: TokenHandler<any, any> = {
     token: tokenCallbackMock,
     error: errorCallbackMock,
     unrecognizedToken: unrecognizedTokenCallbackMock,
@@ -39,10 +39,10 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(4);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeB', 1, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 2, 2);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, 'TypeB', 4, 2);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeB', 1, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 2, 2, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, 'TypeB', 4, 2, undefined);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -70,8 +70,8 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, handler, undefined, true);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(2);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1, undefined);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -99,9 +99,9 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 2, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 2, 1, undefined);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -129,9 +129,9 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 1002, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1003, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 1004, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 1002, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1003, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 1004, 1, undefined);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -159,13 +159,13 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(2);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 1002, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1003, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 1002, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1003, 1, undefined);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
 
     expect(unrecognizedTokenCallbackMock).toHaveBeenCalledTimes(1);
-    expect(unrecognizedTokenCallbackMock).toHaveBeenNthCalledWith(1, 1004);
+    expect(unrecognizedTokenCallbackMock).toHaveBeenNthCalledWith(1, 1004, undefined);
 
     expect(state).toEqual({
       chunk: 'bbaac',
@@ -208,11 +208,11 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 1002, 3);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 1002, 3, undefined);
     // Token read by ruleC is not emitted because no confirmation was given
 
     expect(errorCallbackMock).toHaveBeenCalledTimes(1);
-    expect(errorCallbackMock).toHaveBeenNthCalledWith(1, 'TypeError', 1007, -777);
+    expect(errorCallbackMock).toHaveBeenNthCalledWith(1, 'TypeError', 1007, -777, undefined);
 
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
 
@@ -256,9 +256,9 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, handler, undefined, true);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeB', 1, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 2, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeB', 1, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 2, 1, undefined);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -292,9 +292,9 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, handler, context, true);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeB', 1, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 2, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1, context);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeB', 1, 1, context);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 2, 1, context);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -334,7 +334,7 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeB', 0, 2);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeB', 0, 2, undefined);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
@@ -364,9 +364,9 @@ describe('compileRuleIterator', () => {
     ruleIterator(state, handler, undefined);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 2, 1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 4, 1);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 2, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeA', 4, 1, undefined);
 
     expect(errorCallbackMock).not.toHaveBeenCalled();
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
