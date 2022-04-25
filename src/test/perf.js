@@ -3,22 +3,25 @@ const next = require('../../lib/index-cjs');
 
 describe('readme', () => {
 
-  const input = '-123.123aaaaa';
+  const input = 'aaaaa-123.123aaaaa';
 
   test('RegExp', (measure) => {
-    const re = /^[+-]?(?:0|[1-9])\d*(?:\.\d+)?/;
-    measure(() => re.exec(input));
+    const re = /[+-]?(?:0|[1-9])\d*(?:\.\d+)?/y;
+    measure(() => {
+      re.lastIndex = 5;
+      re.exec(input);
+    });
   });
 
   test('latest', (measure) => {
 
-    const readZero = latest.char('0'.charCodeAt(0));
+    const readZero = latest.char(48 /*0*/);
 
     const readLeadingDigit = latest.charBy((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
 
     const readDigits = latest.allCharBy((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/);
 
-    const readDot = latest.char('.'.charCodeAt(0));
+    const readDot = latest.char(46 /*.*/);
 
     const readSign = latest.charBy((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
 
@@ -44,75 +47,60 @@ describe('readme', () => {
         ),
     );
 
-    measure(() => readNumber(input, 0));
+    measure(() => readNumber(input, 5));
   });
 
   test('next', (measure) => {
-    const readZero = next.text('0');
+    const zeroReader = next.text('0');
 
-    const readLeadingDigit = next.char([[49 /*1*/, 57 /*9*/]]);
+    const leadingDigitReader = next.char([['1', '9']]);
 
-    const readDigits = next.all(next.char([[48 /*0*/, 57 /*9*/]]));
+    const digitsReader = next.all(next.char([['0', '9']]));
 
-    const readDot = next.text('.');
+    const dotReader = next.text('.');
 
-    const readSign = next.char([43 /*+*/, 45 /*-*/]);
+    const signReader = next.char(['+-']);
 
-    const readNumber = next.seq(
+    const numberReader = next.seq(
         // sign
-        next.maybe(readSign),
+        next.maybe(signReader),
 
         // integer
         next.or(
-            readZero,
+            zeroReader,
             next.seq(
-                readLeadingDigit,
-                readDigits,
+                leadingDigitReader,
+                digitsReader,
             ),
         ),
 
         // fraction
         next.maybe(
             next.seq(
-                readDot,
-                readDigits,
+                dotReader,
+                digitsReader,
             ),
         ),
     );
 
-    measure(() => readNumber(input, 0));
+    const readNumber = next.toReaderFunction(numberReader);
+
+    measure(() => readNumber(input, 5));
   });
 }, {targetRme: 0.001});
 
 describe('char', () => {
-
-  describe('CharCodeCheckerReader', () => {
-
-    const input = 'ababab';
-
-    test('RegExp', (measure) => {
-      const re = /^a/;
-      measure(() => re.exec(input));
-    });
-
-    test('latest', (measure) => {
-      const read = latest.charBy((charCode) => charCode === 97);
-      measure(() => read(input, 0));
-    });
-
-    test('next', (measure) => {
-      const read = next.char((charCode) => charCode === 97);
-      measure(() => read(input, 0));
-    });
-  });
 
   describe('CharCodeRangeReader', () => {
 
     const input = 'ababab';
 
     test('RegExp', (measure) => {
-      const re = /^[ab]/;
-      measure(() => re.exec(input));
+      const re = /[ab]/y;
+      measure(() => {
+        re.lastIndex = 0;
+        re.exec(input);
+      });
     });
 
     test('latest', (measure) => {
@@ -121,7 +109,7 @@ describe('char', () => {
     });
 
     test('next', (measure) => {
-      const read = next.char([97, 98]);
+      const read = next.toReaderFunction(next.char(['ab']));
       measure(() => read(input, 0));
     });
   });
@@ -129,33 +117,16 @@ describe('char', () => {
 
 describe('all', () => {
 
-  describe('AllCharCodeCheckerReader', () => {
-
-    const input = 'aaaaaab';
-
-    test('RegExp', (measure) => {
-      const re = /^a*/;
-      measure(() => re.exec(input));
-    });
-
-    test('latest', (measure) => {
-      const read = latest.allCharBy((charCode) => charCode === 97);
-      measure(() => read(input, 0));
-    });
-
-    test('next', (measure) => {
-      const read = next.all(next.char((charCode) => charCode === 97));
-      measure(() => read(input, 0));
-    });
-  });
-
   describe('AllCharCodeRangeReader', () => {
 
     const input = 'abababc';
 
     test('RegExp', (measure) => {
-      const re = /^[ab]*/;
-      measure(() => re.exec(input));
+      const re = /[ab]*/y;
+      measure(() => {
+        re.lastIndex = 0;
+        re.exec(input);
+      });
     });
 
     test('latest', (measure) => {
@@ -164,7 +135,7 @@ describe('all', () => {
     });
 
     test('next', (measure) => {
-      const read = next.all(next.char([97, 98]));
+      const read = next.toReaderFunction(next.all(next.char(['ab'])));
       measure(() => read(input, 0));
     });
   });
@@ -174,8 +145,11 @@ describe('all', () => {
     const input = 'aaabbb';
 
     test('RegExp', (measure) => {
-      const re = /^[ab]{2,}/;
-      measure(() => re.exec(input));
+      const re = /[ab]{2,}/y;
+      measure(() => {
+        re.lastIndex = 0;
+        re.exec(input);
+      });
     });
 
     test('latest', (measure) => {
@@ -184,7 +158,7 @@ describe('all', () => {
     });
 
     test('next', (measure) => {
-      const read = next.all(next.char([97, 98]), {minimumCount: 2});
+      const read = next.toReaderFunction(next.all(next.char(['ab']), {minimumCount: 2}));
       measure(() => read(input, 0));
     });
   });
@@ -194,8 +168,11 @@ describe('all', () => {
     const input = 'aaabbb';
 
     test('RegExp', (measure) => {
-      const re = /^[ab]{,3}/;
-      measure(() => re.exec(input));
+      const re = /[ab]{,3}/y;
+      measure(() => {
+        re.lastIndex = 0;
+        re.exec(input);
+      });
     });
 
     test('latest', (measure) => {
@@ -204,7 +181,7 @@ describe('all', () => {
     });
 
     test('next', (measure) => {
-      const read = next.all(next.char([97, 98]), {maximumCount: 3});
+      const read = next.toReaderFunction(next.all(next.char(['ab']), {maximumCount: 3}));
       measure(() => read(input, 0));
     });
   });
@@ -214,8 +191,11 @@ describe('all', () => {
     const input = 'aaabbb';
 
     test('RegExp', (measure) => {
-      const re = /^[ab]{2,3}/;
-      measure(() => re.exec(input));
+      const re = /[ab]{2,3}/y;
+      measure(() => {
+        re.lastIndex = 0;
+        re.exec(input);
+      });
     });
 
     test('latest', (measure) => {
@@ -224,7 +204,7 @@ describe('all', () => {
     });
 
     test('next', (measure) => {
-      const read = next.all(next.char([97, 98]), {minimumCount: 2, maximumCount: 3});
+      const read = next.toReaderFunction(next.all(next.char(['ab']), {minimumCount: 2, maximumCount: 3}));
       measure(() => read(input, 0));
     });
   });
@@ -234,8 +214,11 @@ describe('all', () => {
     const input = 'aaabbb';
 
     test('RegExp', (measure) => {
-      const re = /^[ab]{2}/;
-      measure(() => re.exec(input));
+      const re = /[ab]{2}/y;
+      measure(() => {
+        re.lastIndex = 0;
+        re.exec(input);
+      });
     });
 
     test('latest', (measure) => {
@@ -244,7 +227,7 @@ describe('all', () => {
     });
 
     test('next', (measure) => {
-      const read = next.all(next.char([97, 98]), {minimumCount: 2, maximumCount: 2});
+      const read = next.toReaderFunction(next.all(next.char(['ab']), {minimumCount: 2, maximumCount: 2}));
       measure(() => read(input, 0));
     });
   });
@@ -254,8 +237,11 @@ describe('all', () => {
     const input = 'ababababc';
 
     test('RegExp', (measure) => {
-      const re = /^(?:ab)*/;
-      measure(() => re.exec(input));
+      const re = /(?:ab)*/y;
+      measure(() => {
+        re.lastIndex = 0;
+        re.exec(input);
+      });
     });
 
     test('latest', (measure) => {
@@ -264,7 +250,7 @@ describe('all', () => {
     });
 
     test('next', (measure) => {
-      const read = next.all(next.text('ab'));
+      const read = next.toReaderFunction(next.all(next.text('ab')));
       measure(() => read(input, 0));
     });
   });
@@ -274,8 +260,11 @@ describe('all', () => {
     const input = 'ababababc';
 
     test('RegExp', (measure) => {
-      const re = /^(?:ab)*/;
-      measure(() => re.exec(input));
+      const re = /(?:ab)*/y;
+      measure(() => {
+        re.lastIndex = 0;
+        re.exec(input);
+      });
     });
 
     test('latest', (measure) => {
@@ -284,7 +273,7 @@ describe('all', () => {
     });
 
     test('next', (measure) => {
-      const read = next.all(next.regex(/ab/));
+      const read = next.toReaderFunction(next.all(next.regex(/ab/)));
       measure(() => read(input, 0));
     });
   });
@@ -297,8 +286,11 @@ describe('or', () => {
     const input = 'aaaa';
 
     test('RegExp', (measure) => {
-      const re = /^[cba]/;
-      measure(() => re.exec(input));
+      const re = /[cba]/y;
+      measure(() => {
+        re.lastIndex = 0;
+        re.exec(input);
+      });
     });
 
     test('latest', (measure) => {
@@ -307,7 +299,7 @@ describe('or', () => {
     });
 
     test('next', (measure) => {
-      const read = next.or(next.text('c'), next.text('b'), next.text('a'));
+      const read = next.toReaderFunction(next.or(next.text('c'), next.text('b'), next.text('a')));
       measure(() => read(input, 0));
     });
   });
@@ -320,8 +312,11 @@ describe('seq', () => {
     const input = 'aaaa';
 
     test('RegExp', (measure) => {
-      const re = /^aaa/;
-      measure(() => re.exec(input));
+      const re = /aaa/y;
+      measure(() => {
+        re.lastIndex = 0;
+        re.exec(input);
+      });
     });
 
     test('latest', (measure) => {
@@ -330,7 +325,7 @@ describe('seq', () => {
     });
 
     test('next', (measure) => {
-      const read = next.seq(next.text('a'), next.text('a'), next.text('a'));
+      const read = next.toReaderFunction(next.seq(next.text('a'), next.text('a'), next.text('a')));
       measure(() => read(input, 0));
     });
   });
@@ -343,8 +338,11 @@ describe('text', () => {
     const input = 'ababab';
 
     test('RegExp', (measure) => {
-      const re = /^ababa/;
-      measure(() => re.exec(input));
+      const re = /ababa/y;
+      measure(() => {
+        re.lastIndex = 0;
+        re.exec(input);
+      });
     });
 
     test('latest', (measure) => {
@@ -353,7 +351,7 @@ describe('text', () => {
     });
 
     test('next', (measure) => {
-      const read = next.text('ababa');
+      const read = next.toReaderFunction(next.text('ababa'));
       measure(() => read(input, 0));
     });
   });
@@ -363,8 +361,11 @@ describe('text', () => {
     const input = 'aBAbab';
 
     test('RegExp', (measure) => {
-      const re = /^ABABA/i;
-      measure(() => re.exec(input));
+      const re = /ABABA/iy;
+      measure(() => {
+        re.lastIndex = 0;
+        re.exec(input);
+      });
     });
 
     test('latest', (measure) => {
@@ -373,7 +374,7 @@ describe('text', () => {
     });
 
     test('next', (measure) => {
-      const read = next.text('ABABA', {caseInsensitive: true});
+      const read = next.toReaderFunction(next.text('ABABA', {caseInsensitive: true}));
       measure(() => read(input, 0));
     });
   });
@@ -386,8 +387,11 @@ describe('until', () => {
     const input = 'aaaaaab';
 
     test('RegExp', (measure) => {
-      const re = /^.*[bc]/;
-      measure(() => re.exec(input));
+      const re = /.*[bc]/y;
+      measure(() => {
+        re.lastIndex = 0;
+        re.exec(input);
+      });
     });
 
     test('latest', (measure) => {
@@ -396,27 +400,7 @@ describe('until', () => {
     });
 
     test('next', (measure) => {
-      const read = next.until(next.char([98, 99]));
-      measure(() => read(input, 0));
-    });
-  });
-
-  describe('UntilCharCodeCheckerReader', () => {
-
-    const input = 'aaaaaab';
-
-    test('RegExp', (measure) => {
-      const re = /^.*b/;
-      measure(() => re.exec(input));
-    });
-
-    test('latest', (measure) => {
-      const read = latest.untilCharBy((charCode) => charCode === 98, false, false);
-      measure(() => read(input, 0));
-    });
-
-    test('next', (measure) => {
-      const read = next.until(next.char((charCode) => charCode === 98));
+      const read = next.toReaderFunction(next.until(next.char(['ab'])));
       measure(() => read(input, 0));
     });
   });
@@ -426,8 +410,11 @@ describe('until', () => {
     const input = 'aaaaaabc';
 
     test('RegExp', (measure) => {
-      const re = /bc/;
-      measure(() => re.exec(input));
+      const re = /bc/g;
+      measure(() => {
+        re.lastIndex = 0;
+        re.exec(input);
+      });
     });
 
     test('indexOf', (measure) => {
@@ -440,7 +427,7 @@ describe('until', () => {
     });
 
     test('next', (measure) => {
-      const read = next.until(next.text('bc'));
+      const read = next.toReaderFunction(next.until(next.text('bc')));
       measure(() => read(input, 0));
     });
   });
@@ -450,8 +437,11 @@ describe('until', () => {
     const input = 'aaaaaab';
 
     test('RegExp', (measure) => {
-      const re = /b/;
-      measure(() => re.exec(input));
+      const re = /b/g;
+      measure(() => {
+        re.lastIndex = 0;
+        re.exec(input);
+      });
     });
 
     test('latest', (measure) => {
@@ -460,7 +450,7 @@ describe('until', () => {
     });
 
     test('next', (measure) => {
-      const read = next.until(next.regex(/b/));
+      const read = next.toReaderFunction(next.until(next.regex(/b/)));
       measure(() => read(input, 0));
     });
   });
