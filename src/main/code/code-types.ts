@@ -36,3 +36,8 @@ export type Binding = [Var, unknown];
  * Returns the unique variable name.
  */
 export type VarRenamer = (v: Var) => string;
+
+export interface CodeBindings {
+  code: Code;
+  bindings?: Binding[];
+}

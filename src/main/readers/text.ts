@@ -1,8 +1,7 @@
-import {Code, createVar, Var} from '../code';
-import {die} from '../utils';
+import {Code, CodeBindings, createVar, Var} from '../code';
 import {CharCodeRangeReader} from './char';
 import {none} from './none';
-import {CodeBindings, NO_MATCH, Reader, ReaderCodegen} from './reader-types';
+import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings, toCharCodes} from './reader-utils';
 
 export interface TextOptions {
@@ -36,7 +35,7 @@ export function text(str: string, options: TextOptions = {}): Reader<any> {
 
   if (caseInsensitive && strUpper !== strLower) {
     if (strUpper.length !== strLower.length) {
-      die('Unsupported char');
+      throw new Error('Unsupported char');
     }
     return new CaseInsensitiveTextReader(str);
   }

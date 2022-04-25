@@ -1,4 +1,4 @@
-import {Binding, Code, Var} from '../code';
+import {CodeBindings, Var} from '../code';
 
 export type Reader<Context> = ReaderFunction<Context> | ReaderCodegen;
 
@@ -41,11 +41,6 @@ export interface ReaderCodegen {
    * @returns The source code and required variable bindings.
    */
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings;
-}
-
-export interface CodeBindings {
-  code: Code;
-  bindings?: Binding[];
 }
 
 /**

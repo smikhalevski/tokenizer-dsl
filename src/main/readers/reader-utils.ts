@@ -1,5 +1,9 @@
-import {Binding, Code, compileFunction, createVar, Var} from '../code';
-import {CodeBindings, Reader, ReaderFunction} from './reader-types';
+import {Binding, Code, CodeBindings, compileFunction, createVar, Var} from '../code';
+import {Reader, ReaderFunction} from './reader-types';
+
+export function toCharCode(value: string | number): number {
+  return typeof value === 'number' ? value : value.charCodeAt(0);
+}
 
 export function toCharCodes(str: string): number[] {
   const charCodes: number[] = [];
