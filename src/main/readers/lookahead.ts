@@ -1,7 +1,7 @@
-import {Binding, createVar, Var} from '../code';
+import {Binding, CodeBindings, createVar, Var} from '../code';
 import {never} from './never';
 import {none} from './none';
-import {CodeBindings, Reader, ReaderCodegen} from './reader-types';
+import {Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings, createReaderCallCode} from './reader-utils';
 
 /**

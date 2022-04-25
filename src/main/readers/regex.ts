@@ -1,5 +1,5 @@
-import {createVar, Var} from '../code';
-import {CodeBindings, NO_MATCH, Reader, ReaderCodegen} from './reader-types';
+import {CodeBindings, createVar, Var} from '../code';
+import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings} from './reader-utils';
 
 /**

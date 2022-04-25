@@ -1,7 +1,7 @@
-import {Code, createVar, Var} from '../code';
+import {Code, CodeBindings, createVar, Var} from '../code';
 import {none} from './none';
-import {CodeBindings, NO_MATCH, Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, toCharCodes} from './reader-utils';
+import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings, toCharCode, toCharCodes} from './reader-utils';
 
 export type CharCodeRange = number | [number, number];
 
@@ -9,21 +9,23 @@ export type CharCodeRange = number | [number, number];
  * Creates a reader that matches a single char by its code.
  *
  * @param chars An array of strings (each char from string is used for matching), char codes, or tuples of lower/upper
- * char codes that define an inclusive range of codes.
+ * chars (or char codes) that define an inclusive range of codes.
  *
  * @see {@link text}
  */
-export function char(chars: (string | number | [number, number])[]): Reader<any> {
+export function char(chars: (string | number | [number | string, number | string])[]): Reader<any> {
   const charCodeRanges: CharCodeRange[] = [];
 
   for (const range of chars) {
-
-    if (typeof range === 'string') {
+    if (typeof range === 'number') {
+      charCodeRanges.push(range);
+    } else if (typeof range === 'string') {
       charCodeRanges.push(...toCharCodes(range));
     } else {
-      charCodeRanges.push(range);
+      charCodeRanges.push([toCharCode(range[0]), toCharCode(range[1])]);
     }
   }
+
   if (charCodeRanges.length === 0) {
     return none;
   }
