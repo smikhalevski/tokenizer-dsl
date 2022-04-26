@@ -10,6 +10,99 @@ The general-purpose lexer and the DSL for assembling tokenization rules.
 npm install --save-prod tokenizer-dsl
 ```
 
+# Overview
+
+Example below shows how to assemble readers to create a streaming tokenizer for a list of numbers separated by a
+semicolon:
+
+```ts
+import {all, char, createTokenizer, maybe, or, seq, text, TokenHandler} from 'tokenizer-dsl';
+
+const zeroReader = text('0');
+
+const leadingDigitReader = char([['1', '9']]);
+
+const digitsReader = all(char([['0', '9']]));
+
+const dotReader = text('.');
+
+const signReader = char(['+-']);
+
+const numberReader = seq(
+    // sign
+    maybe(signReader),
+
+    // integer
+    or(
+        zeroReader,
+        seq(
+            leadingDigitReader,
+            digitsReader,
+        ),
+    ),
+
+    // fraction
+    maybe(
+        seq(
+            dotReader,
+            maybe(digitsReader),
+        ),
+    ),
+);
+
+const semicolonReader = text(';');
+
+const whitespaceReader = all(char([' \t\r\n']));
+
+const tokenizer = createTokenizer<'NUMBER', 'value' | 'separator'>(
+    [
+      {
+        on: ['value'],
+        type: 'NUMBER',
+        reader: numberReader,
+        to: 'separator'
+      },
+      {
+        on: ['separator'],
+        reader: semicolonReader,
+        silent: true,
+        to: 'value'
+      },
+      {
+        reader: whitespaceReader,
+        silent: true
+      }
+    ],
+    'value'
+);
+
+const handler: TokenHandler = {
+
+  token(type, offset, length, context, state) {
+    console.log(type, state.chunk.substr(offset - state.chunkOffset, length), 'at position', offset)
+  },
+
+  unrecognizedToken(offset, context, state) {
+    console.log('Unrecognized token at position', offset)
+  }
+};
+
+const state = tokenizer.write('123', handler);
+
+tokenizer.write('.456; +', handler, state);
+tokenizer.write('777; 42', handler, state);
+
+tokenizer.end(handler, state);
+```
+
+Outputs to console:
+
+```
+NUMBER 123.456 at position 0
+NUMBER +777 at position 9
+NUMBER 42 at position 15
+```
+
 # Usage
 
 This library provides a way to describe rules and create a tokenizer.
@@ -101,8 +194,8 @@ import {TokenHandler} from 'tokenizer-dsl';
 
 const handler: TokenHandler = {
 
-  token(type, offset, length) {
-    console.log(type, input.substr(offset, length), 'at', offset);
+  token(type, offset, length, context) {
+    console.log(type, input.substr(offset, length), 'at position', offset);
   }
 };
 
@@ -112,13 +205,13 @@ tokenize('foo;123;bar;456', handler);
 The console output would be:
 
 ```
-ALPHA foo at 0
-SEMICOLON ; at 3
-INTEGER 123 at 4
-SEMICOLON ; at 7
-ALPHA bar at 8
-SEMICOLON ; at 11
-INTEGER 456 at 12
+ALPHA foo at position 0
+SEMICOLON ; at position 3
+INTEGER 123 at position 4
+SEMICOLON ; at position 7
+ALPHA bar at position 8
+SEMICOLON ; at position 11
+INTEGER 456 at position 12
 ```
 
 To capture unrecognized tokens you can add an `unrecognizedToken` callback to the handler:
@@ -126,12 +219,12 @@ To capture unrecognized tokens you can add an `unrecognizedToken` callback to th
 ```ts
 const handler: TokenHandler = {
 
-  token(type, offset, length) {
-    console.log(type, input.substr(offset, length), 'at', offset);
+  token(type, offset, length, context) {
+    console.log(type, input.substr(offset, length), 'at position', offset);
   },
 
-  unrecognizedToken(offset) {
-    console.log('Unrecognized token at', offset);
+  unrecognizedToken(offset, context) {
+    console.log('Unrecognized token at position', offset);
   }
 };
 ```
@@ -145,8 +238,8 @@ tokenize('abc_', handler);
 The console output would be:
 
 ```
-ALPHA abc at 0
-Unrecognized token at 4
+ALPHA abc at position 0
+Unrecognized token at position 4
 ```
 
 # Readers
@@ -466,21 +559,187 @@ const lowerAlphaReader: Reader = {
 
 You can find out more details on how codegen in the [codedegen](https://github.com/smikhalevski/codedegen) repo.
 
-## Reader optimizations
-
-## Custom readers
-
 # Rules
+
+Rules define how tokens are emitted when successfully read from the input.
+
+The most basic rule defines a reader only:
+
+```ts
+import {Rule} from 'tokenizer-dsl';
+
+const fooRule: Rule = {
+  reader: text('foo')
+};
+```
+
+To use a rule, create a new tokenizer:
+
+```ts
+const tokenize = createTokenizer([fooRule]);
+```
+
+Now you can read inputs that consist of any number of "foo" substrings:
+
+```ts
+tokenize('foofoofoo', {
+
+  token(type, offset, length, context) {
+    // Process the token here
+  }
+})
+```
+
+Most of the time you have more than one token type in your input. Here the `type` property of the rule comes handy. The
+value of this property would be passed to the `token` callback of the handler.
+
+```ts
+import {Rule} from 'tokenizer-dsl';
+
+type MyTokenType = 'FOO' | 'BAR';
+
+// You can specify token types to enhance typing
+const fooRule: Rule<MyTokenType> = {
+  type: 'FOO',
+  reader: text('foo')
+};
+
+const barRule: Rule<MyTokenType> = {
+  type: 'BAR',
+  reader: text('bar')
+};
+
+const tokenize = createTokenizer([
+  fooRule,
+  barRule
+]);
+
+tokenize('foofoobarfoobar', {
+
+  token(type, offset, length, context) {
+    // type is MyTokenType
+  }
+})
+```
 
 ## Rule stages
 
+You can put rules on different stages to control how they are applied.
+
+In the previous example we created a tokenizer that reads "foo" and "bar" in any order. Let's create a tokenizer that
+restricts an order in which "foo" and "bar" should be met.
+
+```ts
+import {Rule} from 'tokenizer-dsl';
+
+type MyTokenType = 'FOO' | 'BAR';
+
+type MyStage = 'start' | 'foo' | 'bar';
+
+const fooRule: Rule<MyTokenType, MyStage> = {
+
+  // Rule would be applied on stages "start" and "bar"
+  on: ['start', 'bar'],
+  type: 'FOO',
+  reader: text('foo'),
+
+  // If rule is successfully applied then tokenizer would
+  // transition to the "foo" stage
+  to: 'foo'
+};
+
+const barRule: Rule<MyTokenType, MyStage> = {
+  on: ['start', 'foo'],
+  type: 'BAR',
+  reader: text('bar'),
+  to: 'bar'
+};
+
+const tokenize = createTokenizer(
+    [
+      fooRule,
+      barRule
+    ],
+
+    // Provide the initial stage
+    'start'
+);
+```
+
+This tokenizer would successfully process "foobarfoobar" but would trigger `unrecognizedToken` for "foofoo".
+
+Rules that don't have `on` stages specified are applied on all stages. To showcase this behavior, let's modify our rules
+to allow "foo" and "bar" to be separated with arbitrary number of space characters.
+
+```ts
+type MyTokenType = 'FOO' | 'BAR' | 'SPACE';
+
+type MyStage = 'start' | 'foo' | 'bar';
+
+const fooRule: Rule<MyTokenType, MyStage> = {
+  on: ['start', 'bar'],
+  type: 'FOO',
+  reader: text('foo'),
+  to: 'foo'
+};
+
+const barRule: Rule<MyTokenType, MyStage> = {
+  on: ['start', 'foo'],
+  type: 'BAR',
+  reader: text('bar'),
+  to: 'bar'
+};
+
+// Rule would be applied on all stages: "start", "foo", and "bar"
+const spaceReader: Rule<MyTokenType, MyStage> = {
+  type: 'SPACE',
+  reader: all(char([' '])),
+};
+
+const tokenize = createTokenizer(
+    [
+      fooRule,
+      barRule,
+      spaceReader
+    ],
+    'start'
+);
+```
+
+This tokenizer would successfully process "foo··bar··foo··bar" input (space characters are shown as "·").
+
+You can provide a callback that returns the next stage:
+
+```ts
+const barRule: Rule<MyTokenType, MyStage> = {
+  on: ['start', 'foo'],
+  type: 'BAR',
+  reader: text('bar'),
+
+  to(offset, length, context, state) {
+    // Return the next stage
+    return 'bar';
+  }
+};
+```
+
 ## Silent rules
 
-## Rule optimizations
+Sometimes tokens don't have any semantics that you want to process. In this case, you can mark reader as `silent` to
+prevent token from being emitted.
+
+```ts
+const whitespaceRule: Rule = {
+  reader: all(char([' \t\r\n'])),
+  silent: true
+};
+```
 
 # Context
 
-# Streaming
+Context is a value that tokenizer passes to all readers and dyn
+
+# Streaming tokenizer
 
 # Performance
 
@@ -498,70 +757,3 @@ analog of this is input.match(/^.*?(?=foo)/). But on the other hand, this is the
 10x faster.
 
 Tokenizer uses rules to read tokens from the input. Rules use readers that read characters from the string.
-
-Example below shows how to assemble readers to create tokenizer for numbers:
-
-```ts
-import {all, char, maybe, text, or, seq} from 'tokenizer-dsl';
-
-const readZero = text('0');
-
-const readLeadingDigit = char((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
-
-const readDigits = all(char((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/));
-
-const readDot = text('.');
-
-const readSign = char((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
-
-const readNumber = seq(
-    // sign
-    maybe(readSign),
-
-    // integer
-    or(
-        readZero,
-        seq(
-            readLeadingDigit,
-            readDigits,
-        ),
-    ),
-
-    // fraction
-    maybe(
-        seq(
-            readDot,
-            maybe(readDigits),
-        ),
-    ),
-);
-```
-
-To get the offset at which the number ends in the string call `readNumber` and provide an `input` string, and
-an `offset` from which the reading should be started:
-
-```ts
-readNumber(/*input*/ '0', /*offset*/ 0); // → 1
-
-readNumber(/*input*/ '123', /*offset*/ 0); // → 3
-
-readNumber(/*input*/ '+123', /*offset*/ 0); // → 4
-
-readNumber(/*input*/ '-0.123', /*offset*/ 0); // → 6
-
-readNumber(/*input*/ '-123.123', /*offset*/ 0); // → 8
-
-readNumber(/*input*/ 'aaa123bbb', /*offset*/ 3);
-// → 6, because valid number starts at offset 3 and ends at 6
-```
-
-If `input` string doesn't contain a valid number at an `offset` then `NO_MATCH === -1` is returned:
-
-```ts
-readNumber(/*input*/ 'aaa', /*offset*/ 0); // → -1
-
-readNumber(/*input*/ 'a123', /*offset*/ 0); // → -1
-
-readNumber(/*input*/ '0000', /*offset*/ 0);
-// → 1, because valid number starts at 0 and ends at 1 
-```
