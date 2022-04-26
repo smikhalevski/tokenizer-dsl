@@ -17,7 +17,7 @@ This library provides a way to describe rules and create a tokenizer.
 Let's consider the input string that contains lowercase-alpha strings and unsigned integers separated by a semicolon:
 
 ```
-abcd;1234;efgh;5678
+foo;123;bar;456
 ```
 
 First we need to describe [readers](#readers) that would read chars from the input string.
@@ -78,8 +78,9 @@ const semicolonRule: Rule = {
 };
 ```
 
-`type` is the name of the token that this rule would read from the input string. `reader` is the reader that actually
-reads the chars from the string.
+`type` is the name of the token that this rule would read from the input string.
+
+`reader` is the reader that actually reads the chars from the string.
 
 The next step is to create a tokenizer and provide it a set of rules:
 
@@ -105,19 +106,19 @@ const handler: TokenHandler = {
   }
 };
 
-tokenize('abcd;1234;efgh;5678', handler);
+tokenize('foo;123;bar;456', handler);
 ```
 
 The console output would be:
 
 ```
-ALPHA abcd at 0
-SEMICOLON ; at 4
-INTEGER 1234 at 5
-SEMICOLON ; at 9
-ALPHA efgh at 10
-SEMICOLON ; at 14
-INTEGER 5678 at 15
+ALPHA foo at 0
+SEMICOLON ; at 3
+INTEGER 123 at 4
+SEMICOLON ; at 7
+ALPHA bar at 8
+SEMICOLON ; at 11
+INTEGER 456 at 12
 ```
 
 To capture unrecognized tokens you can add an `unrecognizedToken` callback to the handler:
@@ -138,23 +139,161 @@ const handler: TokenHandler = {
 Let's test it with a malformed input. Notice the "_" char that isn't recognized by tokenization rules that we defined:
 
 ```
-tokenize('abcd_', handler);
+tokenize('abc_', handler);
 ```
 
 The console output would be:
 
 ```
-ALPHA abcd at 0
+ALPHA abc at 0
 Unrecognized token at 4
 ```
 
 # Readers
 
+## Functional readers
+
+To read characters from the input string, this library uses a concept of readers.
+
+A reader is function that takes an `input` string and an `offset` at which it should start reading. A reader should
+return a new offset in the `input` (a non-negative integer) or a result code (a negative integer).
+
+This library defines only one result code `NO_MATCH` with value -1. When the reader returns this code it signals the
+tokenizer that it tries to read chars from the input string, but they didn't meet the expectation.
+
+Let's create a custom reader:
+
+```ts
+import {Reader, NO_MATCH} from 'tokenizer-dsl';
+
+const fooReader: Reader = (input, offset) => {
+  return input.startsWith('foo', offset) ? offset + 4 : NO_MATCH;
+};
+```
+
+This reader checks that the `input` string contains a substring "foo" at the `offset` and returns the new offset where
+the substring ends. Or returns a `NO_MATCH` result code indicating that the expectation wasn't met.
+
+We can use `fooReader` reader along with any other readers. For example, to read chars until "foo" is met:
+
+```ts
+import {until} from 'tokenizer-dsl';
+
+const untilFooReader = until(fooReader);
+```
+
+## Code-generated readers
+
+This library relies on code generation to create a highly performant readers. To leverage this feature, you can define
+your custom readers as a code factories.
+
+Let's recreate the reader from the previous section with the codegen approach:
+
+```ts
+import {Reader, NO_MATCH} from 'tokenizer-dsl';
+
+const fooReader: Reader = {
+
+  factory(inputVar, offsetVar, contextVar, resultVar) {
+    return {
+      code: [
+        resultVar, '=', inputVar, '.startsWith("foo",', offsetVar, ')?', offsetVar, '+1:', NO_MATCH, ';',
+      ]
+    };
+  }
+}
+```
+
+The `factory` function receives four input arguments that define the variables that should be used in the output code
+template:
+
+- `inputVar` is the variable that holds the input string.
+- `offsetVar` is the variable that holds the offset in the input string from which the reader must be applied.
+- `contextVar` is the variable that holds the reader context. Learn more about the context in the [Context](#context)
+  section.
+- `resultVar` is the variable to which the reader result must be assigned.
+
+The `factory` function should return an object containing a `code` property that holds the code template and an optional
+`bindings` property that holds the variable bindings.
+
+To demonstrate how to use bindings, let's enhance our reader to support arbitrary strings:
+
+```ts
+import {Reader, NO_MATCH} from 'tokenizer-dsl';
+
+function substring(str: string): Reader {
+  return {
+
+    factory(inputVar, offsetVar, contextVar, resultVar) {
+
+      // Create a variable placeholder
+      const strVar = Symbol();
+
+      return {
+        code: [
+          resultVar, '=', inputVar, '.startsWith(', strVar, ',', offsetVar, ')?', offsetVar, '+1:', NO_MATCH, ';',
+        ],
+        bindings: [
+          // Assign str to a strVar at runtime
+          [strVar, str]
+        ]
+      };
+    }
+  };
+}
+```
+
+We can use `substring` reader along with any other readers. For example, to read all sequential substrings in the input:
+
+```ts
+import {all} from 'tokenizer-dsl';
+
+const allFooReader = all(substring('foo'));
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+The library includes a set of readers that allow defining a
+
+### `text(string, options)`
+
+### `char(chars)`
+
+### `end(offset)`
+
+### `lookahead(reader)`
+
+### `maybe(reader)`
+
+### `never`
+
+### `none`
+
+### `or(...readers)`
+
+### `regex(pattern)`
+
+### `seq(...readers)`
+
+### `skip(count)`
+
+### `all(reader, options)`
+
+### `until(reader, options)`
+
 ## Reader optimizations
 
 ## Custom readers
-
-## Context
 
 # Rules
 
@@ -163,6 +302,8 @@ Unrecognized token at 4
 ## Silent rules
 
 ## Rule optimizations
+
+# Context
 
 # Streaming
 

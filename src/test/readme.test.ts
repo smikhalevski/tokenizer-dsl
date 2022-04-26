@@ -4,8 +4,6 @@ describe('readme', () => {
 
   test('', () => {
 
-    const input = 'abcd,1234,efgh,5678';
-
     const alphaReader = all(char([['a', 'z']]), {minimumCount: 1});
 
     const integerReader = or(
@@ -16,7 +14,7 @@ describe('readme', () => {
         ),
     );
 
-    const semicolonReader = text(',');
+    const semicolonReader = text(';');
 
     const alphaRule: Rule = {
       type: 'ALPHA',
@@ -47,16 +45,16 @@ describe('readme', () => {
       unrecognizedToken: unrecognizedTokenCallbackMock,
     };
 
-    tokenize(input, handler);
+    tokenize('foo;123;bar;456', handler);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(7);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1,'ALPHA', 0, 4, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2,'SEMICOLON', 4, 1, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3,'INTEGER', 5, 4, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4,'SEMICOLON', 9, 1, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(5,'ALPHA', 10, 4, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(6,'SEMICOLON', 14, 1, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(7,'INTEGER', 15, 4, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1,'ALPHA', 0, 3, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2,'SEMICOLON', 3, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3,'INTEGER', 4, 3, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4,'SEMICOLON', 7, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(5,'ALPHA', 8, 3, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(6,'SEMICOLON', 11, 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenNthCalledWith(7,'INTEGER', 12, 3, undefined);
 
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
 
