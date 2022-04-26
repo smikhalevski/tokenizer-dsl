@@ -138,7 +138,7 @@ const handler: TokenHandler = {
 
 Let's test it with a malformed input. Notice the "_" char that isn't recognized by tokenization rules that we defined:
 
-```
+```ts
 tokenize('abc_', handler);
 ```
 
@@ -151,12 +151,184 @@ Unrecognized token at 4
 
 # Readers
 
+To read characters from the input string, this library uses a concept of readers. A reader can be defined as
+a [function](#functional-readers) or as a [code-generating factory](#code-generated-readers).
+
+Most of the time you won't need to write your own readers and since you can use a rich set of built-in reader factories.
+
+## Built-in readers
+
+### `text(string, options?)`
+
+Reads the case-sensitive substring from the input:
+
+```ts
+// Reads "foo"
+const fooReader = text('foo');
+```
+
+You can optionally specify that text must be case-insensitive:
+
+```ts
+// Reads "bar", "BAR", "Bar", etc.
+const barReader = text('bar', {caseInsensitive: true});
+```
+
+### `char(chars)`
+
+Reads a single char from the string. You should provide an array of strings, char codes or char ranges.
+
+```ts
+// Reads "a", "b", or "c"
+const abReader = char(['a', 98, 99]);
+```
+
+You can specify a set of characters as a string with multiple characters:
+
+```ts
+// Reads " ", "\t", "\r", or "\n"
+const whitespaceReader = char([' \t\r\n']);
+```
+
+You can specify a pair of char codes or strings that denote a char range:
+
+```ts
+// Reads [a-zA-Z]
+const alphaReader = char([['a', 'z'], [65, 90]]);
+```
+
+### `regex(pattern)`
+
+Reads substring using the `RegExp` pattern:
+
+```ts
+// Reads "0", "123", etc.
+const integerReader = regex(/0|[1-9]\d*/);
+```
+
+You don't need to specify `g` or `y` flags on the `RegExp`, these flags are automatically added if needed.
+
+### `all(reader, options?)`
+
+Applies `reader` until it can read from the input:
+
+```ts
+// Reads "abc" from "abc123"
+const lowerAlphaReader = all(char([['a', 'z']]));
+```
+
+You can optionally specify the number of entries the `reader` must read to consider success:
+
+```ts
+// Reads at least one digit, but not more than 10
+const digitsReader = all(char([['0', '9']]), {minimumCount: 1, maximumCount: 10});
+```
+
+### `seq(...readers)`
+
+Describes a sequence of readers that must be applied one after another:
+
+```ts
+// Reads PK-XXXXX where X is a digit
+const pkReader = seq(
+    text('PK-'),
+    all(char([['0', '9']]), {minimumCount: 5, maximumCount: 5})
+);
+```
+
+### `or(...readers)`
+
+Returns the offset returned by the first successfully applied reader:
+
+```ts
+// Reads "foo" or "bar"
+const fooOrBarReader = or(
+    text('foo'),
+    text('bar')
+);
+```
+
+### `skip(count)`
+
+Skips the given number of chars:
+
+```ts
+// Reads 5 arbitrary chars 
+const skip5Reader = skip(5);
+```
+
+### `until(reader, options?)`
+
+Reads until the `reader` is successfully reads chars from the string. If `reader` failed to read chars in the input
+then `until` returns `NO_MATCH`.
+
+```ts
+// Reads everything until "foo" exclusively
+const untilFooReader = until(text('foo'));
+```
+
+You can make until to read inclusively:
+
+```ts
+// Reads everything until "bar" inclusvely
+const untilBarReader = until(text('bar'), {inclusive: true});
+```
+
+For example, to read all chars up to ">" or until the end of the input:
+
+````ts
+const untilGtReader = or(
+    until(text('>'), {inclusive: true}),
+    end()
+);
+````
+
+### `end(offset?)`
+
+Reads all character until the end of the input. You can optionally provide the offset from the input end.
+
+```ts
+const upToLastCharReader = end(-1);
+```
+
+### `lookahead(reader)`
+
+This is the same as [lookahead from the regular expressions](https://www.regular-expressions.info/lookaround.html). It
+returns the current offset if `reader` successfully reads chars from the input at current offset.
+
+```ts
+// Reads "<" from "<a"
+const startTagReader = seq(
+    text('<'),
+    lookahead(char([['a', 'z']]))
+)
+```
+
+### `maybe(reader)`
+
+Returns the current offset if the `reader` failed to read chars:
+
+```ts
+// Reads "foo-bar" and "bar"
+const fooBarReader = seq(
+    maybe(text('foo-')),
+    text('bar')
+)
+```
+
+### `never`
+
+The singleton reader that always returns `NO_MATCH`.
+
+### `none`
+
+The singleton reader that always returns the current offset.
+
 ## Functional readers
 
-To read characters from the input string, this library uses a concept of readers.
-
-A reader is function that takes an `input` string and an `offset` at which it should start reading. A reader should
-return a new offset in the `input` (a non-negative integer) or a result code (a negative integer).
+A reader can be defined as a function that takes an `input` string, an `offset` at which it should start reading, and a
+`context`. A reader should return a new offset in the `input` (a non-negative integer) or a result code (a negative
+integer). Learn more about the context in the [Context](#context) section.
 
 This library defines only one result code `NO_MATCH` with value -1. When the reader returns this code it signals the
 tokenizer that it tries to read chars from the input string, but they didn't meet the expectation.
@@ -166,7 +338,7 @@ Let's create a custom reader:
 ```ts
 import {Reader, NO_MATCH} from 'tokenizer-dsl';
 
-const fooReader: Reader = (input, offset) => {
+const fooReader: Reader = (input, offset, context) => {
   return input.startsWith('foo', offset) ? offset + 4 : NO_MATCH;
 };
 ```
@@ -251,45 +423,48 @@ import {all} from 'tokenizer-dsl';
 const allFooReader = all(substring('foo'));
 ```
 
+You can introduce custom variables inside a code template. Below is an example of a reader that reads lower all alpha
+chars from the string using a `for` loop:
 
+```ts
+import {Reader, NO_MATCH} from 'tokenizer-dsl';
 
+const lowerAlphaReader: Reader = {
 
+  factory(inputVar, offsetVar, contextVar, resultVar) {
 
+    // Create a variable placeholders
+    const indexVar = Symbol();
+    const charCodeVar = Symbol();
 
+    return {
+      code: [
 
+        // Start reading from the offset
+        'var ', indexVar, '=', offsetVar, ';',
 
+        // Read until end of the input
+        'while(', indexVar, '<', inputVar, '.length){',
 
+        // Read the char code from the input
+        'var ', charCodeVar, '=', indexVar, '.charCodeAt(', indexVar, ');',
 
+        // Abort the loop if the char code isn't a lower alpha
+        'if(', charCodeVar, '<97||', charCodeVar, '>122)break;',
 
+        // Otherwise, proceed to the next char
+        indexVar, '++',
+        '}',
 
+        // Return the index that was reached 
+        resultVar, '=', indexVar, ';',
+      ]
+    };
+  }
+};
+```
 
-The library includes a set of readers that allow defining a
-
-### `text(string, options)`
-
-### `char(chars)`
-
-### `end(offset)`
-
-### `lookahead(reader)`
-
-### `maybe(reader)`
-
-### `never`
-
-### `none`
-
-### `or(...readers)`
-
-### `regex(pattern)`
-
-### `seq(...readers)`
-
-### `skip(count)`
-
-### `all(reader, options)`
-
-### `until(reader, options)`
+You can find out more details on how codegen in the [codedegen](https://github.com/smikhalevski/codedegen) repo.
 
 ## Reader optimizations
 
