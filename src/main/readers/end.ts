@@ -1,4 +1,4 @@
-import {CodeBindings, Var} from '../code';
+import {CodeBindings, Var} from 'codedegen';
 import {Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings} from './reader-utils';
 

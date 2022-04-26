@@ -13,6 +13,5 @@ export {text, TextOptions} from './readers/text';
 export {until, UntilOptions} from './readers/until';
 export {toReaderFunction} from './readers/reader-utils';
 export * from './readers/reader-types';
-export {Code, Var, Binding, CodeBindings} from './code';
 export * from './rules/rule-types';
 export * from './createTokenizer';

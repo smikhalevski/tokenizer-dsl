@@ -1,4 +1,4 @@
-import {Code, CodeBindings, createVar, Var} from '../code';
+import {Code, CodeBindings, createVar, Var} from 'codedegen';
 import {CharCodeRangeReader} from './char';
 import {none} from './none';
 import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
