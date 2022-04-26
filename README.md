@@ -10,10 +10,25 @@ The general-purpose lexer and the DSL for assembling tokenization rules.
 npm install --save-prod tokenizer-dsl
 ```
 
+- [Overview](#overview)
+- [Usage](#usage)
+- [Readers](#readers)
+  - [Built-in readers](#built-in-readers)
+  - [Functional readers](#functional-readers)
+  - [Code-generated readers](#code-generated-readers)
+- [Rules](#rules)
+  - [Rule stages](#rule-stages)
+  - [Silent rules](#silent-rules)
+- [Context](#context)
+- [Streaming tokenizer](#streaming-tokenizer)
+- [Performance](#performance)
+
 # Overview
 
-Example below shows how to assemble readers to create a streaming tokenizer for a list of numbers separated by a
-semicolon:
+This library provides a way to describe rules and create a tokenizer.
+
+The extensive example below shows how to assemble readers to create a stateless tokenizer that would read a list of
+floating-point numbers separated by a semicolon. And then pass the input to the tokenizer in a streaming fashion.
 
 ```ts
 import {all, char, createTokenizer, maybe, or, seq, text, TokenHandler} from 'tokenizer-dsl';
@@ -95,7 +110,7 @@ tokenizer.write('777; 42', handler, state);
 tokenizer.end(handler, state);
 ```
 
-Outputs to console:
+The console output would be:
 
 ```
 NUMBER 123.456 at position 0
@@ -104,8 +119,6 @@ NUMBER 42 at position 15
 ```
 
 # Usage
-
-This library provides a way to describe rules and create a tokenizer.
 
 Let's consider the input string that contains lowercase-alpha strings and unsigned integers separated by a semicolon:
 
