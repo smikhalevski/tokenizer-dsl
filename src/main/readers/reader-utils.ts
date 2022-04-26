@@ -1,4 +1,4 @@
-import {Binding, Code, CodeBindings, compileFunction, createVar, Var} from '../code';
+import {Binding, Code, CodeBindings, compileFunction, createVar, Var} from 'codedegen';
 import {Reader, ReaderFunction} from './reader-types';
 
 export function toCharCode(value: string | number): number {

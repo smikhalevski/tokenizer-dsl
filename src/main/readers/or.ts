@@ -1,4 +1,4 @@
-import {Binding, Code, CodeBindings, Var} from '../code';
+import {Binding, Code, CodeBindings, Var} from 'codedegen';
 import {never} from './never';
 import {none} from './none';
 import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';

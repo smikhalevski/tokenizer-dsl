@@ -1,4 +1,9 @@
-import {CodeBindings, Var} from '../code';
+import {CodeBindings, Var} from 'codedegen';
+
+/**
+ * OK code returned from the {@link Reader} that means that it didn't match any chars.
+ */
+export const NO_MATCH = -1;
 
 export type Reader<Context> = ReaderFunction<Context> | ReaderCodegen;
 
@@ -42,8 +47,3 @@ export interface ReaderCodegen {
    */
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings;
 }
-
-/**
- * OK code returned from the {@link Reader} that means that it didn't match any chars.
- */
-export const NO_MATCH = -1;
