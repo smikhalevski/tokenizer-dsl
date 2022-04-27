@@ -78,12 +78,12 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
 
         // Emit an error
         'if(', branchResultVar, '<0){',
-        errorCallbackVar, '&&', errorCallbackVar, '(', ruleTypeVar, ',', chunkOffsetVar, '+', nextOffsetVar, ',', branchResultVar, ',', contextVar, ');',
+        errorCallbackVar, '&&', errorCallbackVar, '(', ruleTypeVar, ',', chunkOffsetVar, '+', nextOffsetVar, ',', branchResultVar, ',', contextVar, ',', stateVar, ');',
         'return}',
 
         // Emit confirmed token
         'if(', prevRuleIndexVar, '!==-1){',
-        tokenCallbackVar, '(', prevRuleTypeVar, ',', chunkOffsetVar, '+', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ');',
+        tokenCallbackVar, '(', prevRuleTypeVar, ',', chunkOffsetVar, '+', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
         prevRuleIndexVar, '=-1}',
 
         // If stagesEnabled === true then stageIndex !== -1
@@ -96,7 +96,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
         ],
 
         rule.to === undefined ? '' : typeof rule.to === 'function'
-            ? [stageIndexVar, '=', stagesVar, '.indexOf(', ruleToCallbackVar, '(', chunkVar, ',', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, '));']
+            ? [stageIndexVar, '=', stagesVar, '.indexOf(', ruleToCallbackVar, '(', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, ',', stateVar, '));']
             : [stageIndexVar, '=', stages.indexOf(rule.to), ';'],
 
         nextOffsetVar, '=', branchResultVar, ';',
@@ -144,7 +144,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
 
     // Emit trailing unconfirmed token
     'if(', prevRuleIndexVar, '!==-1){',
-    tokenCallbackVar, '(', prevRuleTypeVar, ',', chunkOffsetVar, '+', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ');',
+    tokenCallbackVar, '(', prevRuleTypeVar, ',', chunkOffsetVar, '+', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
     '}',
 
     // Update stage only if stages are enabled
@@ -154,7 +154,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     // Trigger unrecognized token
     nextOffsetVar, '!==', chunkLengthVar,
     '&&', unrecognizedTokenCallbackVar,
-    '&&', unrecognizedTokenCallbackVar, '(', chunkOffsetVar, '+', nextOffsetVar, ',', contextVar, ');',
+    '&&', unrecognizedTokenCallbackVar, '(', chunkOffsetVar, '+', nextOffsetVar, ',', contextVar, ',', stateVar, ');',
   ];
 
   return compileFunction<RuleIterator<Type, Stage, Context>>([stateVar, handlerVar, contextVar, streamingVar], code, bindings);

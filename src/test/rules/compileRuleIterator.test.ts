@@ -3,9 +3,9 @@ import {compileRuleIterator, createRuleTree, TokenHandler, TokenizerState} from 
 
 describe('compileRuleIterator', () => {
 
-  let tokenCallbackMock = jest.fn();
-  let errorCallbackMock = jest.fn();
-  let unrecognizedTokenCallbackMock = jest.fn();
+  const tokenCallbackMock = jest.fn();
+  const errorCallbackMock = jest.fn();
+  const unrecognizedTokenCallbackMock = jest.fn();
 
   const handler: TokenHandler<any, any> = {
     token: tokenCallbackMock,
