@@ -96,7 +96,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
         ],
 
         rule.to === undefined ? '' : typeof rule.to === 'function'
-            ? [stageIndexVar, '=', stagesVar, '.indexOf(', ruleToCallbackVar, '(', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, ',', stateVar, '));']
+            ? [stageIndexVar, '=', stagesVar, '.indexOf(', ruleToCallbackVar, '(', chunkVar, ',', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, ',', stateVar, '));']
             : [stageIndexVar, '=', stages.indexOf(rule.to), ';'],
 
         nextOffsetVar, '=', branchResultVar, ';',

@@ -37,7 +37,7 @@ export interface Rule<Type = unknown, Stage = void, Context = void> {
    *
    * @default undefined
    */
-  to?: ((offset: number, length: number, context: Context, state: TokenizerState) => Stage) | Stage | undefined;
+  to?: ((chunk: string, offset: number, length: number, context: Context, state: TokenizerState) => Stage) | Stage | undefined;
 
   /**
    * If set to `true` then tokens read by this reader are not emitted.
@@ -96,7 +96,7 @@ export interface TokenHandler<Type = unknown, Context = void> {
    * Triggered when the rule returned an error code.
    *
    * @param type The type of the token as defined in {@link Rule.type}.
-   * @param offset The offset at which the rule was used.
+   * @param offset The absolute offset at which the rule was used.
    * @param errorCode The error code. A negative integer <= -2.
    * @param context The context passed by tokenizer.
    * @param state The current state of the tokenizer.
@@ -106,7 +106,7 @@ export interface TokenHandler<Type = unknown, Context = void> {
   /**
    * Triggered if there was no rule that could successfully read a token at the offset.
    *
-   * @param offset The offset at which the unrecognized token starts.
+   * @param offset The absolute offset at which the unrecognized token starts.
    * @param context The context passed by tokenizer.
    * @param state The current state of the tokenizer.
    */
