@@ -30,6 +30,8 @@ export interface AllOptions {
  *
  * @param reader The reader that reads chars.
  * @param options Reader options.
+ *
+ * @template Context The context passed by tokenizer.
  */
 export function all<Context = any>(reader: Reader<Context>, options: AllOptions = {}): Reader<Context> {
 

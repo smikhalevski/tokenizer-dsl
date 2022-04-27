@@ -8,6 +8,8 @@ import {createCodeBindings, createReaderCallCode} from './reader-utils';
  * Creates a reader that returns `reader` result or current offset if reader returned {@link NO_MATCH}.
  *
  * @param reader The reader which match must be considered optional.
+ *
+ * @template Context The context passed by tokenizer.
  */
 export function maybe<Context = any>(reader: Reader<Context>): Reader<Context> {
   if (reader === none || reader === never) {

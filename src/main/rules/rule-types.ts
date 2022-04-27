@@ -1,6 +1,21 @@
 import {Reader} from '../readers';
 
 /**
+ * Returns the stage to which the tokenizer should transition.
+ *
+ * @param chunk The input chunk from which the current token was read.
+ * @param offset The chunk-relative offset where the current token was read.
+ * @param length The number of chars read by the rule.
+ * @param context The context passed by tokenizer.
+ * @param state The current state of the tokenizer.
+ * @returns The stage to which the tokenizer should transition.
+ *
+ * @template Stage The tokenizer stage type.
+ * @template Context The context passed by tokenizer.
+ */
+export type StageProvider<Stage, Context> = (chunk: string, offset: number, length: number, context: Context, state: Readonly<TokenizerState>) => Stage;
+
+/**
  * Defines how the token is read from the input string and how {@link Tokenizer} transitions between stages.
  *
  * @template Type The type of the token emitted by this rule.
@@ -37,7 +52,7 @@ export interface Rule<Type = unknown, Stage = void, Context = void> {
    *
    * @default undefined
    */
-  to?: ((chunk: string, offset: number, length: number, context: Context, state: Readonly<TokenizerState>) => Stage) | Stage | undefined;
+  to?: StageProvider<Stage, Context> | Stage | undefined;
 
   /**
    * If set to `true` then tokens read by this reader are not emitted.
@@ -49,6 +64,8 @@ export interface Rule<Type = unknown, Stage = void, Context = void> {
 
 /**
  * The state that is used by the {@link Tokenizer} to track tokenization progress.
+ *
+ * @template Stage The tokenizer stage type.
  */
 export interface TokenizerState<Stage = void> {
 
@@ -68,7 +85,7 @@ export interface TokenizerState<Stage = void> {
   offset: number;
 
   /**
-   * The offset of the {@link chunk} in the stream.
+   * The offset of the {@link chunk} in the input stream.
    */
   chunkOffset: number;
 }

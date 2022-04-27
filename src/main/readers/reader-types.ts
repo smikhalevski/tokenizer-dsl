@@ -5,6 +5,11 @@ import {CodeBindings, Var} from 'codedegen';
  */
 export const NO_MATCH = -1;
 
+/**
+ * The reader definition that can be compiled into a function that reads chars from the input string.
+ *
+ * @template Context The context passed by tokenizer.
+ */
 export type Reader<Context> = ReaderFunction<Context> | ReaderCodegen;
 
 /**

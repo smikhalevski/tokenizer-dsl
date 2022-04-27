@@ -8,6 +8,8 @@ import {createCodeBindings, createReaderCallCode} from './reader-utils';
  * Creates a reader that returns the result of the first matched reader.
  *
  * @param readers Readers that are called.
+ *
+ * @template Context The context passed by tokenizer.
  */
 export function or<Context = any>(...readers: Reader<Context>[]): Reader<Context> {
 

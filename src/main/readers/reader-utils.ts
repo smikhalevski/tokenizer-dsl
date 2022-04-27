@@ -35,6 +35,13 @@ export function createCodeBindings(code: Code, bindings?: Binding[]): CodeBindin
   return {code, bindings};
 }
 
+/**
+ * Converts the {@link Reader} instance to a function.
+ *
+ * @param reader The reader to convert to a function.
+ *
+ * @template Context The context passed by tokenizer.
+ */
 export function toReaderFunction<Context = void>(reader: Reader<Context>): ReaderFunction<Context> {
 
   if (typeof reader === 'function') {

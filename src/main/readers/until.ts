@@ -22,6 +22,8 @@ export interface UntilOptions {
  *
  * @param reader The reader that reads chars.
  * @param options Reader options.
+ *
+ * @template Context The context passed by tokenizer.
  */
 export function until<Context = any>(reader: Reader<Context>, options: UntilOptions = {}): Reader<Context> {
 
