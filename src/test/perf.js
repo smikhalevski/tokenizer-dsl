@@ -1,7 +1,82 @@
+const packageLockJson = require('../../package-lock.json');
+const packageJson = require('../../package.json');
 const latest = require('tokenizer-dsl');
 const next = require('../../lib/index-cjs');
 
-describe('readme', () => {
+const baseVersion = 'v' + packageLockJson.dependencies['tokenizer-dsl'].version;
+const nextVersion = 'v' + packageJson.version;
+
+describe('Tokenizer', () => {
+  test('End-to-end', (measure) => {
+
+    const zeroReader = next.text('0');
+
+    const leadingDigitReader = next.char([['1', '9']]);
+
+    const digitsReader = next.all(next.char([['0', '9']]));
+
+    const dotReader = next.text('.');
+
+    const signReader = next.char(['+-']);
+
+    const numberReader = next.seq(
+        // sign
+        next.maybe(signReader),
+
+        // integer
+        next.or(
+            zeroReader,
+            next.seq(
+                leadingDigitReader,
+                digitsReader,
+            ),
+        ),
+
+        // fraction
+        next.maybe(
+            next.seq(
+                dotReader,
+                digitsReader,
+            ),
+        ),
+    );
+
+    const semicolonReader = next.text(';');
+
+    const whitespaceReader = next.all(next.char([' \t\n\r']));
+
+    const tokenizer = next.createTokenizer([
+      {
+        on: [0],
+        type: 'NUMBER',
+        reader: numberReader,
+        to: 1,
+      },
+      {
+        on: [1],
+        reader: semicolonReader,
+        silent: true,
+        to: 0,
+      },
+      {
+        reader: whitespaceReader,
+        silent: true,
+      },
+    ], 0);
+
+    const handler = {
+      token(chunk, type, offset, length, context, state) {
+        context.fooBar = state.chunkOffset + offset;
+      },
+    };
+
+    measure(() => tokenizer('123.456; +777; -42', handler, {fooBar: 0}));
+
+  });
+
+}, {targetRme: 0.001});
+
+describe('Readme', () => {
 
   const input = 'aaaaa-123.123aaaaa';
 
@@ -13,7 +88,7 @@ describe('readme', () => {
     });
   });
 
-  test('latest', (measure) => {
+  test(baseVersion, (measure) => {
 
     const readZero = latest.char(48 /*0*/);
 
@@ -50,7 +125,7 @@ describe('readme', () => {
     measure(() => readNumber(input, 5));
   });
 
-  test('next', (measure) => {
+  test(nextVersion, (measure) => {
     const zeroReader = next.text('0');
 
     const leadingDigitReader = next.char([['1', '9']]);
@@ -103,12 +178,12 @@ describe('char', () => {
       });
     });
 
-    test('latest', (measure) => {
+    test(baseVersion, (measure) => {
       const read = latest.charBy((charCode) => charCode === 97 || charCode === 98);
       measure(() => read(input, 0));
     });
 
-    test('next', (measure) => {
+    test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.char(['ab']));
       measure(() => read(input, 0));
     });
@@ -129,12 +204,12 @@ describe('all', () => {
       });
     });
 
-    test('latest', (measure) => {
+    test(baseVersion, (measure) => {
       const read = latest.allCharBy((charCode) => charCode === 97 || charCode === 98);
       measure(() => read(input, 0));
     });
 
-    test('next', (measure) => {
+    test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.all(next.char(['ab'])));
       measure(() => read(input, 0));
     });
@@ -152,12 +227,12 @@ describe('all', () => {
       });
     });
 
-    test('latest', (measure) => {
+    test(baseVersion, (measure) => {
       const read = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2);
       measure(() => read(input, 0));
     });
 
-    test('next', (measure) => {
+    test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.all(next.char(['ab']), {minimumCount: 2}));
       measure(() => read(input, 0));
     });
@@ -175,12 +250,12 @@ describe('all', () => {
       });
     });
 
-    test('latest', (measure) => {
+    test(baseVersion, (measure) => {
       const read = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 0, 3);
       measure(() => read(input, 0));
     });
 
-    test('next', (measure) => {
+    test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.all(next.char(['ab']), {maximumCount: 3}));
       measure(() => read(input, 0));
     });
@@ -198,12 +273,12 @@ describe('all', () => {
       });
     });
 
-    test('latest', (measure) => {
+    test(baseVersion, (measure) => {
       const read = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2, 3);
       measure(() => read(input, 0));
     });
 
-    test('next', (measure) => {
+    test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.all(next.char(['ab']), {minimumCount: 2, maximumCount: 3}));
       measure(() => read(input, 0));
     });
@@ -221,12 +296,12 @@ describe('all', () => {
       });
     });
 
-    test('latest', (measure) => {
+    test(baseVersion, (measure) => {
       const read = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2, 2);
       measure(() => read(input, 0));
     });
 
-    test('next', (measure) => {
+    test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.all(next.char(['ab']), {minimumCount: 2, maximumCount: 2}));
       measure(() => read(input, 0));
     });
@@ -244,12 +319,12 @@ describe('all', () => {
       });
     });
 
-    test('latest', (measure) => {
+    test(baseVersion, (measure) => {
       const read = latest.all(latest.text('ab'));
       measure(() => read(input, 0));
     });
 
-    test('next', (measure) => {
+    test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.all(next.text('ab')));
       measure(() => read(input, 0));
     });
@@ -267,12 +342,12 @@ describe('all', () => {
       });
     });
 
-    test('latest', (measure) => {
+    test(baseVersion, (measure) => {
       const read = latest.all(latest.text('ab'));
       measure(() => read(input, 0));
     });
 
-    test('next', (measure) => {
+    test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.all(next.regex(/ab/)));
       measure(() => read(input, 0));
     });
@@ -293,12 +368,12 @@ describe('or', () => {
       });
     });
 
-    test('latest', (measure) => {
+    test(baseVersion, (measure) => {
       const read = latest.or(latest.char(99), latest.char(98), latest.char(97));
       measure(() => read(input, 0));
     });
 
-    test('next', (measure) => {
+    test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.or(next.text('c'), next.text('b'), next.text('a')));
       measure(() => read(input, 0));
     });
@@ -319,12 +394,12 @@ describe('seq', () => {
       });
     });
 
-    test('latest', (measure) => {
+    test(baseVersion, (measure) => {
       const read = latest.seq(latest.char(97), latest.char(97), latest.char(97));
       measure(() => read(input, 0));
     });
 
-    test('next', (measure) => {
+    test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.seq(next.text('a'), next.text('a'), next.text('a')));
       measure(() => read(input, 0));
     });
@@ -345,12 +420,12 @@ describe('text', () => {
       });
     });
 
-    test('latest', (measure) => {
+    test(baseVersion, (measure) => {
       const read = latest.text('ababa');
       measure(() => read(input, 0));
     });
 
-    test('next', (measure) => {
+    test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.text('ababa'));
       measure(() => read(input, 0));
     });
@@ -368,12 +443,12 @@ describe('text', () => {
       });
     });
 
-    test('latest', (measure) => {
+    test(baseVersion, (measure) => {
       const read = latest.text('ABABA', true);
       measure(() => read(input, 0));
     });
 
-    test('next', (measure) => {
+    test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.text('ABABA', {caseInsensitive: true}));
       measure(() => read(input, 0));
     });
@@ -394,12 +469,12 @@ describe('until', () => {
       });
     });
 
-    test('latest', (measure) => {
+    test(baseVersion, (measure) => {
       const read = latest.untilCharBy((charCode) => charCode === 98 || charCode === 99, false, false);
       measure(() => read(input, 0));
     });
 
-    test('next', (measure) => {
+    test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.until(next.char(['ab'])));
       measure(() => read(input, 0));
     });
@@ -421,12 +496,12 @@ describe('until', () => {
       measure(() => input.indexOf('bc'));
     });
 
-    test('latest', (measure) => {
+    test(baseVersion, (measure) => {
       const read = latest.untilText('bc', false, false);
       measure(() => read(input, 0));
     });
 
-    test('next', (measure) => {
+    test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.until(next.text('bc')));
       measure(() => read(input, 0));
     });
@@ -444,12 +519,12 @@ describe('until', () => {
       });
     });
 
-    test('latest', (measure) => {
+    test(baseVersion, (measure) => {
       const read = latest.untilCharBy((charCode) => charCode === 98, false, false);
       measure(() => read(input, 0));
     });
 
-    test('next', (measure) => {
+    test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.until(next.regex(/b/)));
       measure(() => read(input, 0));
     });

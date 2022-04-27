@@ -7,14 +7,14 @@ describe('createTokenizer', () => {
   const unrecognizedTokenCallbackMock = jest.fn();
 
   const handler: TokenHandler = {
-    token(type, offset, length, context, /*state*/) {
-      tokenCallbackMock(type, offset, length, context, /*{...state}*/);
+    token(type, chunk, offset, length, context, state) {
+      tokenCallbackMock(type, state.chunkOffset + offset, length, context);
     },
-    error(type, offset, errorCode, context, /*state*/) {
-      errorCallbackMock(type, offset, errorCode, context, /*{...state}*/);
+    error(type, chunk, offset, errorCode, context, state) {
+      errorCallbackMock(type, state.chunkOffset + offset, errorCode, context);
     },
-    unrecognizedToken(offset, context, /*state*/) {
-      unrecognizedTokenCallbackMock(offset, context, /*{...state}*/);
+    unrecognizedToken(chunk, offset, context, state) {
+      unrecognizedTokenCallbackMock(state.chunkOffset + offset, context);
     }
   };
 
