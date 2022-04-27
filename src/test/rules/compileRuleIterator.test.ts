@@ -8,9 +8,15 @@ describe('compileRuleIterator', () => {
   const unrecognizedTokenCallbackMock = jest.fn();
 
   const handler: TokenHandler<any, any> = {
-    token: tokenCallbackMock,
-    error: errorCallbackMock,
-    unrecognizedToken: unrecognizedTokenCallbackMock,
+    token(type, offset, length, context, /*state*/) {
+      tokenCallbackMock(type, offset, length, context, /*{...state}*/);
+    },
+    error(type, offset, errorCode, context, /*state*/) {
+      errorCallbackMock(type, offset, errorCode, context, /*{...state}*/);
+    },
+    unrecognizedToken(offset, context, /*state*/) {
+      unrecognizedTokenCallbackMock(offset, context, /*{...state}*/);
+    }
   };
 
   beforeEach(() => {
@@ -272,11 +278,11 @@ describe('compileRuleIterator', () => {
   });
 
   test('respects computed stages', () => {
-    const ruleAToMock = jest.fn(() => 'B');
-    const ruleBToMock = jest.fn(() => 'A');
+    const ruleAToMock = jest.fn<string, any[]>(() => 'B');
+    const ruleBToMock = jest.fn<string, any[]>(() => 'A');
 
-    const ruleA: Rule<string, string, symbol> = {type: 'TypeA', reader: text('a'), on: ['A'], to: ruleAToMock};
-    const ruleB: Rule<string, string, symbol> = {type: 'TypeB', reader: text('b'), on: ['B'], to: ruleBToMock};
+    const ruleA: Rule<string, string, symbol> = {type: 'TypeA', reader: text('a'), on: ['A'], to: (offset, length, context, state) => ruleAToMock(offset, length, context, {...state})};
+    const ruleB: Rule<string, string, symbol> = {type: 'TypeB', reader: text('b'), on: ['B'], to: (offset, length, context, state) => ruleBToMock(offset, length, context, {...state})};
 
     const ruleIterator = compileRuleIterator(createRuleTree([ruleA, ruleB]));
 
@@ -300,12 +306,12 @@ describe('compileRuleIterator', () => {
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
 
     expect(ruleAToMock).toHaveBeenCalledTimes(2);
-    expect(ruleAToMock).toHaveBeenNthCalledWith(1, 'ababbbb', 0, 1, context);
-    expect(ruleAToMock).toHaveBeenNthCalledWith(2, 'ababbbb', 2, 1, context);
+    expect(ruleAToMock).toHaveBeenNthCalledWith(1, 0, 1, context, {chunk: 'ababbbb', chunkOffset: 0, offset: 0, stage: 'A'});
+    expect(ruleAToMock).toHaveBeenNthCalledWith(2, 2, 1, context, {chunk: 'ababbbb', chunkOffset: 0, offset: 2, stage: 'A'});
 
     expect(ruleBToMock).toHaveBeenCalledTimes(2);
-    expect(ruleBToMock).toHaveBeenNthCalledWith(1, 'ababbbb', 1, 1, context);
-    expect(ruleBToMock).toHaveBeenNthCalledWith(2, 'ababbbb', 3, 1, context);
+    expect(ruleBToMock).toHaveBeenNthCalledWith(1, 1, 1, context, {chunk: 'ababbbb', chunkOffset: 0, offset: 1, stage: 'B'});
+    expect(ruleBToMock).toHaveBeenNthCalledWith(2, 3, 1, context, {chunk: 'ababbbb', chunkOffset: 0, offset: 3, stage: 'B'});
 
     expect(state).toEqual({
       chunk: 'ababbbb',

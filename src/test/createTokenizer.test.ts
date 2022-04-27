@@ -2,14 +2,20 @@ import {all, char, createTokenizer, NO_MATCH, ReaderFunction, Rule, text, TokenH
 
 describe('createTokenizer', () => {
 
-  let tokenCallbackMock = jest.fn();
-  let errorCallbackMock = jest.fn();
-  let unrecognizedTokenCallbackMock = jest.fn();
+  const tokenCallbackMock = jest.fn();
+  const errorCallbackMock = jest.fn();
+  const unrecognizedTokenCallbackMock = jest.fn();
 
   const handler: TokenHandler = {
-    token: tokenCallbackMock,
-    error: errorCallbackMock,
-    unrecognizedToken: unrecognizedTokenCallbackMock,
+    token(type, offset, length, context, /*state*/) {
+      tokenCallbackMock(type, offset, length, context, /*{...state}*/);
+    },
+    error(type, offset, errorCode, context, /*state*/) {
+      errorCallbackMock(type, offset, errorCode, context, /*{...state}*/);
+    },
+    unrecognizedToken(offset, context, /*state*/) {
+      unrecognizedTokenCallbackMock(offset, context, /*{...state}*/);
+    }
   };
 
   beforeEach(() => {
