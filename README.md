@@ -2,7 +2,7 @@
 
 The general-purpose lexer and the DSL for assembling tokenization rules.
 
-- [3× faster than `RegExp`](#performance);
+- [2–3× faster than `RegExp`](#performance);
 - Less than [4 kB gzipped](https://bundlephobia.com/result?p=tokenizer-dsl) including dependencies;
 - High-level API.
 
@@ -756,9 +756,15 @@ Context is a value that tokenizer passes to all readers and dyn
 
 # Performance
 
-| | tokenizer-dsl | `RegExp` | | 
+[To run a performance test](./src/test/perf.js), clone this repo and run `npm ci && npm run perf` in the project
+directory.
+
+The table below shows performance comparison between tokenizer-dsl readers and `RegExp` alternatives.
+
+Results are in millions of operations per second. The higher number is better.
+
+| | tokenizer-dsl | `RegExp` | |
 | -- | --: | --: | -- |
-| Readme | 74.72 | 58.86 | |
 | `char(['abc'])` | 92.81 | 34.57 | `/[abc]/y` |
 | `char([['a', 'z']])` | 90.81 | 34.48 | `/[a-z]/y` |
 | `all(char(['abc']))` | 40.73 | 28.07 | `/[abc]*/y` |
@@ -769,22 +775,22 @@ Context is a value that tokenizer passes to all readers and dyn
 | `seq(text('abc'), text('123'))` | 58.86 | 30.28 | `/abc123/y` |
 | `text('abc')` | 71.82 | 31.15 | `/abc/y` |
 | `text('abc', {caseInsensitive: true})` | 71.17 | 31.03 | `/abc/iy` |
-| `until(char(['abc']))` | 49.54 | 24.60 | `/.*[abc]/y` |
-| `until(text('abc'))` |  51.01 |  26.80 | `/abc/g` |
-| `until(regex(/abc/))` | 23.88 | 26.84 | `/abc/g` |
+| `until(char(['abc']))` | 50.55 | 31.67 | `/[abc]/g` |
+| `until(text('abc'))` | 51.00 | 25.06 | `/(?=abc)/g` |
+| `until(text('abc'), {inclusive: true})` | 50.90 | 26.82 | `/abc/g` |
+| `until(regex(/abc/))` | 24.97 | 26.78 | `/abc/g` |
 
+Tokenizer performance comes from following implementation aspects:
 
-Tokenizer performance comes from following implementation aspects
+- Reader combination optimizations. For example `until(text('abc'))` would read case-sensitive characters from the sting
+  until substring "foo" is met. An analog of this is `/(?=abc)/`. Tokenizer uses `input.indexOf('abc')` for this the
+  substring search, which is up to 3× faster than using a regular expression.
 
-- reader combination optimizations
-- All readers (except regex()) rely only on charCodeAt, indexOf. This dramatically reduces memory allocations, since no
-  substrings or other objects are created.
-- Tokenizer compiles all rules into a single function. No call stack overhead.
-- Rules that share the same prefix sequence of readers do read prefix from the input only once. Chars in the string are
-  accessed less frequently.
+- All readers (except `regex`) rely solely on `charCodeAt` and `indexOf` methods. This dramatically reduces memory
+  allocations, since no strings or other objects are created on heap.
 
-For example until(text('foo')) would read case-sensitive characters from the sting until substring "foo" is met. A regex
-analog of this is input.match(/^.*?(?=foo)/). But on the other hand, this is the same as input.indexOf('foo') which is
-10x faster.
+- Tokenizer compiles provided rules into a single function. No call stack overhead.
 
-Tokenizer uses rules to read tokens from the input. Rules use readers that read characters from the string.
+- Rules that share the same prefix sequence of readers do read this prefix from the input only once. Chars in the string
+  are accessed less frequently.
+

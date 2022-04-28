@@ -74,57 +74,6 @@ describe('Tokenizer', () => {
 
 }, {targetRme: 0.001});
 
-describe('Readme', () => {
-
-  const input = '___-123.123___';
-
-  test('RegExp', (measure) => {
-    const re = /[+-]?(?:0|[1-9])\d*(?:\.\d+)?/y;
-    measure(() => {
-      re.lastIndex = 3;
-      re.exec(input);
-    });
-  });
-
-  test(nextVersion, (measure) => {
-    const zeroReader = next.text('0');
-
-    const leadingDigitReader = next.char([['1', '9']]);
-
-    const digitsReader = next.all(next.char([['0', '9']]));
-
-    const dotReader = next.text('.');
-
-    const signReader = next.char(['+-']);
-
-    const numberReader = next.seq(
-        // sign
-        next.maybe(signReader),
-
-        // integer
-        next.or(
-            zeroReader,
-            next.seq(
-                leadingDigitReader,
-                digitsReader,
-            ),
-        ),
-
-        // fraction
-        next.maybe(
-            next.seq(
-                dotReader,
-                digitsReader,
-            ),
-        ),
-    );
-
-    const readNumber = next.toReaderFunction(numberReader);
-
-    measure(() => readNumber(input, 3));
-  });
-}, {targetRme: 0.001});
-
 describe('char', () => {
 
   describe('CharCodeRangeReader\tchar(["abc"])', () => {
@@ -382,7 +331,7 @@ describe('until', () => {
     const input = '_________abc___';
 
     test('RegExp', (measure) => {
-      const re = /.*[abc]/y;
+      const re = /[abc]/g;
       measure(() => {
         re.lastIndex = 3;
         re.exec(input);
@@ -400,7 +349,7 @@ describe('until', () => {
     const input = '_________abc___';
 
     test('RegExp', (measure) => {
-      const re = /abc/g;
+      const re = /(?=abc)/g;
       measure(() => {
         re.lastIndex = 3;
         re.exec(input);
@@ -413,6 +362,28 @@ describe('until', () => {
 
     test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.until(next.text('abc')));
+      measure(() => read(input, 3));
+    });
+  });
+
+  describe('UntilCaseSensitiveTextReader\tuntil(text("abc"), {inclusive: true})', () => {
+
+    const input = '_________abc___';
+
+    test('RegExp', (measure) => {
+      const re = /abc/g;
+      measure(() => {
+        re.lastIndex = 3;
+        re.exec(input);
+      });
+    });
+
+    test('indexOf', (measure) => {
+      measure(() => input.indexOf('abc'));
+    });
+
+    test(nextVersion, (measure) => {
+      const read = next.toReaderFunction(next.until(next.text('abc'), {inclusive: true}));
       measure(() => read(input, 3));
     });
   });
