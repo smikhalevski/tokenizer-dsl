@@ -765,6 +765,7 @@ Results are in millions of operations per second. The higher number is better.
 
 | | tokenizer-dsl | `RegExp` | |
 | -- | --: | --: | -- |
+| Usage example | 8.69 | 3.27 | See [perf.js](./src/test/perf.js) |
 | `char(['abc'])` | 92.81 | 34.57 | `/[abc]/y` |
 | `char([['a', 'z']])` | 90.81 | 34.48 | `/[a-z]/y` |
 | `all(char(['abc']))` | 40.73 | 28.07 | `/[abc]*/y` |
