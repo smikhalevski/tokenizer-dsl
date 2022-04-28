@@ -82,7 +82,8 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
         errorCallbackVar, '&&', errorCallbackVar, '(', ruleTypeVar, ',', chunkVar, ',', nextOffsetVar, ',', branchResultVar, ',', contextVar, ',', stateVar, ');',
         'return}',
 
-        // Ensure that we actually use a numeric value and not an object with valueOf or a string containing digits
+        // Ensure that a numeric value is used
+        // Not an object with valueOf or a string containing digits
         branchResultVar, '/=1;',
 
         // Emit confirmed token

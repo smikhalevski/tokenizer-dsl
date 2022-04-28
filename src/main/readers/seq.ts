@@ -60,8 +60,8 @@ export class SeqReader<Context> implements ReaderCodegen {
           resultVar, '=', readerResultVar,
           '}else{',
 
-          // Ensure that we actually use a numeric value that at least shifts offset forward
-          readerResultVar, '=', readerResultVar, '<', offsetVar, '?', offsetVar, ':', readerResultVar, '/1;',
+          // Ensure that a numeric value is used
+          readerResultVar, '/=1;',
       );
 
       offsetVar = readerResultVar;

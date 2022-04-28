@@ -16,19 +16,19 @@ export function toCharCodes(str: string): number[] {
 
 export function createReaderCallCode<Context>(reader: Reader<Context>, inputVar: Var, offsetVar: Var, contextVar: Var, returnVar: Var, bindings: Binding[]): Code {
 
-  if ('factory' in reader) {
-    const codeBindings = reader.factory(inputVar, offsetVar, contextVar, returnVar);
+  if (typeof reader === 'function') {
+    const readerVar = createVar();
+    bindings.push([readerVar, reader]);
 
-    if (codeBindings.bindings) {
-      bindings.push(...codeBindings.bindings);
-    }
-    return codeBindings.code;
+    return [returnVar, '=', readerVar, '(', inputVar, ',', offsetVar, ',', contextVar, ')', ';'];
   }
 
-  const readerVar = createVar();
-  bindings.push([readerVar, reader]);
+  const codeBindings = reader.factory(inputVar, offsetVar, contextVar, returnVar);
 
-  return [returnVar, '=', readerVar, '(', inputVar, ',', offsetVar, ',', contextVar, ')', ';'];
+  if (codeBindings.bindings) {
+    bindings.push(...codeBindings.bindings);
+  }
+  return codeBindings.code;
 }
 
 export function createCodeBindings(code: Code, bindings?: Binding[]): CodeBindings {
@@ -36,6 +36,7 @@ export function createCodeBindings(code: Code, bindings?: Binding[]): CodeBindin
 }
 
 export function toReaderFunction<Context = void>(reader: Reader<Context>): ReaderFunction<Context> {
+
   if (typeof reader === 'function') {
     return reader;
   }
