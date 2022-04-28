@@ -24,7 +24,7 @@ describe('Tokenizer', () => {
     };
 
     const tokenizer = (input, stage, offset, handler) => {
-      let arr;
+      let lastIndex;
 
       while (true) {
 
@@ -33,23 +33,15 @@ describe('Tokenizer', () => {
           case 0:
 
             reNumber.lastIndex = offset;
-            arr = reNumber.exec(input);
-            if (arr !== null) {
-              const index = arr.index;
-              const length = arr[0].length;
-              handler.token(input, index, length);
-              offset = index + length;
+            if (reNumber.test(input) && offset < (lastIndex = reNumber.lastIndex)) {
+              handler.token(input, offset, offset = lastIndex);
               stage = 1;
               continue;
             }
 
             reAlpha.lastIndex = offset;
-            arr = reAlpha.exec(input);
-            if (arr !== null) {
-              const index = arr.index;
-              const length = arr[0].length;
-              handler.token(input, index, length);
-              offset = index + length;
+            if (reAlpha.test(input) && offset < (lastIndex = reAlpha.lastIndex)) {
+              handler.token(input, offset, offset = lastIndex);
               stage = 1;
               continue;
             }
@@ -58,9 +50,7 @@ describe('Tokenizer', () => {
 
           case 1:
             reSemicolon.lastIndex = offset;
-            arr = reSemicolon.exec(input);
-            if (arr !== null) {
-              offset = arr.index + arr[0].length;
+            if (reSemicolon.test(input) && offset < (offset = reSemicolon.lastIndex)) {
               stage = 0;
               continue;
             }
@@ -68,9 +58,7 @@ describe('Tokenizer', () => {
         }
 
         reWhitespace.lastIndex = offset;
-        arr = reWhitespace.exec(input);
-        if (arr !== null) {
-          offset = arr.index + arr[0].length;
+        if (reWhitespace.test(input) && offset < (offset = reWhitespace.lastIndex)) {
           continue;
         }
 
@@ -170,7 +158,7 @@ describe('char', () => {
       const re = /[abc]/y;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -188,7 +176,7 @@ describe('char', () => {
       const re = /[a-z]/y;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -210,7 +198,7 @@ describe('all', () => {
       const re = /[abc]*/y;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -228,7 +216,7 @@ describe('all', () => {
       const re = /[abc]{2,}/y;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -246,7 +234,7 @@ describe('all', () => {
       const re = /[abc]{,3}/y;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -264,7 +252,7 @@ describe('all', () => {
       const re = /[abc]{2,3}/y;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -282,7 +270,7 @@ describe('all', () => {
       const re = /[abc]{2}/y;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -300,7 +288,7 @@ describe('all', () => {
       const re = /(?:abc)*/y;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -318,7 +306,7 @@ describe('all', () => {
       const re = /(?:abc)*/y;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -339,7 +327,7 @@ describe('or', () => {
       const re = /abc|123/y;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -360,7 +348,7 @@ describe('seq', () => {
       const re = /abc123/y;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -381,7 +369,7 @@ describe('text', () => {
       const re = /abc/y;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -399,7 +387,7 @@ describe('text', () => {
       const re = /abc/iy;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -420,7 +408,7 @@ describe('until', () => {
       const re = /[abc]/g;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -438,7 +426,7 @@ describe('until', () => {
       const re = /(?=abc)/g;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -460,7 +448,7 @@ describe('until', () => {
       const re = /abc/g;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
@@ -482,7 +470,7 @@ describe('until', () => {
       const re = /abc/g;
       measure(() => {
         re.lastIndex = 3;
-        re.exec(input);
+        re.test(input);
       });
     });
 
