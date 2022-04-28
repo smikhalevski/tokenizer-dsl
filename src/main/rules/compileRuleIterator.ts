@@ -49,8 +49,9 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
       code.push(
           createReaderCallCode(seq(...branch.readers), chunkVar, branchOffsetVar, contextVar, branchResultVar, bindings),
 
-          // If branch matched and result is an offset that is greater than the current offset, or an error (NaN or < 0)
-          'if(', branchResultVar, '!==', NO_MATCH, '&&(', branchResultVar, '>', branchOffsetVar, '||!(', branchResultVar, '>=0))){',
+          // If the branch matched and the offset is shifted forward (a token has a non-zero length),
+          // or an error (NaN or < 0)
+          'if(', branchResultVar, '!==', NO_MATCH, '&&!(', branchResultVar, '<=', branchOffsetVar, '&&', branchResultVar, '>=0)){',
       );
 
       // Apply nested branches

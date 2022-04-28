@@ -138,7 +138,7 @@ export class UntilReader<Context> implements ReaderCodegen {
           createReaderCallCode(this.reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
           '++', indexVar,
           '}',
-          resultVar, '=', readerResultVar, '>=0?', this.inclusive ? readerResultVar : [indexVar, '-1'], ':', readerResultVar, ';',
+          resultVar, '=', this.inclusive ? readerResultVar : [readerResultVar, '>=0?', indexVar, '-1:', readerResultVar], ';',
         ],
         bindings,
     );
