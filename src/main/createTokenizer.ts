@@ -1,11 +1,54 @@
 import {compileRuleIterator, createRuleTree, Rule, TokenHandler, TokenizerState} from './rules';
 
+/**
+ * The pure tokenization function compiled from a set of rules.
+ *
+ * @template Type The type of the token emitted by the tokenizer.
+ * @template Stage The tokenizer stage type.
+ * @template Context The context passed to the tokenizer.
+ */
 export interface Tokenizer<Type = unknown, Stage = void, Context = void> {
 
-  (chunk: string, handler: TokenHandler<Type, Context>, context: Context): Readonly<TokenizerState<Stage>>;
+  /**
+   * Reads tokens from the input in a non-streaming fashion. Triggers a {@link TokenHandler.unrecognizedToken} if the
+   * input wasn't read in full.
+   *
+   * @param input The input string to tokenize.
+   * @param handler The callbacks that are invoked when tokens are read from the string, or when an error occurs.
+   * @param context The context that should be passed to readers and stage providers.
+   * @returns The result state of the tokenizer.
+   */
+  (input: string, handler: TokenHandler<Type, Context>, context: Context): Readonly<TokenizerState<Stage>>;
 
+  /**
+   * Reads tokens from the chunk in a streaming fashion. Does not trigger a {@link TokenHandler.unrecognizedToken} is
+   * input wasn't read in full. During streaming, {@link TokenHandler.token} is triggered only with confirmed tokens.
+   * Token is confirmed if the consequent token was successfully read.
+   *
+   * ```ts
+   * let state;
+   * state = tokenizer.write('foo', handler);
+   * state = tokenizer.write('bar', handler, state);
+   * state = tokenizer.end(handler, state);
+   * ```
+   *
+   * @param chunk The input chunk to tokenize.
+   * @param handler The callbacks that are invoked when tokens are read from the string, or when an error occurs.
+   * @param state The state returned by the previous {@link Tokenizer.write} call.
+   * @param context The context that should be passed to readers and stage providers.
+   * @returns The result state of the tokenizer.
+   */
   write(chunk: string, handler: TokenHandler<Type, Context>, state: Readonly<TokenizerState<Stage>> | void, context: Context): Readonly<TokenizerState<Stage>>;
 
+  /**
+   * Reads remaining tokens from the {@link TokenizerState.chunk}. Triggers a {@link TokenHandler.unrecognizedToken} if
+   * the  {@link TokenizerState.chunk} wasn't read in full.
+   *
+   * @param handler The callbacks that are invoked when tokens are read from the string, or when an error occurs.
+   * @param state The state returned by the previous {@link Tokenizer.write} call.
+   * @param context The context that should be passed to readers and stage providers.
+   * @returns The result state of the tokenizer.
+   */
   end(handler: TokenHandler<Type, Context>, state: Readonly<TokenizerState<Stage>>, context: Context): Readonly<TokenizerState<Stage>>;
 }
 
