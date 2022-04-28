@@ -37,7 +37,7 @@ export interface Rule<Type = unknown, Stage = void, Context = void> {
    *
    * @default undefined
    */
-  to?: ((chunk: string, offset: number, length: number, context: Context, state: TokenizerState) => Stage) | Stage | undefined;
+  to?: ((chunk: string, offset: number, length: number, context: Context, state: Readonly<TokenizerState>) => Stage) | Stage | undefined;
 
   /**
    * If set to `true` then tokens read by this reader are not emitted.
@@ -103,7 +103,7 @@ export interface TokenHandler<Type = unknown, Context = void> {
    * @param context The context passed by the tokenizer.
    * @param state The current state of the tokenizer.
    */
-  token(type: Type, chunk: string, offset: number, length: number, context: Context, state: TokenizerState): void;
+  token(type: Type, chunk: string, offset: number, length: number, context: Context, state: Readonly<TokenizerState>): void;
 
   /**
    * Triggered when the rule returned an error code.
@@ -115,7 +115,7 @@ export interface TokenHandler<Type = unknown, Context = void> {
    * @param context The context passed by the tokenizer.
    * @param state The current state of the tokenizer.
    */
-  error?(type: Type, chunk: string, offset: number, errorCode: number, context: Context, state: TokenizerState): void;
+  error?(type: Type, chunk: string, offset: number, errorCode: number, context: Context, state: Readonly<TokenizerState>): void;
 
   /**
    * Triggered if there was no rule that could successfully read a token at the offset.
@@ -125,5 +125,5 @@ export interface TokenHandler<Type = unknown, Context = void> {
    * @param context The context passed by the tokenizer.
    * @param state The current state of the tokenizer.
    */
-  unrecognizedToken?(chunk: string, offset: number, context: Context, state: TokenizerState): void;
+  unrecognizedToken?(chunk: string, offset: number, context: Context, state: Readonly<TokenizerState>): void;
 }
