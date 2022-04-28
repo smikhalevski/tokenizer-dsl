@@ -779,7 +779,7 @@ Results are in millions of operations per second. The higher number is better.
 | `until(char(['abc']))` | 50.55 | 31.67 | `/[abc]/g` |
 | `until(text('abc'))` | 51.00 | 25.06 | `/(?=abc)/g` |
 | `until(text('abc'), {inclusive: true})` | 50.90 | 26.82 | `/abc/g` |
-| `until(regex(/abc/))` | 24.97 | 26.78 | `/abc/g` |
+| `until(regex(/abc/))` | 24.97 | 26.78 | `/(?=abc)/g` |
 
 Tokenizer performance comes from following implementation aspects:
 

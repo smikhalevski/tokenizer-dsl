@@ -467,7 +467,7 @@ describe('until', () => {
     const input = '_________abc___';
 
     test('RegExp', (measure) => {
-      const re = /abc/g;
+      const re = /(?=abc)/g;
       measure(() => {
         re.lastIndex = 3;
         re.test(input);
@@ -476,6 +476,24 @@ describe('until', () => {
 
     test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.until(next.regex(/abc/)));
+      measure(() => read(input, 3));
+    });
+  });
+
+  describe('UntilRegexReader\tuntil(regex(/abc/), {inclusive: true})', () => {
+
+    const input = '_________abc___';
+
+    test('RegExp', (measure) => {
+      const re = /abc/g;
+      measure(() => {
+        re.lastIndex = 3;
+        re.test(input);
+      });
+    });
+
+    test(nextVersion, (measure) => {
+      const read = next.toReaderFunction(next.until(next.regex(/abc/), {inclusive: true}));
       measure(() => read(input, 3));
     });
   });
