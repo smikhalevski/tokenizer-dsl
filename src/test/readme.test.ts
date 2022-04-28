@@ -83,9 +83,10 @@ describe('Readme', () => {
         'value'
     );
 
-    const state = tokenizer.write('123', handler);
-    tokenizer.write('.456; +', handler, state);
-    tokenizer.write('777; 42', handler, state);
+    let state;
+    state = tokenizer.write('123', handler);
+    state = tokenizer.write('.456; +', handler, state);
+    state = tokenizer.write('777; 42', handler, state);
     tokenizer.end(handler, state);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
