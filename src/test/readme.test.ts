@@ -1,8 +1,30 @@
-import {all, char, createTokenizer, maybe, or, Rule, seq, text} from '../main';
+import {all, char, createTokenizer, maybe, or, Rule, seq, text, TokenHandler} from '../main';
 
-describe('readme', () => {
+describe('Readme', () => {
 
-  test('overview', () => {
+  const tokenCallbackMock = jest.fn();
+  const errorCallbackMock = jest.fn();
+  const unrecognizedTokenCallbackMock = jest.fn();
+
+  const handler: TokenHandler = {
+    token(type, chunk, offset, length, context, state) {
+      tokenCallbackMock(type, state.chunkOffset + offset, length, context);
+    },
+    error(type, chunk, offset, errorCode, context, state) {
+      errorCallbackMock(type, state.chunkOffset + offset, errorCode, context);
+    },
+    unrecognizedToken(chunk, offset, context, state) {
+      unrecognizedTokenCallbackMock(state.chunkOffset + offset, context);
+    }
+  };
+
+  beforeEach(() => {
+    tokenCallbackMock.mockRestore();
+    errorCallbackMock.mockRestore();
+    unrecognizedTokenCallbackMock.mockRestore();
+  });
+
+  test('Overview', () => {
     const zeroReader = text('0');
 
     const leadingDigitReader = char([['1', '9']]);
@@ -61,14 +83,6 @@ describe('readme', () => {
         'value'
     );
 
-    const tokenCallbackMock = jest.fn();
-    const unrecognizedTokenCallbackMock = jest.fn();
-
-    const handler = {
-      token: tokenCallbackMock,
-      unrecognizedToken: unrecognizedTokenCallbackMock,
-    };
-
     const state = tokenizer.write('123', handler);
     tokenizer.write('.456; +', handler, state);
     tokenizer.write('777; 42', handler, state);
@@ -80,7 +94,7 @@ describe('readme', () => {
     expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'NUMBER', 15, 2, undefined);
   });
 
-  test('usage', () => {
+  test('Usage', () => {
 
     const alphaReader = all(char([['a', 'z']]), {minimumCount: 1});
 
@@ -115,14 +129,6 @@ describe('readme', () => {
       semicolonRule,
     ]);
 
-    const tokenCallbackMock = jest.fn();
-    const unrecognizedTokenCallbackMock = jest.fn();
-
-    const handler = {
-      token: tokenCallbackMock,
-      unrecognizedToken: unrecognizedTokenCallbackMock,
-    };
-
     tokenize('foo;123;bar;456', handler);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(7);
@@ -147,7 +153,7 @@ describe('readme', () => {
     expect(unrecognizedTokenCallbackMock).toHaveBeenNthCalledWith(1, 4, undefined);
   });
 
-  test('stages', () => {
+  test('Stages', () => {
     type MyTokenType = 'FOO' | 'BAR';
 
     type MyStage = 'start' | 'foo' | 'bar';
@@ -174,14 +180,6 @@ describe('readme', () => {
         'start'
     );
 
-    const tokenCallbackMock = jest.fn();
-    const unrecognizedTokenCallbackMock = jest.fn();
-
-    const handler = {
-      token: tokenCallbackMock,
-      unrecognizedToken: unrecognizedTokenCallbackMock,
-    };
-
     tokenize('foobarfoobar', handler);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(4);
@@ -203,7 +201,7 @@ describe('readme', () => {
     expect(unrecognizedTokenCallbackMock).toHaveBeenNthCalledWith(1, 3, undefined);
   });
 
-  test('undefined stages', () => {
+  test('Undefined stages', () => {
     type MyTokenType = 'FOO' | 'BAR' | 'SPACE';
 
     type MyStage = 'start' | 'foo' | 'bar';
@@ -235,14 +233,6 @@ describe('readme', () => {
         ],
         'start'
     );
-
-    const tokenCallbackMock = jest.fn();
-    const unrecognizedTokenCallbackMock = jest.fn();
-
-    const handler = {
-      token: tokenCallbackMock,
-      unrecognizedToken: unrecognizedTokenCallbackMock,
-    };
 
     tokenize('foo  bar  foo  bar', handler);
 
