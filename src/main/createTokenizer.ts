@@ -2,11 +2,11 @@ import {compileRuleIterator, createRuleTree, Rule, TokenHandler, TokenizerState}
 
 export interface Tokenizer<Type = unknown, Stage = void, Context = void> {
 
-  (chunk: string, handler: TokenHandler<Type, Context>, context: Context): TokenizerState<Stage>;
+  (chunk: string, handler: TokenHandler<Type, Context>, context: Context): Readonly<TokenizerState<Stage>>;
 
-  write(chunk: string, handler: TokenHandler<Type, Context>, state: TokenizerState<Stage> | void, context: Context): TokenizerState<Stage>;
+  write(chunk: string, handler: TokenHandler<Type, Context>, state: Readonly<TokenizerState<Stage>> | void, context: Context): Readonly<TokenizerState<Stage>>;
 
-  end(handler: TokenHandler<Type, Context>, state: TokenizerState<Stage>, context: Context): TokenizerState<Stage>;
+  end(handler: TokenHandler<Type, Context>, state: Readonly<TokenizerState<Stage>>, context: Context): Readonly<TokenizerState<Stage>>;
 }
 
 /**
@@ -35,37 +35,30 @@ export function createTokenizer(rules: Rule[], initialStage?: any) {
   const ruleIterator = compileRuleIterator(createRuleTree(rules));
 
   const tokenizer: Tokenizer = (chunk, handler, context) => {
-    const state: TokenizerState = {
-      stage: initialStage,
-      chunk,
-      offset: 0,
-      chunkOffset: 0,
-    };
+    const state = createState(initialStage, chunk, 0, 0);
     ruleIterator(state, handler, context, false);
     return state;
   };
 
   tokenizer.write = (chunk, handler, state, context) => {
     if (state) {
-      state.chunk = state.chunk.slice(state.offset) + chunk;
-      state.chunkOffset += state.offset;
-      state.offset = 0;
+      state = createState(state.stage, state.chunk.slice(state.offset) + chunk, 0, state.chunkOffset + state.offset);
     } else {
-      state = {
-        stage: initialStage,
-        chunk,
-        offset: 0,
-        chunkOffset: 0,
-      };
+      state = createState(initialStage, chunk, 0, 0);
     }
     ruleIterator(state, handler, context, true);
     return state;
   };
 
   tokenizer.end = (handler, state, context) => {
+    state = createState(state.stage, state.chunk, state.offset, state.chunkOffset);
     ruleIterator(state, handler, context, false);
     return state;
   };
 
   return tokenizer;
+}
+
+function createState<Stage>(stage: Stage, chunk: string, offset: number, chunkOffset: number): TokenizerState<Stage> {
+  return {stage, chunk, offset, chunkOffset};
 }
