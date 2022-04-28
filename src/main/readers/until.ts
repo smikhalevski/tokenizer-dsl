@@ -99,19 +99,17 @@ export class UntilRegexReader implements ReaderCodegen {
   re;
 
   constructor(re: RegExp, public inclusive: boolean) {
-    this.re = RegExp(re.source, re.flags.replace(/[yg]/, '') + 'g');
+    this.re = RegExp(inclusive ? re.source : '(?=' + re.source + ')', re.flags.replace(/[yg]/, '') + 'g');
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
 
     const reVar = createVar();
-    const arrVar = createVar();
 
     return createCodeBindings(
         [
           reVar, '.lastIndex=', offsetVar, ';',
-          'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
-          resultVar, '=', arrVar, '===null?', NO_MATCH, ':', this.inclusive ? [reVar, '.lastIndex'] : [arrVar, '.index'], ';',
+          resultVar, '=', reVar, '.test(', inputVar, ')?', reVar, '.lastIndex:', NO_MATCH, ';',
         ],
         [[reVar, this.re]],
     );

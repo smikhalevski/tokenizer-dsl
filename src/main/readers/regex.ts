@@ -22,13 +22,11 @@ export class RegexReader implements ReaderCodegen {
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
 
     const reVar = createVar();
-    const arrVar = createVar();
 
     return createCodeBindings(
         [
           reVar, '.lastIndex=', offsetVar, ';',
-          'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
-          resultVar, '=', arrVar, '===null||', arrVar, '.index!==', offsetVar, '?', NO_MATCH, ':', reVar, '.lastIndex;',
+          resultVar, '=', reVar, '.test(', inputVar, ')?', reVar, '.lastIndex:', NO_MATCH, ';',
         ],
         [[reVar, this.re]],
     );
