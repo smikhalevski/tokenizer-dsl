@@ -13,12 +13,12 @@ npm install --save-prod tokenizer-dsl
 - [Overview](#overview)
 - [Usage](#usage)
 - [Readers](#readers)
-  - [Built-in readers](#built-in-readers)
-  - [Functional readers](#functional-readers)
-  - [Code-generated readers](#code-generated-readers)
+    - [Built-in readers](#built-in-readers)
+    - [Functional readers](#functional-readers)
+    - [Code-generated readers](#code-generated-readers)
 - [Rules](#rules)
-  - [Rule stages](#rule-stages)
-  - [Silent rules](#silent-rules)
+    - [Rule stages](#rule-stages)
+    - [Silent rules](#silent-rules)
 - [Context](#context)
 - [Streaming tokenizer](#streaming-tokenizer)
 - [Performance](#performance)
@@ -755,6 +755,24 @@ Context is a value that tokenizer passes to all readers and dyn
 # Streaming tokenizer
 
 # Performance
+
+| | tokenizer-dsl | `RegExp` | | 
+| -- | --: | --: | -- |
+| Readme | 74.72 | 58.86 | |
+| `char(['abc'])` | 92.81 | 34.57 | `/[abc]/y` |
+| `char([['a', 'z']])` | 90.81 | 34.48 | `/[a-z]/y` |
+| `all(char(['abc']))` | 40.73 | 28.07 | `/[abc]*/y` |
+| `all(char(['abc']), {minimumCount: 2})` | 56.13 | 29.28 | `/[abc]{2,}/y` |
+| `all(text('abc'))` | 51.05 | 28.26 | `/(?:abc)*/y` |
+| `all(regex(/abc/))` | 26.01 | 28.93 | `/(?:abc)*/y` |
+| `or(text('abc'), text('123'))` | 66.32 | 31.19 | `/abc\|123/y` |
+| `seq(text('abc'), text('123'))` | 58.86 | 30.28 | `/abc123/y` |
+| `text('abc')` | 71.82 | 31.15 | `/abc/y` |
+| `text('abc', {caseInsensitive: true})` | 71.17 | 31.03 | `/abc/iy` |
+| `until(char(['abc']))` | 49.54 | 24.60 | `/.*[abc]/y` |
+| `until(text('abc'))` |  51.01 |  26.80 | `/abc/g` |
+| `until(regex(/abc/))` | 23.88 | 26.84 | `/abc/g` |
+
 
 Tokenizer performance comes from following implementation aspects
 

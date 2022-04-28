@@ -1,12 +1,10 @@
-const packageLockJson = require('../../package-lock.json');
 const packageJson = require('../../package.json');
-const latest = require('tokenizer-dsl');
 const next = require('../../lib/index-cjs');
 
-const baseVersion = 'v' + packageLockJson.dependencies['tokenizer-dsl'].version;
 const nextVersion = 'v' + packageJson.version;
 
 describe('Tokenizer', () => {
+
   test('End-to-end', (measure) => {
 
     const zeroReader = next.text('0');
@@ -78,51 +76,14 @@ describe('Tokenizer', () => {
 
 describe('Readme', () => {
 
-  const input = 'aaaaa-123.123aaaaa';
+  const input = '___-123.123___';
 
   test('RegExp', (measure) => {
     const re = /[+-]?(?:0|[1-9])\d*(?:\.\d+)?/y;
     measure(() => {
-      re.lastIndex = 5;
+      re.lastIndex = 3;
       re.exec(input);
     });
-  });
-
-  test(baseVersion, (measure) => {
-
-    const readZero = latest.char(48 /*0*/);
-
-    const readLeadingDigit = latest.charBy((charCode) => charCode >= 49 /*1*/ && charCode <= 57 /*9*/);
-
-    const readDigits = latest.allCharBy((charCode) => charCode >= 48 /*0*/ && charCode <= 57 /*9*/);
-
-    const readDot = latest.char(46 /*.*/);
-
-    const readSign = latest.charBy((charCode) => charCode === 43 /*+*/ || charCode === 45 /*-*/);
-
-    const readNumber = latest.seq(
-        // sign
-        latest.maybe(readSign),
-
-        // integer
-        latest.or(
-            readZero,
-            latest.seq(
-                readLeadingDigit,
-                readDigits,
-            ),
-        ),
-
-        // fraction
-        latest.maybe(
-            latest.seq(
-                readDot,
-                readDigits,
-            ),
-        ),
-    );
-
-    measure(() => readNumber(input, 5));
   });
 
   test(nextVersion, (measure) => {
@@ -160,373 +121,317 @@ describe('Readme', () => {
 
     const readNumber = next.toReaderFunction(numberReader);
 
-    measure(() => readNumber(input, 5));
+    measure(() => readNumber(input, 3));
   });
 }, {targetRme: 0.001});
 
 describe('char', () => {
 
-  describe('CharCodeRangeReader', () => {
+  describe('CharCodeRangeReader\tchar(["abc"])', () => {
 
-    const input = 'ababab';
+    const input = '___abc___';
 
     test('RegExp', (measure) => {
-      const re = /[ab]/y;
+      const re = /[abc]/y;
       measure(() => {
-        re.lastIndex = 0;
+        re.lastIndex = 3;
         re.exec(input);
       });
     });
 
-    test(baseVersion, (measure) => {
-      const read = latest.charBy((charCode) => charCode === 97 || charCode === 98);
-      measure(() => read(input, 0));
+    test(nextVersion, (measure) => {
+      const read = next.toReaderFunction(next.char(['abc']));
+      measure(() => read(input, 3));
+    });
+  });
+
+  describe('CharCodeRangeReader\tchar([["a", "z"]])', () => {
+
+    const input = '___abc___';
+
+    test('RegExp', (measure) => {
+      const re = /[a-z]/y;
+      measure(() => {
+        re.lastIndex = 3;
+        re.exec(input);
+      });
     });
 
     test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.char(['ab']));
-      measure(() => read(input, 0));
+      const read = next.toReaderFunction(next.char([['a', 'z']]));
+      measure(() => read(input, 3));
     });
   });
+
 }, {targetRme: 0.001});
 
 describe('all', () => {
 
-  describe('AllCharCodeRangeReader', () => {
+  describe('AllCharCodeRangeReader\tall(char(["abc"]))', () => {
 
-    const input = 'abababc';
+    const input = '___abcabc___';
 
     test('RegExp', (measure) => {
-      const re = /[ab]*/y;
+      const re = /[abc]*/y;
       measure(() => {
-        re.lastIndex = 0;
+        re.lastIndex = 3;
         re.exec(input);
       });
     });
 
-    test(baseVersion, (measure) => {
-      const read = latest.allCharBy((charCode) => charCode === 97 || charCode === 98);
-      measure(() => read(input, 0));
-    });
-
     test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.all(next.char(['ab'])));
-      measure(() => read(input, 0));
+      const read = next.toReaderFunction(next.all(next.char(['abc'])));
+      measure(() => read(input, 3));
     });
   });
 
-  describe('AllCharCodeRangeReader {minimumCount: 2}', () => {
+  describe('AllCharCodeRangeReader\tall(char(["abc"]), {minimumCount: 2})', () => {
 
-    const input = 'aaabbb';
+    const input = '___abc___';
 
     test('RegExp', (measure) => {
-      const re = /[ab]{2,}/y;
+      const re = /[abc]{2,}/y;
       measure(() => {
-        re.lastIndex = 0;
+        re.lastIndex = 3;
         re.exec(input);
       });
     });
 
-    test(baseVersion, (measure) => {
-      const read = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2);
-      measure(() => read(input, 0));
-    });
-
     test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.all(next.char(['ab']), {minimumCount: 2}));
-      measure(() => read(input, 0));
+      const read = next.toReaderFunction(next.all(next.char(['abc']), {minimumCount: 2}));
+      measure(() => read(input, 3));
     });
   });
 
-  describe('AllCharCodeRangeReader {maximumCount: 3}', () => {
+  describe('AllCharCodeRangeReader\tall(char(["abc"]), {maximumCount: 3})', () => {
 
-    const input = 'aaabbb';
+    const input = '___abc___';
 
     test('RegExp', (measure) => {
-      const re = /[ab]{,3}/y;
+      const re = /[abc]{,3}/y;
       measure(() => {
-        re.lastIndex = 0;
+        re.lastIndex = 3;
         re.exec(input);
       });
     });
 
-    test(baseVersion, (measure) => {
-      const read = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 0, 3);
-      measure(() => read(input, 0));
-    });
-
     test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.all(next.char(['ab']), {maximumCount: 3}));
-      measure(() => read(input, 0));
+      const read = next.toReaderFunction(next.all(next.char(['abc']), {maximumCount: 3}));
+      measure(() => read(input, 3));
     });
   });
 
-  describe('AllCharCodeRangeReader {minimumCount: 2, maximumCount: 3}', () => {
+  describe('AllCharCodeRangeReader\tall(char(["abc"]), {minimumCount: 2, maximumCount: 3})', () => {
 
-    const input = 'aaabbb';
+    const input = '___abc___';
 
     test('RegExp', (measure) => {
-      const re = /[ab]{2,3}/y;
+      const re = /[abc]{2,3}/y;
       measure(() => {
-        re.lastIndex = 0;
+        re.lastIndex = 3;
         re.exec(input);
       });
     });
 
-    test(baseVersion, (measure) => {
-      const read = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2, 3);
-      measure(() => read(input, 0));
-    });
-
     test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.all(next.char(['ab']), {minimumCount: 2, maximumCount: 3}));
-      measure(() => read(input, 0));
+      const read = next.toReaderFunction(next.all(next.char(['abc']), {minimumCount: 2, maximumCount: 3}));
+      measure(() => read(input, 3));
     });
   });
 
-  describe('AllCharCodeRangeReader {minimumCount: 2, maximumCount: 2}', () => {
+  describe('AllCharCodeRangeReader\tall(char(["abc"]), {minimumCount: 2, maximumCount: 2})', () => {
 
-    const input = 'aaabbb';
+    const input = '___abc___';
 
     test('RegExp', (measure) => {
-      const re = /[ab]{2}/y;
+      const re = /[abc]{2}/y;
       measure(() => {
-        re.lastIndex = 0;
+        re.lastIndex = 3;
         re.exec(input);
       });
     });
 
-    test(baseVersion, (measure) => {
-      const read = latest.allCharBy((charCode) => charCode === 97 || charCode === 98, 2, 2);
-      measure(() => read(input, 0));
-    });
-
     test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.all(next.char(['ab']), {minimumCount: 2, maximumCount: 2}));
-      measure(() => read(input, 0));
+      const read = next.toReaderFunction(next.all(next.char(['abc']), {minimumCount: 2, maximumCount: 2}));
+      measure(() => read(input, 3));
     });
   });
 
-  describe('AllCaseSensitiveTextReader', () => {
+  describe('AllCaseSensitiveTextReader\tall(text("abc"))', () => {
 
-    const input = 'ababababc';
+    const input = '___abcabc___';
 
     test('RegExp', (measure) => {
-      const re = /(?:ab)*/y;
+      const re = /(?:abc)*/y;
       measure(() => {
-        re.lastIndex = 0;
+        re.lastIndex = 3;
         re.exec(input);
       });
     });
 
-    test(baseVersion, (measure) => {
-      const read = latest.all(latest.text('ab'));
-      measure(() => read(input, 0));
-    });
-
     test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.all(next.text('ab')));
-      measure(() => read(input, 0));
+      const read = next.toReaderFunction(next.all(next.text('abc')));
+      measure(() => read(input, 3));
     });
   });
 
-  describe('AllRegexReader', () => {
+  describe('AllRegexReader\tall(regex(/abc/))', () => {
 
-    const input = 'ababababc';
+    const input = '___abcabc___';
 
     test('RegExp', (measure) => {
-      const re = /(?:ab)*/y;
+      const re = /(?:abc)*/y;
       measure(() => {
-        re.lastIndex = 0;
+        re.lastIndex = 3;
         re.exec(input);
       });
     });
 
-    test(baseVersion, (measure) => {
-      const read = latest.all(latest.text('ab'));
-      measure(() => read(input, 0));
-    });
-
     test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.all(next.regex(/ab/)));
-      measure(() => read(input, 0));
+      const read = next.toReaderFunction(next.all(next.regex(/abc/)));
+      measure(() => read(input, 3));
     });
   });
 }, {targetRme: 0.001});
 
 describe('or', () => {
 
-  describe('OrReader', () => {
+  describe('OrReader\tor(text("abc"), text("123"))', () => {
 
-    const input = 'aaaa';
+    const input = '___123___';
 
     test('RegExp', (measure) => {
-      const re = /[cba]/y;
+      const re = /abc|123/y;
       measure(() => {
-        re.lastIndex = 0;
+        re.lastIndex = 3;
         re.exec(input);
       });
     });
 
-    test(baseVersion, (measure) => {
-      const read = latest.or(latest.char(99), latest.char(98), latest.char(97));
-      measure(() => read(input, 0));
-    });
-
     test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.or(next.text('c'), next.text('b'), next.text('a')));
-      measure(() => read(input, 0));
+      const read = next.toReaderFunction(next.or(next.text('abc'), next.text('123')));
+      measure(() => read(input, 3));
     });
   });
 }, {targetRme: 0.001});
 
 describe('seq', () => {
 
-  describe('SeqReader', () => {
+  describe('SeqReader\tseq(text(\'abc\'), text(\'123\'))', () => {
 
-    const input = 'aaaa';
+    const input = '___abc123___';
 
     test('RegExp', (measure) => {
-      const re = /aaa/y;
+      const re = /abc123/y;
       measure(() => {
-        re.lastIndex = 0;
+        re.lastIndex = 3;
         re.exec(input);
       });
     });
 
-    test(baseVersion, (measure) => {
-      const read = latest.seq(latest.char(97), latest.char(97), latest.char(97));
-      measure(() => read(input, 0));
-    });
-
     test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.seq(next.text('a'), next.text('a'), next.text('a')));
-      measure(() => read(input, 0));
+      const read = next.toReaderFunction(next.seq(next.text('abc'), next.text('123')));
+      measure(() => read(input, 3));
     });
   });
 }, {targetRme: 0.001});
 
 describe('text', () => {
 
-  describe('CaseSensitiveTextReader', () => {
+  describe('CaseSensitiveTextReader\ttext("abc")', () => {
 
-    const input = 'ababab';
+    const input = '___abc___';
 
     test('RegExp', (measure) => {
-      const re = /ababa/y;
+      const re = /abc/y;
       measure(() => {
-        re.lastIndex = 0;
+        re.lastIndex = 3;
         re.exec(input);
       });
     });
 
-    test(baseVersion, (measure) => {
-      const read = latest.text('ababa');
-      measure(() => read(input, 0));
-    });
-
     test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.text('ababa'));
-      measure(() => read(input, 0));
+      const read = next.toReaderFunction(next.text('abc'));
+      measure(() => read(input, 3));
     });
   });
 
-  describe('CaseInsensitiveTextReader', () => {
+  describe('CaseInsensitiveTextReader\ttext("abc", {caseInsensitive: true})', () => {
 
-    const input = 'aBAbab';
+    const input = '___ABC___';
 
     test('RegExp', (measure) => {
-      const re = /ABABA/iy;
+      const re = /abc/iy;
       measure(() => {
-        re.lastIndex = 0;
+        re.lastIndex = 3;
         re.exec(input);
       });
     });
 
-    test(baseVersion, (measure) => {
-      const read = latest.text('ABABA', true);
-      measure(() => read(input, 0));
-    });
-
     test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.text('ABABA', {caseInsensitive: true}));
-      measure(() => read(input, 0));
+      const read = next.toReaderFunction(next.text('abc', {caseInsensitive: true}));
+      measure(() => read(input, 3));
     });
   });
 }, {targetRme: 0.001});
 
 describe('until', () => {
 
-  describe('UntilCharCodeRangeReader', () => {
+  describe('UntilCharCodeRangeReader\tuntil(char(["abc"]))', () => {
 
-    const input = 'aaaaaab';
+    const input = '_________abc___';
 
     test('RegExp', (measure) => {
-      const re = /.*[bc]/y;
+      const re = /.*[abc]/y;
       measure(() => {
-        re.lastIndex = 0;
+        re.lastIndex = 3;
         re.exec(input);
       });
     });
 
-    test(baseVersion, (measure) => {
-      const read = latest.untilCharBy((charCode) => charCode === 98 || charCode === 99, false, false);
-      measure(() => read(input, 0));
-    });
-
     test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.until(next.char(['ab'])));
-      measure(() => read(input, 0));
+      const read = next.toReaderFunction(next.until(next.char(['abc'])));
+      measure(() => read(input, 3));
     });
   });
 
-  describe('UntilCaseSensitiveTextReader', () => {
+  describe('UntilCaseSensitiveTextReader\tuntil(text("abc"))', () => {
 
-    const input = 'aaaaaabc';
+    const input = '_________abc___';
 
     test('RegExp', (measure) => {
-      const re = /bc/g;
+      const re = /abc/g;
       measure(() => {
-        re.lastIndex = 0;
+        re.lastIndex = 3;
         re.exec(input);
       });
     });
 
     test('indexOf', (measure) => {
-      measure(() => input.indexOf('bc'));
-    });
-
-    test(baseVersion, (measure) => {
-      const read = latest.untilText('bc', false, false);
-      measure(() => read(input, 0));
+      measure(() => input.indexOf('abc'));
     });
 
     test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.until(next.text('bc')));
-      measure(() => read(input, 0));
+      const read = next.toReaderFunction(next.until(next.text('abc')));
+      measure(() => read(input, 3));
     });
   });
 
-  describe('UntilRegexReader', () => {
+  describe('UntilRegexReader\tuntil(regex(/abc/))', () => {
 
-    const input = 'aaaaaab';
+    const input = '_________abc___';
 
     test('RegExp', (measure) => {
-      const re = /b/g;
+      const re = /abc/g;
       measure(() => {
-        re.lastIndex = 0;
+        re.lastIndex = 3;
         re.exec(input);
       });
     });
 
-    test(baseVersion, (measure) => {
-      const read = latest.untilCharBy((charCode) => charCode === 98, false, false);
-      measure(() => read(input, 0));
-    });
-
     test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.until(next.regex(/b/)));
-      measure(() => read(input, 0));
+      const read = next.toReaderFunction(next.until(next.regex(/abc/)));
+      measure(() => read(input, 3));
     });
   });
 
