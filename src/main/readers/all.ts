@@ -192,7 +192,9 @@ export class AllReader<Context> implements ReaderCodegen {
           minimumCount || maximumCount ? [',', readCountVar, '=0'] : '',
           ';',
           'do{',
-          indexVar, '=', readerResultVar, ';',
+
+          // Ensure that we actually use a numeric result
+          indexVar, '=', readerResultVar, '/1;',
           createReaderCallCode(reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
           '}while(',
           readerResultVar, '>', indexVar,

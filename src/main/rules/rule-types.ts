@@ -37,7 +37,7 @@ export interface Rule<Type = unknown, Stage = void, Context = void> {
    *
    * @default undefined
    */
-  to?: ((input: string, offset: number, length: number, context: Context) => Stage) | Stage | undefined;
+  to?: ((chunk: string, offset: number, length: number, context: Context, state: TokenizerState) => Stage) | Stage | undefined;
 
   /**
    * If set to `true` then tokens read by this reader are not emitted.
@@ -84,28 +84,46 @@ export interface TokenHandler<Type = unknown, Context = void> {
   /**
    * Triggered when a token was read from the input stream.
    *
-   * @param type The type of the token as defined in {@link Rule.type}.
-   * @param offset The absolute offset from the start of the input stream where the token starts.
+   * The substring of the current token:
+   *
+   * ```ts
+   * const tokenValue = chunk.substr(offset, length);
+   * ```
+   *
+   * The offset of this token from the start of the input stream (useful if you're using {@link Tokenizer.write}):
+   *
+   * ```ts
+   * const absoluteOffset = state.chunkOffset + offset;
+   * ```
+   *
+   * @param type The type of the token that was read.
+   * @param chunk The input chunk from which the token was read.
+   * @param offset The chunk-relative offset from the start of the input stream where the token starts.
    * @param length The number of chars read by the rule.
-   * @param context The context passed by tokenizer.
+   * @param context The context passed by the tokenizer.
+   * @param state The current state of the tokenizer.
    */
-  token(type: Type, offset: number, length: number, context: Context): void;
+  token(type: Type, chunk: string, offset: number, length: number, context: Context, state: TokenizerState): void;
 
   /**
    * Triggered when the rule returned an error code.
    *
-   * @param type The type of the token as defined in {@link Rule.type}.
-   * @param offset The offset at which the rule was used.
-   * @param errorCode The error code. A negative integer <= -2.
-   * @param context The context passed by tokenizer.
+   * @param type The type of the token that caused an error while reading.
+   * @param chunk The input chunk from which the token was read.
+   * @param offset The chunk-relative offset where the token starts.
+   * @param errorCode The error code returned by the reader, a negative number.
+   * @param context The context passed by the tokenizer.
+   * @param state The current state of the tokenizer.
    */
-  error?(type: Type, offset: number, errorCode: number, context: Context): void;
+  error?(type: Type, chunk: string, offset: number, errorCode: number, context: Context, state: TokenizerState): void;
 
   /**
    * Triggered if there was no rule that could successfully read a token at the offset.
    *
-   * @param offset The offset at which the unrecognized token starts.
-   * @param context The context passed by tokenizer.
+   * @param chunk The input chunk from which tokens are read.
+   * @param offset The chunk-relative offset where the unrecognized token starts.
+   * @param context The context passed by the tokenizer.
+   * @param state The current state of the tokenizer.
    */
-  unrecognizedToken?(offset: number, context: Context): void;
+  unrecognizedToken?(chunk: string, offset: number, context: Context, state: TokenizerState): void;
 }

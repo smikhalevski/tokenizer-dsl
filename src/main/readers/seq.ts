@@ -54,7 +54,14 @@ export class SeqReader<Context> implements ReaderCodegen {
       code.push(
           'var ', readerResultVar, ';',
           createReaderCallCode(reader, inputVar, offsetVar, contextVar, readerResultVar, bindings),
-          'if(', readerResultVar, '<0){', resultVar, '=', readerResultVar, '}else{'
+
+          // Break seq if NO_MATCH or an error (NaN or < 0)
+          'if(!(', readerResultVar, '>=0)){',
+          resultVar, '=', readerResultVar,
+          '}else{',
+
+          // Ensure that a numeric value is used
+          readerResultVar, '/=1;',
       );
 
       offsetVar = readerResultVar;

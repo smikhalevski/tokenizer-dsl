@@ -10,7 +10,7 @@ import {createCodeBindings} from './reader-utils';
  * @see {@link end}
  */
 export function skip(charCount: number): Reader<any> {
-  return new SkipReader(charCount);
+  return new SkipReader(Math.max(0, charCount | 0));
 }
 
 export class SkipReader implements ReaderCodegen {

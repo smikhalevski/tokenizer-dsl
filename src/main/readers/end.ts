@@ -10,7 +10,7 @@ import {createCodeBindings} from './reader-utils';
  * @see {@link skip}
  */
 export function end(offset = 0): Reader<any> {
-  return new EndReader(offset);
+  return new EndReader(offset | 0);
 }
 
 export class EndReader implements ReaderCodegen {
