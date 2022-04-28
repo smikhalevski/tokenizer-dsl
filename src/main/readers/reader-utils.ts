@@ -2,7 +2,7 @@ import {Binding, Code, CodeBindings, compileFunction, createVar, Var} from 'code
 import {Reader, ReaderFunction} from './reader-types';
 
 export function toCharCode(value: string | number): number {
-  return typeof value === 'number' ? value : value.charCodeAt(0);
+  return typeof value === 'number' ? value | 0 : value.charCodeAt(0);
 }
 
 export function toCharCodes(str: string): number[] {

@@ -28,7 +28,7 @@ export class LookaheadReader<Context> implements ReaderCodegen {
         [
           'var ', readerResultVar, ';',
           createReaderCallCode(this.reader, inputVar, offsetVar, contextVar, readerResultVar, bindings),
-          resultVar, '=', readerResultVar, '<0?', readerResultVar, ':', offsetVar, ';',
+          resultVar, '=', readerResultVar, '>=0?', offsetVar, ':', readerResultVar, ';',
         ],
         bindings,
     );

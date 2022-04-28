@@ -48,7 +48,9 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
 
       code.push(
           createReaderCallCode(seq(...branch.readers), chunkVar, branchOffsetVar, contextVar, branchResultVar, bindings),
-          'if(', branchResultVar, '!==', NO_MATCH, '&&', branchResultVar, '!==', branchOffsetVar, '){',
+
+          // If branch matched and result is an offset that is greater than the current offset, or an error (NaN or < 0)
+          'if(', branchResultVar, '!==', NO_MATCH, '&&(', branchResultVar, '>', branchOffsetVar, '||!(', branchResultVar, '>=0))){',
       );
 
       // Apply nested branches
@@ -75,10 +77,13 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
 
       code.push([
 
-        // Emit an error
+        // Emit an error if result is NaN or < 0
         'if(!(', branchResultVar, '>=0)){',
         errorCallbackVar, '&&', errorCallbackVar, '(', ruleTypeVar, ',', chunkVar, ',', nextOffsetVar, ',', branchResultVar, ',', contextVar, ',', stateVar, ');',
         'return}',
+
+        // Ensure that we actually use a numeric value and not an object with valueOf or a string containing digits
+        branchResultVar, '/=1;',
 
         // Emit confirmed token
         'if(', prevRuleIndexVar, '!==-1){',
@@ -113,7 +118,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     'var ',
     stageIndexVar, '=', stagesVar, '.indexOf(', stateVar, '.stage),',
     chunkVar, '=', stateVar, '.chunk,',
-    offsetVar, '=', stateVar, '.offset,',
+    offsetVar, '=', stateVar, '.offset/1,',
 
     tokenCallbackVar, '=', handlerVar, '.token,',
     errorCallbackVar, '=', handlerVar, '.error,',

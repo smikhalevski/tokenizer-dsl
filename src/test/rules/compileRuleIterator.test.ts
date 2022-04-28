@@ -384,4 +384,47 @@ describe('compileRuleIterator', () => {
       stage: undefined,
     });
   });
+
+  test('treats objects with valueOf as offsets', () => {
+
+    const readerMock = jest.fn(() => 0);
+
+    const ruleA: Rule = {type: 'TypeA', reader: () => ({valueOf: () => 1}) as number};
+    const ruleB: Rule = {type: 'TypeB', reader: readerMock};
+
+    const ruleIterator = compileRuleIterator(createRuleTree([ruleA, ruleB]));
+
+    const state: TokenizerState = {
+      chunk: 'aaa',
+      offset: 0,
+      chunkOffset: 0,
+      stage: undefined,
+    };
+
+    ruleIterator(state, handler, undefined);
+
+    expect(tokenCallbackMock).toHaveBeenCalledTimes(1);
+
+    expect(readerMock).toHaveBeenCalledTimes(1);
+    expect(readerMock).toHaveBeenNthCalledWith(1, 'aaa', 1, undefined);
+  });
+
+  test('treats non-numeric-like values as errors', () => {
+
+    const rule: Rule = {type: 'TypeA', reader: () => ({foo: 'bar'}) as unknown as number};
+
+    const ruleIterator = compileRuleIterator(createRuleTree([rule]));
+
+    const state: TokenizerState = {
+      chunk: 'a',
+      offset: 0,
+      chunkOffset: 0,
+      stage: undefined,
+    };
+
+    ruleIterator(state, handler, undefined);
+
+    expect(errorCallbackMock).toHaveBeenCalledTimes(1);
+    expect(errorCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, {foo: 'bar'}, undefined);
+  });
 });
