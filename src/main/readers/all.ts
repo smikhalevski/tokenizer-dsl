@@ -4,8 +4,7 @@ import {MaybeReader} from './maybe';
 import {never} from './never';
 import {none} from './none';
 import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode, toCharCodes} from './reader-utils';
-import {CaseSensitiveTextReader} from './text';
+import {createCodeBindings, createReaderCallCode} from './reader-utils';
 
 export interface AllOptions {
 
@@ -57,9 +56,6 @@ export function all<Context = any>(reader: Reader<Context>, options: AllOptions 
   if (reader instanceof CharCodeRangeReader) {
     return new AllCharCodeRangeReader(reader.charCodeRanges, minimumCount, maximumCount);
   }
-  if (reader instanceof CaseSensitiveTextReader) {
-    return new AllCaseSensitiveTextReader(reader.str, minimumCount, maximumCount);
-  }
   return new AllReader(reader, minimumCount, maximumCount);
 }
 
@@ -101,43 +97,6 @@ export class AllCharCodeRangeReader implements ReaderCodegen {
     code.push('}'.repeat(unwoundCount));
 
     return createCodeBindings(code);
-  }
-}
-
-export class AllCaseSensitiveTextReader implements ReaderCodegen {
-
-  constructor(public str: string, public minimumCount: number, public maximumCount: number) {
-  }
-
-  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-    const {str, minimumCount, maximumCount} = this;
-
-    const strVar = createVar();
-    const inputLengthVar = createVar();
-    const indexVar = createVar();
-    const readCountVar = createVar();
-
-    return createCodeBindings(
-        [
-          'var ',
-          inputLengthVar, '=', inputVar, '.length,',
-          indexVar, '=', offsetVar,
-          minimumCount || maximumCount ? [',', readCountVar, '=0'] : '',
-          ';',
-          'while(',
-          indexVar, '+', str.length, '<=', inputLengthVar,
-          maximumCount ? ['&&', readCountVar, '<', maximumCount] : '',
-          toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', indexVar, '+', i, ')===', charCode]),
-          '){',
-          minimumCount || maximumCount ? ['++', readCountVar, ';'] : '',
-          indexVar, '+=', str.length,
-          '}',
-          resultVar, '=',
-          minimumCount ? [readCountVar, '<', minimumCount, '?', NO_MATCH, ':', indexVar] : indexVar,
-          ';',
-        ],
-        [[strVar, str]],
-    );
   }
 }
 

@@ -1,6 +1,5 @@
 import {
   all,
-  AllCaseSensitiveTextReader,
   AllCharCodeRangeReader,
   AllReader,
   MaybeReader,
@@ -37,11 +36,6 @@ describe('all', () => {
   test('returns reader', () => {
     const baseReaderMock = () => 0;
     expect(all(baseReaderMock, {minimumCount: 1, maximumCount: 1})).toBe(baseReaderMock);
-  });
-
-  test('returns AllCaseSensitiveTextReader', () => {
-    expect(all(text('a'))).toBeInstanceOf(AllCharCodeRangeReader);
-    expect(all(text('aaa'))).toBeInstanceOf(AllCaseSensitiveTextReader);
   });
 
   test('returns AllReader', () => {
@@ -95,30 +89,6 @@ describe('AllCharCodeRangeReader', () => {
     expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 0))('aaaa', 4)).toBe(4);
     expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 0))('aabb', 1)).toBe(2);
     expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 0))('aabb', 2)).toBe(2);
-  });
-});
-
-describe('AllCaseSensitiveTextReader', () => {
-
-  test('reads sequential case-insensitive substrings', () => {
-    expect(toReaderFunction(new AllCaseSensitiveTextReader('abc', 0, 0))('abcabcabcd', 3)).toBe(9);
-    expect(toReaderFunction(new AllCaseSensitiveTextReader('abc', 3, 0))('abcabcabcd', 3)).toBe(NO_MATCH);
-  });
-
-  test('reads if count is sufficient', () => {
-    expect(toReaderFunction(new AllCaseSensitiveTextReader('ab', 2, 0))('abababc', 2)).toBe(6);
-  });
-
-  test('does not read if count is insufficient', () => {
-    expect(toReaderFunction(new AllCaseSensitiveTextReader('ab', 2, 0))('aabb', 1)).toBe(NO_MATCH);
-  });
-
-  test('reads limited number of chars', () => {
-    expect(toReaderFunction(new AllCaseSensitiveTextReader('ab', 0, 2))('abababab', 2)).toBe(6);
-  });
-
-  test('stops at string end', () => {
-    expect(toReaderFunction(new AllCaseSensitiveTextReader('ab', 0, 0))('abababab', 0)).toBe(8);
   });
 });
 
