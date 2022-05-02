@@ -1,4 +1,4 @@
-import {Binding, CodeBindings, createVar, Var} from 'codedegen';
+import {Binding, Code, CodeBindings, createVar, Var} from 'codedegen';
 import {CharCodeRange, CharCodeRangeReader, createCharPredicateCode} from './char';
 import {MaybeReader} from './maybe';
 import {never} from './never';
@@ -75,31 +75,36 @@ export class AllCharCodeRangeReader implements ReaderCodegen {
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const {charCodeRanges, minimumCount, maximumCount} = this;
 
-    const inputLengthVar = createVar();
-    const indexVar = createVar();
     const charCodeVar = createVar();
-    const readCountVar = createVar();
+    const indexVar = createVar();
 
-    return createCodeBindings([
-      'var ',
-      inputLengthVar, '=', inputVar, '.length,',
-      indexVar, '=', offsetVar, ',',
-      charCodeVar,
-      minimumCount || maximumCount ? [',', readCountVar, '=0'] : '',
-      ';',
-      'while(', indexVar, '<', inputLengthVar,
-      maximumCount ? ['&&', readCountVar, '<', maximumCount] : '',
-      '&&(',
-      charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, '),',
-      createCharPredicateCode(charCodeVar, charCodeRanges),
-      ')){',
-      minimumCount || maximumCount ? ['++', readCountVar, ';'] : '',
-      '++', indexVar,
-      '}',
-      resultVar, '=',
-      minimumCount ? [readCountVar, '<', minimumCount, '?', NO_MATCH, ':', indexVar] : indexVar,
-      ';'
-    ]);
+    const unwoundCount = maximumCount || Math.max(minimumCount, 10);
+
+    const code: Code[] = [
+      'var ', charCodeVar, ',',
+      indexVar, '=', offsetVar, ';',
+      resultVar, '=', minimumCount ? NO_MATCH : indexVar, ';',
+    ];
+
+    for (let i = 0; i < unwoundCount; ++i) {
+      code.push(
+          charCodeVar, '=', inputVar, '.charCodeAt(', minimumCount ? indexVar : resultVar, ');',
+          'if(', createCharPredicateCode(charCodeVar, charCodeRanges), '){++', minimumCount ? indexVar : resultVar, ';',
+          minimumCount && i >= minimumCount - 1 ? [resultVar, '=', indexVar, ';'] : '',
+      );
+    }
+    if (!maximumCount) {
+      code.push(
+          charCodeVar, '=', inputVar, '.charCodeAt(', resultVar, ');',
+          'while(', createCharPredicateCode(charCodeVar, charCodeRanges), '){',
+          '++', resultVar, ';',
+          charCodeVar, '=', inputVar, '.charCodeAt(', resultVar, ');',
+          '}',
+      );
+    }
+    code.push('}'.repeat(unwoundCount));
+
+    return createCodeBindings(code);
   }
 }
 
