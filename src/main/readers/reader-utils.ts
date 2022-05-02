@@ -14,16 +14,16 @@ export function toCharCodes(str: string): number[] {
   return charCodes;
 }
 
-export function createReaderCallCode<Context>(reader: Reader<Context>, inputVar: Var, offsetVar: Var, contextVar: Var, returnVar: Var, bindings: Binding[]): Code {
+export function createReaderCallCode<Context>(reader: Reader<Context>, inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var, bindings: Binding[]): Code {
 
   if (typeof reader === 'function') {
     const readerVar = createVar();
     bindings.push([readerVar, reader]);
 
-    return [returnVar, '=', readerVar, '(', inputVar, ',', offsetVar, ',', contextVar, ')', ';'];
+    return [resultVar, '=', readerVar, '(', inputVar, ',', offsetVar, ',', contextVar, ')', ';'];
   }
 
-  const codeBindings = reader.factory(inputVar, offsetVar, contextVar, returnVar);
+  const codeBindings = reader.factory(inputVar, offsetVar, contextVar, resultVar);
 
   if (codeBindings.bindings) {
     bindings.push(...codeBindings.bindings);

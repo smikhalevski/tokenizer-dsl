@@ -16,7 +16,7 @@ export class RegexReader implements ReaderCodegen {
   re;
 
   constructor(re: RegExp) {
-    this.re = RegExp(re.source, re.flags.replace(/[yg]/, '') + (re.sticky !== undefined ? 'y' : 'g'));
+    this.re = re.global || re.sticky ? re : new RegExp(re.source, re.flags + 'g');
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {

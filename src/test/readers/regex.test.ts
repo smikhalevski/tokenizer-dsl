@@ -10,7 +10,7 @@ describe('regex', () => {
 describe('RegexReader', () => {
 
   test('reads text', () => {
-    const read = toReaderFunction(new RegexReader(/abc/));
+    const read = toReaderFunction(new RegexReader(/abc/y));
 
     expect(read('aaaabc', 3)).toBe(6);
     expect(read('aaaabcde', 3)).toBe(6);
@@ -19,10 +19,10 @@ describe('RegexReader', () => {
   });
 
   test('starts from the given offset', () => {
-    expect(toReaderFunction(new RegexReader(/abc/))('aaaabcabc', 6)).toBe(9);
+    expect(toReaderFunction(new RegexReader(/abc/y))('aaaabcabc', 6)).toBe(9);
   });
 
   test('ignores matches that do not start at offset', () => {
-    expect(toReaderFunction(new RegexReader(/abc/))('aaaabcabc', 5)).toBe(NO_MATCH);
+    expect(toReaderFunction(new RegexReader(/abc/y))('aaaabcabc', 5)).toBe(NO_MATCH);
   });
 });

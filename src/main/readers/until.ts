@@ -4,7 +4,6 @@ import {never} from './never';
 import {none} from './none';
 import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings, createReaderCallCode} from './reader-utils';
-import {RegexReader} from './regex';
 import {CaseSensitiveTextReader} from './text';
 
 export interface UntilOptions {
@@ -31,9 +30,6 @@ export function until<Context = any>(reader: Reader<Context>, options: UntilOpti
 
   if (reader === never || reader === none) {
     return reader;
-  }
-  if (reader instanceof RegexReader) {
-    return new UntilRegexReader(reader.re, inclusive);
   }
   if (reader instanceof CharCodeRangeReader) {
     const {charCodeRanges} = reader;
@@ -90,28 +86,6 @@ export class UntilCaseSensitiveTextReader implements ReaderCodegen {
           resultVar, '=', indexVar, '===-1?', NO_MATCH, ':', indexVar, this.inclusive ? '+' + this.str.length : '', ';',
         ],
         [[strVar, this.str]],
-    );
-  }
-}
-
-export class UntilRegexReader implements ReaderCodegen {
-
-  re;
-
-  constructor(re: RegExp, public inclusive: boolean) {
-    this.re = RegExp(inclusive ? re.source : '(?=' + re.source + ')', re.flags.replace(/[yg]/, '') + 'g');
-  }
-
-  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-
-    const reVar = createVar();
-
-    return createCodeBindings(
-        [
-          reVar, '.lastIndex=', offsetVar, ';',
-          resultVar, '=', reVar, '.test(', inputVar, ')?', reVar, '.lastIndex:', NO_MATCH, ';',
-        ],
-        [[reVar, this.re]],
     );
   }
 }

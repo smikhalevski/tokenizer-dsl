@@ -3,7 +3,6 @@ import {
   AllCaseSensitiveTextReader,
   AllCharCodeRangeReader,
   AllReader,
-  AllRegexReader,
   MaybeReader,
   never,
   NO_MATCH,
@@ -120,31 +119,6 @@ describe('AllCaseSensitiveTextReader', () => {
 
   test('stops at string end', () => {
     expect(toReaderFunction(new AllCaseSensitiveTextReader('ab', 0, 0))('abababab', 0)).toBe(8);
-  });
-});
-
-describe('AllRegexReader', () => {
-
-  test('reads sequential regex matches', () => {
-    expect(toReaderFunction(new AllRegexReader(/a/, 0, 0))('aaaaabaaa', 3)).toBe(5);
-    expect(toReaderFunction(new AllRegexReader(/a/, 3, 0))('aaaaabaaa', 3)).toBe(NO_MATCH);
-    expect(toReaderFunction(new AllRegexReader(/a/, 0, 3))('aaaaa', 0)).toBe(3);
-  });
-
-  test('reads if count is sufficient', () => {
-    expect(toReaderFunction(new AllRegexReader(/ab/, 2, 0))('abababc', 2)).toBe(6);
-  });
-
-  test('does not read if count is insufficient', () => {
-    expect(toReaderFunction(new AllRegexReader(/ab/, 2, 0))('aabb', 1)).toBe(NO_MATCH);
-  });
-
-  test('reads limited number of chars', () => {
-    expect(toReaderFunction(new AllRegexReader(/ab/, 0, 2))('abababab', 2)).toBe(6);
-  });
-
-  test('stops at string end', () => {
-    expect(toReaderFunction(new AllRegexReader(/ab/, 0, 0))('abababab', 0)).toBe(8);
   });
 });
 

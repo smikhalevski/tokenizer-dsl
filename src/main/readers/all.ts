@@ -5,7 +5,6 @@ import {never} from './never';
 import {none} from './none';
 import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings, createReaderCallCode, toCharCodes} from './reader-utils';
-import {RegexReader} from './regex';
 import {CaseSensitiveTextReader} from './text';
 
 export interface AllOptions {
@@ -60,9 +59,6 @@ export function all<Context = any>(reader: Reader<Context>, options: AllOptions 
   }
   if (reader instanceof CaseSensitiveTextReader) {
     return new AllCaseSensitiveTextReader(reader.str, minimumCount, maximumCount);
-  }
-  if (reader instanceof RegexReader) {
-    return new AllRegexReader(reader.re, minimumCount, maximumCount);
   }
   return new AllReader(reader, minimumCount, maximumCount);
 }
@@ -141,37 +137,6 @@ export class AllCaseSensitiveTextReader implements ReaderCodegen {
           ';',
         ],
         [[strVar, str]],
-    );
-  }
-}
-
-export class AllRegexReader implements ReaderCodegen {
-
-  re;
-
-  constructor(re: RegExp, minimumCount: number, maximumCount: number) {
-    this.re = RegExp(
-        '(?:'
-        + re.source
-        + '){'
-        + minimumCount
-        + ','
-        + (maximumCount || '')
-        + '}',
-        re.flags.replace(/[yg]/, '') + (re.sticky !== undefined ? 'y' : 'g'),
-    );
-  }
-
-  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-
-    const reVar = createVar();
-
-    return createCodeBindings(
-        [
-          reVar, '.lastIndex=', offsetVar, ';',
-          resultVar, '=', reVar, '.test(', inputVar, ')?', reVar, '.lastIndex:', NO_MATCH, ';',
-        ],
-        [[reVar, this.re]],
     );
   }
 }
