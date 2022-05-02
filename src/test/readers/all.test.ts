@@ -2,7 +2,6 @@ import {
   all,
   AllCharCodeRangeReader,
   AllReader,
-  MaybeReader,
   never,
   NO_MATCH,
   none,
@@ -27,10 +26,6 @@ describe('all', () => {
   test('returns unlimited reader', () => {
     expect(all(() => 0, {maximumCount: -1})).toBeInstanceOf(AllReader);
     expect(all(() => 0, {maximumCount: 0})).toBeInstanceOf(AllReader);
-  });
-
-  test('returns MaybeReader', () => {
-    expect(all(() => 0, {maximumCount: 1})).toBeInstanceOf(MaybeReader);
   });
 
   test('returns reader', () => {

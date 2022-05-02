@@ -1,6 +1,5 @@
 import {Binding, Code, CodeBindings, createVar, Var} from 'codedegen';
 import {CharCodeRange, CharCodeRangeReader, createCharPredicateCode} from './char';
-import {MaybeReader} from './maybe';
 import {never} from './never';
 import {none} from './none';
 import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
@@ -43,9 +42,6 @@ export function all<Context = any>(reader: Reader<Context>, options: AllOptions 
 
   if (maximumCount > 0 && minimumCount > maximumCount) {
     return never;
-  }
-  if (minimumCount === 0 && maximumCount === 1) {
-    return new MaybeReader(reader);
   }
   if (minimumCount === 1 && maximumCount === 1) {
     return reader;
