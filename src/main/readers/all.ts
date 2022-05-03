@@ -22,8 +22,9 @@ export interface AllOptions {
   maximumCount?: number;
 
   /**
-   * The number of iterations [to unroll from a loop](https://en.wikipedia.org/wiki/Loop_unrolling) when
-   * {@link maximumCount} is omitted.
+   * The positive number of iterations [to unroll from a loop](https://en.wikipedia.org/wiki/Loop_unrolling). Only
+   * applicable when {@link maximumCount} is omitted. The more iterations are unrolled the more bloated the generated
+   * code becomes.
    *
    * @default 5
    */
@@ -79,29 +80,38 @@ export class AllCharCodeRangeReader implements ReaderCodegen {
       charCodeVar, ';',
     ];
 
+    const predicateCode = createCharPredicateCode(charCodeVar, charCodeRanges);
+
     if (minimumCount !== 0) {
-      // Check the required minimum of chars before proceeding
-      // if (offset + minimumCount < input.length && (charCode = input.charCodeAt(offset + i), charPredicate(charCode)) && … )
+      // Check the required minimum of leading chars before proceeding to the loop
       code.push(
           resultVar, '=', NO_MATCH, ';',
           'if(', offsetVar, '+', minimumCount - 1, '<', inputLengthVar,
       );
       for (let i = 0; i < minimumCount; ++i) {
-        code.push('&&(', charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '+', i, '),', createCharPredicateCode(charCodeVar, charCodeRanges), ')');
+        code.push('&&(', charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '+', i, '),', predicateCode, ')');
       }
       code.push('){', resultVar, '=', offsetVar, '+', minimumCount, ';');
     } else {
+      // No leading chars are required, so offset is returned at least
       code.push(resultVar, '=', offsetVar, ';');
     }
 
+    // The remaining fixed number of chars that must be read
     const remainingCount = Math.max(0, maximumCount - minimumCount);
 
+    // If the unlimited number of characters must be read or a fixed non-zero number of chars
     if (maximumCount === 0 || remainingCount !== 0) {
+
+      // The number of characters that would be checked in one go,
+      const batchCount = remainingCount || unrollingCount;
+
       // Loop is removed if maximum count is known beforehand
-      // (result < input.length && (charCode = input.charCodeAt(result), charPredicate(charCode)) && ++result < input.length && …) ++result;
-      code.push(maximumCount !== 0 ? 'if(' : 'while(');
-      for (let i = 0; i < (remainingCount || unrollingCount); ++i) {
-        code.push(i === 0 ? '' : '&&++', resultVar, '<', inputLengthVar, '&&(', charCodeVar, '=', inputVar, '.charCodeAt(', resultVar, '),', createCharPredicateCode(charCodeVar, charCodeRanges), ')');
+      code.push(remainingCount !== 0 ? 'if(' : 'while(');
+
+      // The batch may overflow the length of the input, so check every char overflow separately
+      for (let i = 0; i < batchCount; ++i) {
+        code.push(i === 0 ? '' : '&&++', resultVar, '<', inputLengthVar, '&&(', charCodeVar, '=', inputVar, '.charCodeAt(', resultVar, '),', predicateCode, ')');
       }
       code.push(')++', resultVar, ';');
     }
