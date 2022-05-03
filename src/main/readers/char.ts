@@ -42,8 +42,12 @@ export class CharCodeRangeReader implements ReaderCodegen {
     const charCodeVar = createVar();
 
     return createCodeBindings([
-      'var ', charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, ');',
-      resultVar, '=', createCharPredicateCode(charCodeVar, this.charCodeRanges), '?', offsetVar, '+1:', NO_MATCH, ';',
+      'var ', charCodeVar, ';',
+
+      resultVar, '=',
+      offsetVar, '<', inputVar, '.length&&(',
+      charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '),',
+      createCharPredicateCode(charCodeVar, this.charCodeRanges), ')?', offsetVar, '+1:', NO_MATCH, ';',
     ]);
   }
 }
