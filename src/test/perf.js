@@ -283,6 +283,24 @@ describe('all', () => {
     });
   });
 
+  describe('AllReader\tall(text(["abc"]))', () => {
+
+    const input = '___abcabcabc___';
+
+    test('RegExp', (measure) => {
+      const re = /(?:abc)*/y;
+      measure(() => {
+        re.lastIndex = 3;
+        re.test(input);
+      });
+    });
+
+    test(nextVersion, (measure) => {
+      const read = next.toReaderFunction(next.all(next.text('abc')));
+      measure(() => read(input, 3));
+    });
+  });
+
 }, {targetRme: 0.001});
 
 describe('or', () => {
