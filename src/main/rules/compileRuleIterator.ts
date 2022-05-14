@@ -45,47 +45,49 @@ export function compileRuleIterator<Type, Stage, Context, Error>(tree: RuleTree<
     ];
 
     for (const branch of branches) {
+      const {rule} = branch;
 
+      const ruleTypeVar = createVar();
+      const ruleToCallbackVar = createVar();
+
+      if (rule) {
+        bindings.push([ruleTypeVar, rule.type]);
+
+        if (typeof rule.to === 'function') {
+          bindings.push([ruleToCallbackVar, rule.to]);
+        }
+      }
+
+      // Read branch
       code.push(
           createReaderCallCode(seq(...branch.readers), chunkVar, branchOffsetVar, contextVar, branchResultVar, bindings),
-
-          // If the branch matched and the offset is shifted forward (a token has a non-zero length),
-          // or an error (NaN or < 0)
-          'if(', branchResultVar, '!==', NO_MATCH, '&&!(', branchResultVar, '<=', branchOffsetVar, '&&', branchResultVar, '>=0)){',
+          'if(', branchResultVar, '!==', NO_MATCH, '){'
       );
+
+      // Emit an error if any
+      if (rule) {
+        code.push(
+            'if(typeof ', branchResultVar, '!=="number"||', branchResultVar, '<0){',
+            errorCallbackVar, '&&', errorCallbackVar, '(', ruleTypeVar, ',', chunkVar, ',', nextOffsetVar, ',', branchResultVar, ',', contextVar, ',', stateVar, ');',
+            'return}',
+        );
+      }
+
+      // If branch matched an empty substring then exit
+      code.push('if(', branchResultVar, '>', branchOffsetVar, '){');
 
       // Apply nested branches
       if (branch.children) {
         code.push(createRuleIteratorBranchesCode(branch.children, branchResultVar, stagesEnabled));
       }
 
-      const {rule} = branch;
-
       // If there's no termination rule then exit
       if (!rule) {
-        code.push('}');
+        code.push('}}');
         continue;
       }
 
-      const ruleTypeVar = createVar();
-      const ruleToCallbackVar = createVar();
-
-      bindings.push([ruleTypeVar, rule.type]);
-
-      if (typeof rule.to === 'function') {
-        bindings.push([ruleToCallbackVar, rule.to]);
-      }
-
       code.push([
-
-        // Emit an error if result is NaN or < 0
-        'if(typeof ', branchResultVar, '!=="number"||', branchResultVar, '<0){',
-        errorCallbackVar, '&&', errorCallbackVar, '(', ruleTypeVar, ',', chunkVar, ',', nextOffsetVar, ',', branchResultVar, ',', contextVar, ',', stateVar, ');',
-        'return}',
-
-        // Ensure that a numeric value is used
-        // Not an object with valueOf or a string containing digits
-        branchResultVar, '/=1;',
 
         // Emit confirmed token
         'if(', prevRuleIndexVar, '!==-1){',
@@ -108,7 +110,7 @@ export function compileRuleIterator<Type, Stage, Context, Error>(tree: RuleTree<
         nextOffsetVar, '=', branchResultVar, ';',
 
         // Restart the looping over characters in the input chunk
-        'continue}',
+        'continue}}',
       ]);
 
     }
@@ -120,8 +122,7 @@ export function compileRuleIterator<Type, Stage, Context, Error>(tree: RuleTree<
     'var ',
     stageIndexVar, '=', stagesVar, '.indexOf(', stateVar, '.stage),',
     chunkVar, '=', stateVar, '.chunk,',
-    offsetVar, '=', stateVar, '.offset/1,',
-
+    offsetVar, '=', stateVar, '.offset,',
     tokenCallbackVar, '=', handlerVar, '.token,',
     errorCallbackVar, '=', handlerVar, '.error,',
     unrecognizedTokenCallbackVar, '=', handlerVar, '.unrecognizedToken,',
