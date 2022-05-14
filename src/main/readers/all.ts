@@ -130,69 +130,69 @@ export class AllReader<Context, Error> implements ReaderCodegen {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-    const {reader, minimumCount, maximumCount} = this;
-
-    const bindings: Binding[] = [];
-    const indexVar = createVar();
-    const readerResultVar = createVar();
-
-    const unwoundCount = maximumCount || Math.max(minimumCount, 10);
-
-    const code: Code[] = [
-      'var ', readerResultVar, ',',
-      indexVar, '=', offsetVar, ';',
-      resultVar, '=', minimumCount ? NO_MATCH : indexVar, ';',
-    ];
-
-    for (let i = 0; i < unwoundCount; ++i) {
-      code.push(
-          createReaderCallCode(reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
-          'if(', readerResultVar, '>', indexVar, '){',
-          indexVar, '=', readerResultVar, ';',
-          !minimumCount || i >= minimumCount - 1 ? [resultVar, '=', indexVar, ';'] : '',
-      );
-    }
-    if (!maximumCount) {
-      code.push(
-          createReaderCallCode(reader, inputVar, resultVar, contextVar, readerResultVar, bindings),
-          'while(', readerResultVar, '>', resultVar, '){',
-          resultVar, '=', readerResultVar, ';',
-          '}',
-      );
-    }
-    code.push('}'.repeat(unwoundCount));
-
-    return createCodeBindings(code, bindings);
-
     // const {reader, minimumCount, maximumCount} = this;
     //
     // const bindings: Binding[] = [];
     // const indexVar = createVar();
     // const readerResultVar = createVar();
-    // const readCountVar = createVar();
     //
-    // return createCodeBindings(
-    //     [
-    //       'var ',
-    //       indexVar, ',',
-    //       readerResultVar, '=', offsetVar,
-    //       minimumCount || maximumCount ? [',', readCountVar, '=0'] : '',
-    //       ';',
-    //       'do{',
+    // const unwoundCount = maximumCount || Math.max(minimumCount, 10);
     //
-    //       // Ensure that we actually use a numeric result
-    //       indexVar, '=', readerResultVar, '/1;',
+    // const code: Code[] = [
+    //   'var ', readerResultVar, ',',
+    //   indexVar, '=', offsetVar, ';',
+    //   resultVar, '=', minimumCount ? NO_MATCH : indexVar, ';',
+    // ];
+    //
+    // for (let i = 0; i < unwoundCount; ++i) {
+    //   code.push(
     //       createReaderCallCode(reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
-    //       '}while(',
-    //       readerResultVar, '>', indexVar,
-    //       minimumCount || maximumCount ? ['&&++', readCountVar, maximumCount ? '<' + maximumCount : ''] : '',
-    //       ')',
-    //       resultVar, '=',
-    //       minimumCount ? [readCountVar, '<', minimumCount, '?', NO_MATCH, ':'] : '',
-    //       readerResultVar, '===', NO_MATCH, '?', indexVar, ':', readerResultVar,
-    //       ';',
-    //     ],
-    //     bindings,
-    // );
+    //       'if(', readerResultVar, '>', indexVar, '){',
+    //       indexVar, '=', readerResultVar, ';',
+    //       !minimumCount || i >= minimumCount - 1 ? [resultVar, '=', indexVar, ';'] : '',
+    //   );
+    // }
+    // if (!maximumCount) {
+    //   code.push(
+    //       createReaderCallCode(reader, inputVar, resultVar, contextVar, readerResultVar, bindings),
+    //       'while(', readerResultVar, '>', resultVar, '){',
+    //       resultVar, '=', readerResultVar, ';',
+    //       '}',
+    //   );
+    // }
+    // code.push('}'.repeat(unwoundCount));
+    //
+    // return createCodeBindings(code, bindings);
+
+    const {reader, minimumCount, maximumCount} = this;
+
+    const bindings: Binding[] = [];
+    const indexVar = createVar();
+    const readerResultVar = createVar();
+    const readCountVar = createVar();
+
+    return createCodeBindings(
+        [
+          'var ',
+          indexVar, ',',
+          readerResultVar, '=', offsetVar,
+          minimumCount || maximumCount ? [',', readCountVar, '=0'] : '',
+          ';',
+          'do{',
+
+          // Ensure that we actually use a numeric result
+          indexVar, '=', readerResultVar, '/1;',
+          createReaderCallCode(reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
+          '}while(',
+          readerResultVar, '>', indexVar,
+          minimumCount || maximumCount ? ['&&++', readCountVar, maximumCount ? '<' + maximumCount : ''] : '',
+          ')',
+          resultVar, '=',
+          minimumCount ? [readCountVar, '<', minimumCount, '?', NO_MATCH, ':'] : '',
+          readerResultVar, '===', NO_MATCH, '?', indexVar, ':', readerResultVar,
+          ';',
+        ],
+        bindings,
+    );
   }
 }
