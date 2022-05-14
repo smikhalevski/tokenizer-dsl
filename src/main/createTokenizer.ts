@@ -19,7 +19,7 @@ export interface Tokenizer<Type = unknown, Stage = void, Context = void, Error =
    * @param context The context that should be passed to readers and stage providers.
    * @returns The result state of the tokenizer.
    */
-  (input: string, handler: TokenHandler<Type, Context, Error>, context: Context): Readonly<TokenizerState<Stage>>;
+  (input: string, handler: TokenHandler<Type, Context, Error>, context: Context): TokenizerState<Stage>;
 
   /**
    * Reads tokens from the chunk in a streaming fashion. Does not trigger a {@link TokenHandler.unrecognizedToken} is
@@ -39,7 +39,7 @@ export interface Tokenizer<Type = unknown, Stage = void, Context = void, Error =
    * @param context The context that should be passed to readers and stage providers.
    * @returns The result state of the tokenizer.
    */
-  write(chunk: string, handler: TokenHandler<Type, Context, Error>, state: Readonly<TokenizerState<Stage>> | void, context: Context): Readonly<TokenizerState<Stage>>;
+  write(chunk: string, handler: TokenHandler<Type, Context, Error>, state: TokenizerState<Stage> | void, context: Context): TokenizerState<Stage>;
 
   /**
    * Reads remaining tokens from the {@link TokenizerState.chunk}. Triggers a {@link TokenHandler.unrecognizedToken} if
@@ -50,7 +50,7 @@ export interface Tokenizer<Type = unknown, Stage = void, Context = void, Error =
    * @param context The context that should be passed to readers and stage providers.
    * @returns The result state of the tokenizer.
    */
-  end(handler: TokenHandler<Type, Context, Error>, state: Readonly<TokenizerState<Stage>>, context: Context): Readonly<TokenizerState<Stage>>;
+  end(handler: TokenHandler<Type, Context, Error>, state: TokenizerState<Stage>, context: Context): TokenizerState<Stage>;
 }
 
 /**
