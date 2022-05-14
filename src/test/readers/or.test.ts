@@ -7,7 +7,7 @@ describe('or', () => {
   });
 
   test('returns single reader', () => {
-    const readerMock: Reader<any> = () => 0;
+    const readerMock: Reader<any, any> = () => 0;
     expect(or(readerMock)).toBe(readerMock);
   });
 
@@ -37,13 +37,23 @@ describe('OrReader', () => {
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
-  test('returns error result', () => {
+  test('returns negative integer as an error result', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(NO_MATCH);
     readerMock.mockReturnValueOnce(-2);
     readerMock.mockReturnValueOnce(4);
 
     expect(toReaderFunction(new OrReader([readerMock, readerMock]))('aabbcc', 2)).toBe(-2);
+    expect(readerMock).toHaveBeenCalledTimes(2);
+  });
+
+  test('returns non number value as an error result', () => {
+    const readerMock = jest.fn();
+    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce('123');
+    readerMock.mockReturnValueOnce(4);
+
+    expect(toReaderFunction(new OrReader([readerMock, readerMock]))('aabbcc', 2)).toBe('123');
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 

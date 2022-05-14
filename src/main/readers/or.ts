@@ -11,9 +11,9 @@ import {createCodeBindings, createReaderCallCode} from './reader-utils';
  *
  * @template Context The context passed by tokenizer.
  */
-export function or<Context = any>(...readers: Reader<Context>[]): Reader<Context> {
+export function or<Context = any, Error = any>(...readers: Reader<Context, Error>[]): Reader<Context, Error> {
 
-  const children: Reader<Context>[] = [];
+  const children: Reader<Context, Error>[] = [];
 
   for (const reader of readers) {
     if (reader === none) {
@@ -37,9 +37,9 @@ export function or<Context = any>(...readers: Reader<Context>[]): Reader<Context
   return new OrReader(children);
 }
 
-export class OrReader<Context> implements ReaderCodegen {
+export class OrReader<Context, Error> implements ReaderCodegen {
 
-  constructor(public readers: Reader<Context>[]) {
+  constructor(public readers: Reader<Context, Error>[]) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {

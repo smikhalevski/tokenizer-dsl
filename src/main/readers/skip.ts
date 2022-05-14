@@ -9,7 +9,7 @@ import {createCodeBindings} from './reader-utils';
  *
  * @see {@link end}
  */
-export function skip(charCount: number): Reader<any> {
+export function skip(charCount: number): Reader<any, any> {
   return new SkipReader(Math.max(0, charCount | 0));
 }
 

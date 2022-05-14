@@ -6,8 +6,9 @@ import {compileRuleIterator, createRuleTree, Rule, TokenHandler, TokenizerState}
  * @template Type The type of the token emitted by the tokenizer.
  * @template Stage The tokenizer stage type.
  * @template Context The context passed to the tokenizer.
+ * @template Error The error that the reader may return.
  */
-export interface Tokenizer<Type = unknown, Stage = void, Context = void> {
+export interface Tokenizer<Type = unknown, Stage = void, Context = void, Error = number> {
 
   /**
    * Reads tokens from the input in a non-streaming fashion. Triggers a {@link TokenHandler.unrecognizedToken} if the
@@ -18,7 +19,7 @@ export interface Tokenizer<Type = unknown, Stage = void, Context = void> {
    * @param context The context that should be passed to readers and stage providers.
    * @returns The result state of the tokenizer.
    */
-  (input: string, handler: TokenHandler<Type, Context>, context: Context): Readonly<TokenizerState<Stage>>;
+  (input: string, handler: TokenHandler<Type, Context, Error>, context: Context): Readonly<TokenizerState<Stage>>;
 
   /**
    * Reads tokens from the chunk in a streaming fashion. Does not trigger a {@link TokenHandler.unrecognizedToken} is
@@ -38,7 +39,7 @@ export interface Tokenizer<Type = unknown, Stage = void, Context = void> {
    * @param context The context that should be passed to readers and stage providers.
    * @returns The result state of the tokenizer.
    */
-  write(chunk: string, handler: TokenHandler<Type, Context>, state: Readonly<TokenizerState<Stage>> | void, context: Context): Readonly<TokenizerState<Stage>>;
+  write(chunk: string, handler: TokenHandler<Type, Context, Error>, state: Readonly<TokenizerState<Stage>> | void, context: Context): Readonly<TokenizerState<Stage>>;
 
   /**
    * Reads remaining tokens from the {@link TokenizerState.chunk}. Triggers a {@link TokenHandler.unrecognizedToken} if
@@ -49,7 +50,7 @@ export interface Tokenizer<Type = unknown, Stage = void, Context = void> {
    * @param context The context that should be passed to readers and stage providers.
    * @returns The result state of the tokenizer.
    */
-  end(handler: TokenHandler<Type, Context>, state: Readonly<TokenizerState<Stage>>, context: Context): Readonly<TokenizerState<Stage>>;
+  end(handler: TokenHandler<Type, Context, Error>, state: Readonly<TokenizerState<Stage>>, context: Context): Readonly<TokenizerState<Stage>>;
 }
 
 /**
@@ -59,8 +60,9 @@ export interface Tokenizer<Type = unknown, Stage = void, Context = void> {
  *
  * @template Type The type of tokens emitted by the tokenizer.
  * @template Context The context that rules may consume.
+ * @template Error The error that the reader may return.
  */
-export function createTokenizer<Type, Context = void>(rules: Rule<Type, void, Context>[]): Tokenizer<Type, void, Context>;
+export function createTokenizer<Type, Context = void, Error = number>(rules: Rule<Type, void, Context, Error>[]): Tokenizer<Type, void, Context, Error>;
 
 /**
  * Creates a new pure tokenizer function.
@@ -71,8 +73,9 @@ export function createTokenizer<Type, Context = void>(rules: Rule<Type, void, Co
  * @template Type The type of tokens emitted by the tokenizer.
  * @template Stage The type of stages at which rules are applied.
  * @template Context The context that rules may consume.
+ * @template Error The error that the reader may return.
  */
-export function createTokenizer<Type, Stage, Context = void>(rules: Rule<Type, Stage, Context>[], initialStage: Stage): Tokenizer<Type, Stage, Context>;
+export function createTokenizer<Type, Stage, Context = void, Error = number>(rules: Rule<Type, Stage, Context, Error>[], initialStage: Stage): Tokenizer<Type, Stage, Context, Error>;
 
 export function createTokenizer(rules: Rule[], initialStage?: any) {
   const ruleIterator = compileRuleIterator(createRuleTree(rules));

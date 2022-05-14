@@ -9,7 +9,7 @@ import {createCodeBindings} from './reader-utils';
  *
  * @see {@link skip}
  */
-export function end(offset = 0): Reader<any> {
+export function end(offset = 0): Reader<any, any> {
   return new EndReader(offset | 0);
 }
 

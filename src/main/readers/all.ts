@@ -39,7 +39,7 @@ export interface AllOptions {
  *
  * @template Context The context passed by tokenizer.
  */
-export function all<Context = any>(reader: Reader<Context>, options: AllOptions = {}): Reader<Context> {
+export function all<Context = any, Error = any>(reader: Reader<Context, Error>, options: AllOptions = {}): Reader<Context, Error> {
 
   let {
     minimumCount = 0,
@@ -124,9 +124,9 @@ export class AllCharCodeRangeReader implements ReaderCodegen {
   }
 }
 
-export class AllReader<Context> implements ReaderCodegen {
+export class AllReader<Context, Error> implements ReaderCodegen {
 
-  constructor(public reader: Reader<Context>, public minimumCount: number, public maximumCount: number, public unrollingCount: number) {
+  constructor(public reader: Reader<Context, Error>, public minimumCount: number, public maximumCount: number, public unrollingCount: number) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {

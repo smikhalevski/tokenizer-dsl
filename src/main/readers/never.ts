@@ -4,7 +4,7 @@ import {createCodeBindings} from './reader-utils';
 /**
  * The singleton reader that always returns {@link NO_MATCH}.
  */
-export const never: Reader<any> = {
+export const never: Reader<any, any> = {
 
   factory(inputVar, offsetVar, contextVar, resultVar) {
     return createCodeBindings([

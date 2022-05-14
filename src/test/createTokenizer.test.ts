@@ -97,7 +97,7 @@ describe('createTokenizer', () => {
   });
 
   test('reads tokens with reader function', () => {
-    const readerMock: ReaderFunction<void> = jest.fn((input, offset) => {
+    const readerMock: ReaderFunction<void, number> = jest.fn((input, offset) => {
       return offset < input.length ? offset + 1 : NO_MATCH;
     });
 

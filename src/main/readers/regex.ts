@@ -7,7 +7,7 @@ import {createCodeBindings} from './reader-utils';
  *
  * @param re The `RegExp` to match.
  */
-export function regex(re: RegExp): Reader<any> {
+export function regex(re: RegExp): Reader<any, any> {
   return new RegexReader(re);
 }
 
@@ -16,7 +16,7 @@ export class RegexReader implements ReaderCodegen {
   re;
 
   constructor(re: RegExp) {
-    this.re = re.global || re.sticky ? re : new RegExp(re.source, re.flags + 'g');
+    this.re = re.global || re.sticky ? re : new RegExp(re, re.flags + 'g');
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {

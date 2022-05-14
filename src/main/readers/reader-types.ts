@@ -9,8 +9,9 @@ export const NO_MATCH = -1;
  * The reader definition that can be compiled into a function that reads chars from the input string.
  *
  * @template Context The context passed by tokenizer.
+ * @template Error The error that the reader may return.
  */
-export type Reader<Context> = ReaderFunction<Context> | ReaderCodegen;
+export type Reader<Context, Error> = ReaderFunction<Context, Error> | ReaderCodegen;
 
 /**
  * Takes the string `input` and the offset in this string `offset` and returns the new offset in `input` if reader
@@ -22,8 +23,11 @@ export type Reader<Context> = ReaderFunction<Context> | ReaderCodegen;
  *   return input.startsWith('abc', offset) ? offset + 3 : NO_MATCH;
  * };
  * ```
+ *
+ * @template Context The context passed by tokenizer.
+ * @template Error The error that the reader may return.
  */
-export type ReaderFunction<Context> = (input: string, offset: number, context: Context) => number;
+export type ReaderFunction<Context, Error> = (input: string, offset: number, context: Context) => number | Error;
 
 /**
  * Factory that returns the reader code and values for variables that must be bound to the reader.

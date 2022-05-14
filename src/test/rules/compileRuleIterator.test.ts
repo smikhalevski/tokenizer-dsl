@@ -323,7 +323,7 @@ describe('compileRuleIterator', () => {
 
   test('optimizes rule prefixes', () => {
 
-    const prefixReaderMock: ReaderFunction<any> = jest.fn((input, offset) => offset + 1);
+    const prefixReaderMock: ReaderFunction<any, number> = jest.fn((input, offset) => offset + 1);
 
     const ruleA: Rule = {type: 'TypeA', reader: seq(prefixReaderMock, text('a'))};
     const ruleB: Rule = {type: 'TypeB', reader: seq(prefixReaderMock, text('b'))};
@@ -385,7 +385,7 @@ describe('compileRuleIterator', () => {
     });
   });
 
-  test('treats objects with valueOf as offsets', () => {
+  test('treats objects with valueOf as errors', () => {
 
     const readerMock = jest.fn(() => 0);
 
@@ -403,10 +403,8 @@ describe('compileRuleIterator', () => {
 
     ruleIterator(state, handler, undefined);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(1);
-
-    expect(readerMock).toHaveBeenCalledTimes(1);
-    expect(readerMock).toHaveBeenNthCalledWith(1, 'aaa', 1, undefined);
+    expect(tokenCallbackMock).toHaveBeenCalledTimes(0);
+    expect(errorCallbackMock).toHaveBeenCalledTimes(1);
   });
 
   test('treats non-numeric-like values as errors', () => {
