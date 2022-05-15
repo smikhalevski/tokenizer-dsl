@@ -26,7 +26,7 @@ export interface AllOptions {
    * applicable when {@link maximumCount} is omitted. The more iterations are unrolled the more bloated the generated
    * code becomes.
    *
-   * @default 5
+   * @default 3
    */
   unrollingCount?: number;
 }
@@ -44,7 +44,7 @@ export function all<Context = any, Error = any>(reader: Reader<Context, Error>, 
   let {
     minimumCount = 0,
     maximumCount = 0,
-    unrollingCount = 0,
+    unrollingCount = 10,
   } = options;
 
   minimumCount = Math.max(minimumCount | 0, 0);
@@ -69,56 +69,60 @@ export class AllCharCodeRangeReader implements ReaderCodegen {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-    const {charCodeRanges, minimumCount, maximumCount, unrollingCount} = this;
+    const {charCodeRanges, minimumCount, maximumCount} = this;
 
+    const indexVar = createVar();
     const inputLengthVar = createVar();
     const charCodeVar = createVar();
 
     const code: Code[] = [
       'var ',
+      indexVar, '=', offsetVar, ',',
       inputLengthVar, '=', inputVar, '.length,',
       charCodeVar, ';',
+
+      resultVar, '=', minimumCount > 0 ? NO_MATCH : indexVar, ';',
     ];
 
     const predicateCode = createCharPredicateCode(charCodeVar, charCodeRanges);
 
-    if (minimumCount !== 0) {
-      // Check the required minimum of leading chars before proceeding to the loop
+    // If the maximum count is limited then there's no loop at all
+    const count = maximumCount > 0 ? maximumCount : minimumCount + this.unrollingCount + 1;
+
+    for (let i = 0; i < count; ++i) {
+
+      // Prevent out-of-bounds reads
+      code.push('if(', indexVar, '<', inputLengthVar, '){');
+
+      // Intermediate iteration
+      if (i < count - 1) {
+        code.push(
+            charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
+            'if(', predicateCode, '){',
+            i < minimumCount - 1 ? '' : [resultVar, '='], '++', indexVar, ';',
+        );
+        continue;
+      }
+
+      // The last iteration when the maximum count is limited
+      if (maximumCount > 0) {
+        code.push(
+            charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
+            'if(', predicateCode, ')', resultVar, '=', indexVar, '+1;',
+        );
+        continue;
+      }
+
+      // The last iteration when the maximum count is unlimited and the minimum count was read
       code.push(
-          resultVar, '=', NO_MATCH, ';',
-          'if(', offsetVar, '+', minimumCount - 1, '<', inputLengthVar,
+          resultVar, '=', indexVar, ';',
+          'do{',
+          charCodeVar, '=', inputVar, '.charCodeAt(', resultVar, ')',
+          '}while((', predicateCode, ')&&++', resultVar, '<', inputLengthVar, ');'
       );
-      for (let i = 0; i < minimumCount; ++i) {
-        code.push('&&(', charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '+', i, '),', predicateCode, ')');
-      }
-      code.push('){', resultVar, '=', offsetVar, '+', minimumCount, ';');
-    } else {
-      // No leading chars are required, so offset is returned at least
-      code.push(resultVar, '=', offsetVar, ';');
     }
 
-    // The remaining fixed number of chars that must be read
-    const remainingCount = Math.max(0, maximumCount - minimumCount);
-
-    // If the unlimited number of characters must be read or a fixed non-zero number of chars
-    if (maximumCount === 0 || remainingCount !== 0) {
-
-      // The number of characters that would be checked in one go,
-      const batchCount = remainingCount || unrollingCount;
-
-      // Loop is removed if maximum count is known beforehand
-      code.push(remainingCount !== 0 ? 'if(' : 'while(');
-
-      // The batch may overflow the length of the input, so check every char overflow separately
-      for (let i = 0; i < batchCount; ++i) {
-        code.push(i === 0 ? '' : '&&++', resultVar, '<', inputLengthVar, '&&(', charCodeVar, '=', inputVar, '.charCodeAt(', resultVar, '),', predicateCode, ')');
-      }
-      code.push(')++', resultVar, ';');
-    }
-
-    if (minimumCount !== 0) {
-      code.push('}');
-    }
+    code.push('}'.repeat(count * 2 - 1));
 
     return createCodeBindings(code);
   }
