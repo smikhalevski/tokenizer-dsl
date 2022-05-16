@@ -143,20 +143,18 @@ export class AllReader<Context, Error> implements ReaderCodegen {
     const code: Code[] = [
       resultVar, '=', minimumCount === 0 ? offsetVar : NO_MATCH, ';',
       'var ',
-      minimumCount === 0 ? '' : [indexVar, '=', offsetVar, ','],
-      readerResultVar, '=', resultVar, ';',
+      indexVar, '=', offsetVar, ',',
+      readerResultVar, ';',
     ];
 
     const count = Math.max(minimumCount, maximumCount);
 
     for (let i = 0; i < count; ++i) {
-      const offsetVar = i < minimumCount ? indexVar : resultVar;
-
       code.push(
-          createReaderCallCode(reader, inputVar, offsetVar, contextVar, readerResultVar, bindings),
+          createReaderCallCode(reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
           'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, '}else ',
-          'if(', readerResultVar, '>', offsetVar, '){',
-          offsetVar, '=', readerResultVar, ';',
+          'if(', readerResultVar, '>', indexVar, '){',
+          i < minimumCount - 1 ? '' : [resultVar, '='], indexVar, '=', readerResultVar, ';'
       );
     }
 
