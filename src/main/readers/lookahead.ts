@@ -1,7 +1,7 @@
 import {Binding, CodeBindings, createVar, Var} from 'codedegen';
 import {never} from './never';
 import {none} from './none';
-import {Reader, ReaderCodegen} from './reader-types';
+import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings, createReaderCallCode} from './reader-utils';
 
 /**
@@ -28,7 +28,7 @@ export class LookaheadReader<Context, Error> implements ReaderCodegen {
         [
           'var ', readerResultVar, ';',
           createReaderCallCode(this.reader, inputVar, offsetVar, contextVar, readerResultVar, bindings),
-          resultVar, '=', readerResultVar, '>=0?', offsetVar, ':', readerResultVar, ';',
+          resultVar, '=typeof ', readerResultVar, '!=="number"||', readerResultVar, '<', offsetVar, '?', NO_MATCH, ':', offsetVar, ';',
         ],
         bindings,
     );

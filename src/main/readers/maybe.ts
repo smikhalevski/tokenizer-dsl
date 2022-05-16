@@ -32,7 +32,7 @@ export class MaybeReader<Context, Error> implements ReaderCodegen {
         [
           'var ', readerResultVar, ';',
           createReaderCallCode(this.reader, inputVar, offsetVar, contextVar, readerResultVar, bindings),
-          resultVar, '=', readerResultVar, '===', NO_MATCH, '?', offsetVar, ':', readerResultVar, ';',
+          resultVar, '=typeof ', readerResultVar, '==="number"&&', readerResultVar, '<', offsetVar, '?', offsetVar, ':', readerResultVar, ';',
         ],
         bindings,
     );

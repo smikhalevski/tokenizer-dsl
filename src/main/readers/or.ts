@@ -1,7 +1,7 @@
 import {Binding, Code, CodeBindings, Var} from 'codedegen';
 import {never} from './never';
 import {none} from './none';
-import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
+import {Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings, createReaderCallCode} from './reader-utils';
 
 /**
@@ -54,7 +54,7 @@ export class OrReader<Context, Error> implements ReaderCodegen {
 
       code.push(createReaderCallCode(reader, inputVar, offsetVar, contextVar, resultVar, bindings));
       if (i < readersLength - 1) {
-        code.push('if(', resultVar, '===', NO_MATCH, '){');
+        code.push('if(typeof ', resultVar, '==="number"&&', resultVar, '<', offsetVar, '){');
       }
     }
     code.push('}'.repeat(readersLength - 1));

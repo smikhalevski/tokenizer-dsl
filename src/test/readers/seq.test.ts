@@ -40,10 +40,10 @@ describe('SeqReader', () => {
   test('returns negative integer as an error result', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(4);
-    readerMock.mockReturnValueOnce(-2);
+    readerMock.mockReturnValueOnce('Error');
     readerMock.mockReturnValueOnce(5);
 
-    expect(toReaderFunction(new SeqReader([readerMock, readerMock, readerMock]))('aabbcc', 2)).toBe(-2);
+    expect(toReaderFunction(new SeqReader([readerMock, readerMock, readerMock]))('aabbcc', 2)).toBe('Error');
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 

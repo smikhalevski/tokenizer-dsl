@@ -1,7 +1,7 @@
 import {Binding, Code, CodeBindings, createVar, Var} from 'codedegen';
 import {never} from './never';
 import {none} from './none';
-import {Reader, ReaderCodegen} from './reader-types';
+import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings, createReaderCallCode} from './reader-utils';
 
 /**
@@ -56,9 +56,8 @@ export class SeqReader<Context, Error> implements ReaderCodegen {
       code.push(
           'var ', readerResultVar, ';',
           createReaderCallCode(reader, inputVar, offsetVar, contextVar, readerResultVar, bindings),
-          'if(typeof ', readerResultVar, '!=="number"||', readerResultVar, '<0){',
-          resultVar, '=', readerResultVar,
-          '}else{',
+          'if(typeof ', readerResultVar, '!=="number")', resultVar, '=', readerResultVar, ';else ',
+          'if(', readerResultVar, '<', offsetVar, ')', resultVar, '=', NO_MATCH, ';else{'
       );
 
       offsetVar = readerResultVar;

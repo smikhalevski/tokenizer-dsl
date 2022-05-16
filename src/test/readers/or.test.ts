@@ -50,10 +50,10 @@ describe('OrReader', () => {
   test('returns non number value as an error result', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(NO_MATCH);
-    readerMock.mockReturnValueOnce('123');
+    readerMock.mockReturnValueOnce('Error');
     readerMock.mockReturnValueOnce(4);
 
-    expect(toReaderFunction(new OrReader([readerMock, readerMock]))('aabbcc', 2)).toBe('123');
+    expect(toReaderFunction(new OrReader([readerMock, readerMock]))('aabbcc', 2)).toBe('Error');
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
