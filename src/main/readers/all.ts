@@ -44,7 +44,7 @@ export function all<Context = any, Error = any>(reader: Reader<Context, Error>, 
   let {
     minimumCount = 0,
     maximumCount = 0,
-    unrollingCount = 10,
+    unrollingCount = 3,
   } = options;
 
   minimumCount = Math.max(minimumCount | 0, 0);
@@ -57,9 +57,9 @@ export function all<Context = any, Error = any>(reader: Reader<Context, Error>, 
   if (minimumCount === 1 && maximumCount === 1 || reader === never || reader === none) {
     return reader;
   }
-  if (reader instanceof CharCodeRangeReader) {
-    return new AllCharCodeRangeReader(reader.charCodeRanges, minimumCount, maximumCount, unrollingCount);
-  }
+  // if (reader instanceof CharCodeRangeReader) {
+  //   return new AllCharCodeRangeReader(reader.charCodeRanges, minimumCount, maximumCount, unrollingCount);
+  // }
   return new AllReader(reader, minimumCount, maximumCount, unrollingCount);
 }
 
@@ -147,40 +147,37 @@ export class AllReader<Context, Error> implements ReaderCodegen {
     ];
 
     // If the maximum count is limited then there's no loop at all
-    const count = maximumCount > 0 ? maximumCount : minimumCount + this.unrollingCount + 1;
+    const count = maximumCount === 0 ? minimumCount + this.unrollingCount : maximumCount;
 
     for (let i = 0; i < count; ++i) {
 
-      if (maximumCount > 0 || i < count - 1) {
-        code.push(createReaderCallCode(reader, inputVar, indexVar, contextVar, readerResultVar, bindings));
-      } else {
-        code.push(
-            'do{',
-            indexVar, '=', readerResultVar, ';',
-            createReaderCallCode(reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
-            '}while(typeof ', readerResultVar, '==="number"&&', readerResultVar, '>', indexVar, ')',
-        );
+      if (maximumCount === 0 && i === minimumCount) {
+        code.push('while(true){');
       }
 
+      const breakCode = maximumCount === 0 && i >= minimumCount ? ';break' : '';
+
       code.push(
+          createReaderCallCode(reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
+
           // Returned a custom error
-          'if(typeof ', readerResultVar, '!=="number")', resultVar, '=', readerResultVar, ';else ',
+          'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, breakCode, '}else ',
 
           // There's no match and the minimum number of matches was reached
-          i < minimumCount ? '' : ['if(', readerResultVar, '===', NO_MATCH, ')', resultVar, '=', indexVar, ';else '],
+          i >= minimumCount ? ['if(', readerResultVar, '===', NO_MATCH, '){', resultVar, '=', indexVar, breakCode, '}else '] : '',
 
           // Returned an error code, or NO_MATCH when the minimum number of matches wasn't reached
-          'if(', readerResultVar, '<0)', resultVar, '=', readerResultVar, ';else ',
+          'if(', readerResultVar, '<0){', resultVar, '=', readerResultVar, breakCode, '}else ',
 
           // Returned a zero-width token
-          'if(', readerResultVar, '<=', indexVar, ')', resultVar, '=', i < minimumCount ? NO_MATCH : indexVar, ';else{',
+          'if(', readerResultVar, '<=', indexVar, '){', resultVar, '=', i >= minimumCount ? indexVar : NO_MATCH, breakCode, '}else{',
 
           // Move to the next offset
-          i < count - 1 ? indexVar : resultVar, '=', readerResultVar, ';'
+          i >= minimumCount ? [resultVar, '='] : '', indexVar, '=', readerResultVar, ';'
       );
     }
 
-    code.push('}'.repeat(count));
+    code.push('}'.repeat(maximumCount === 0 ? count + 1 : maximumCount));
 
     return createCodeBindings(code, bindings);
   }
