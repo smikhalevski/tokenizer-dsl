@@ -200,7 +200,7 @@ describe('compileRuleIterator', () => {
 
     const ruleA: Rule = {type: 'TypeA', reader: text('aaa')};
     const ruleC: Rule = {type: 'TypeC', reader: text('cc')};
-    const ruleError: Rule = {type: 'TypeError', reader: () => -777};
+    const ruleError: Rule<string, void, void, string> = {type: 'TypeError', reader: () => 'MyError'};
 
     const ruleIterator = compileRuleIterator(createRuleTree([ruleA, ruleC, ruleError]));
 
@@ -218,7 +218,7 @@ describe('compileRuleIterator', () => {
     // Token read by ruleC is not emitted because no confirmation was given
 
     expect(errorCallbackMock).toHaveBeenCalledTimes(1);
-    expect(errorCallbackMock).toHaveBeenNthCalledWith(1, 'TypeError', 1007, -777, undefined);
+    expect(errorCallbackMock).toHaveBeenNthCalledWith(1, 'TypeError', 1007, 'MyError', undefined);
 
     expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
 

@@ -1,5 +1,5 @@
 import {Binding, Code, compileFunction, createVar, Var} from 'codedegen';
-import {createReaderCallCode, NO_MATCH, seq} from '../readers';
+import {createReaderCallCode, seq} from '../readers';
 import {RuleBranch, RuleTree} from './createRuleTree';
 import {TokenHandler, TokenizerState} from './rule-types';
 
@@ -59,15 +59,12 @@ export function compileRuleIterator<Type, Stage, Context, Error>(tree: RuleTree<
       }
 
       // Read branch
-      code.push(
-          createReaderCallCode(seq(...branch.readers), chunkVar, branchOffsetVar, contextVar, branchResultVar, bindings),
-          'if(', branchResultVar, '!==', NO_MATCH, '){'
-      );
+      code.push(createReaderCallCode(seq(...branch.readers), chunkVar, branchOffsetVar, contextVar, branchResultVar, bindings));
 
-      // Emit an error if any
+      // Emit an error
       if (rule) {
         code.push(
-            'if(typeof ', branchResultVar, '!=="number"||', branchResultVar, '<0){',
+            'if(typeof ', branchResultVar, '!=="number"){',
             errorCallbackVar, '&&', errorCallbackVar, '(', ruleTypeVar, ',', chunkVar, ',', nextOffsetVar, ',', branchResultVar, ',', contextVar, ',', stateVar, ');',
             'return}',
         );
@@ -83,7 +80,7 @@ export function compileRuleIterator<Type, Stage, Context, Error>(tree: RuleTree<
 
       // If there's no termination rule then exit
       if (!rule) {
-        code.push('}}');
+        code.push('}');
         continue;
       }
 
@@ -110,7 +107,7 @@ export function compileRuleIterator<Type, Stage, Context, Error>(tree: RuleTree<
         nextOffsetVar, '=', branchResultVar, ';',
 
         // Restart the looping over characters in the input chunk
-        'continue}}',
+        'continue}',
       ]);
 
     }
