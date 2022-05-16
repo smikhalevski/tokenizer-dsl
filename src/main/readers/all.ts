@@ -1,5 +1,4 @@
 import {Binding, Code, CodeBindings, createVar, Var} from 'codedegen';
-import {CharCodeRange, createCharPredicateCode} from './char';
 import {never} from './never';
 import {none} from './none';
 import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
@@ -55,75 +54,7 @@ export function all<Context = any, Error = never>(reader: Reader<Context, Error>
   if (minimumCount === 1 && maximumCount === 1 || reader === never || reader === none) {
     return reader;
   }
-  // if (reader instanceof CharCodeRangeReader) {
-  //   return new AllCharCodeRangeReader(reader.charCodeRanges, minimumCount, maximumCount, unrollingCount);
-  // }
   return new AllReader(reader, minimumCount, maximumCount, unrollingCount);
-}
-
-export class AllCharCodeRangeReader implements ReaderCodegen {
-
-  constructor(public charCodeRanges: CharCodeRange[], public minimumCount: number, public maximumCount: number, public unrollingCount: number) {
-  }
-
-  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-    const {charCodeRanges, minimumCount, maximumCount} = this;
-
-    const indexVar = createVar();
-    const inputLengthVar = createVar();
-    const charCodeVar = createVar();
-
-    const code: Code[] = [
-      'var ',
-      indexVar, '=', offsetVar, ',',
-      inputLengthVar, '=', inputVar, '.length,',
-      charCodeVar, ';',
-
-      resultVar, '=', minimumCount > 0 ? NO_MATCH : indexVar, ';',
-    ];
-
-    const predicateCode = createCharPredicateCode(charCodeVar, charCodeRanges);
-
-    // If the maximum count is limited then there's no loop at all
-    const count = maximumCount > 0 ? maximumCount : minimumCount + this.unrollingCount + 1;
-
-    for (let i = 0; i < count; ++i) {
-
-      // Prevent out-of-bounds reads
-      code.push('if(', indexVar, '<', inputLengthVar, '){');
-
-      // Intermediate iteration
-      if (i < count - 1) {
-        code.push(
-            charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
-            'if(', predicateCode, '){',
-            i < minimumCount - 1 ? '' : [resultVar, '='], '++', indexVar, ';',
-        );
-        continue;
-      }
-
-      // The last iteration when the maximum count is limited
-      if (maximumCount > 0) {
-        code.push(
-            charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
-            'if(', predicateCode, ')', resultVar, '=', indexVar, '+1;',
-        );
-        continue;
-      }
-
-      // The last iteration when the maximum count is unlimited and the minimum count was read
-      code.push(
-          resultVar, '=', indexVar, ';',
-          'do{',
-          charCodeVar, '=', inputVar, '.charCodeAt(', resultVar, ')',
-          '}while((', predicateCode, ')&&++', resultVar, '<', inputLengthVar, ');'
-      );
-    }
-
-    code.push('}'.repeat(count * 2 - 1));
-
-    return createCodeBindings(code);
-  }
 }
 
 export class AllReader<Context, Error> implements ReaderCodegen {
