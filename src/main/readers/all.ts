@@ -136,14 +136,16 @@ export class AllReader<Context, Error> implements ReaderCodegen {
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const {reader, minimumCount, maximumCount} = this;
 
-    const indexVar = createVar();
+    let indexVar = createVar();
     const readerResultVar = createVar();
     const bindings: Binding[] = [];
 
     const code: Code[] = [
       'var ',
-      indexVar, '=', offsetVar, ',',
+      minimumCount === 0 ? '' : [indexVar, '=', offsetVar, ','],
       readerResultVar, ';',
+
+      resultVar, '=', minimumCount === 0 ? offsetVar : NO_MATCH, ';',
     ];
 
     // If the maximum count is limited then there's no loop at all
@@ -151,33 +153,37 @@ export class AllReader<Context, Error> implements ReaderCodegen {
 
     for (let i = 0; i < count; ++i) {
 
+      if (i >= minimumCount - 1) {
+        indexVar = resultVar;
+      }
+
       if (maximumCount === 0 && i === minimumCount) {
         code.push('while(true){');
       }
 
-      const breakCode = maximumCount === 0 && i >= minimumCount ? ';break' : '';
+      const looping = maximumCount === 0 && i >= minimumCount;
 
       code.push(
           createReaderCallCode(reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
 
           // Returned a custom error
-          'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, breakCode, '}else ',
+          'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, looping ? ';break}' : '}else ',
 
           // There's no match and the minimum number of matches was reached
-          i >= minimumCount ? ['if(', readerResultVar, '===', NO_MATCH, '){', resultVar, '=', indexVar, breakCode, '}else '] : '',
+          i >= minimumCount ? ['if(', readerResultVar, '===', NO_MATCH, '){', looping ? 'break}' : '}else '] : '',
 
           // Returned an error code, or NO_MATCH when the minimum number of matches wasn't reached
-          'if(', readerResultVar, '<0){', resultVar, '=', readerResultVar, breakCode, '}else ',
+          'if(', readerResultVar, '<0){', resultVar, '=', readerResultVar, looping ? ';break}' : '}else ',
 
           // Returned a zero-width token
-          'if(', readerResultVar, '<=', indexVar, '){', resultVar, '=', i >= minimumCount ? indexVar : NO_MATCH, breakCode, '}else{',
+          'if(', readerResultVar, '<=', indexVar, '){', looping ? 'break}' : '}else{',
 
           // Move to the next offset
-          i >= minimumCount ? [resultVar, '='] : '', indexVar, '=', readerResultVar, ';'
+          indexVar, '=', readerResultVar, ';',
       );
     }
 
-    code.push('}'.repeat(maximumCount === 0 ? count + 1 : maximumCount));
+    code.push('}'.repeat(maximumCount === 0 ? minimumCount + 1 : maximumCount));
 
     return createCodeBindings(code, bindings);
   }
