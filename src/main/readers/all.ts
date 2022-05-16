@@ -141,15 +141,14 @@ export class AllReader<Context, Error> implements ReaderCodegen {
     const bindings: Binding[] = [];
 
     const code: Code[] = [
-      'var ',
-      minimumCount === 0 ? '' : [indexVar, '=', offsetVar, ','],
-      readerResultVar, ';',
+      resultVar, '=', minimumCount ? NO_MATCH : offsetVar, ';',
 
-      resultVar, '=', minimumCount === 0 ? offsetVar : NO_MATCH, ';',
+      'var ',
+      minimumCount ? [indexVar, '=', offsetVar, ','] : '',
+      readerResultVar, '=', resultVar, ';',
     ];
 
-    // If the maximum count is limited then there's no loop at all
-    const count = maximumCount === 0 ? minimumCount + this.unrollingCount : maximumCount;
+    const count = maximumCount || minimumCount;
 
     for (let i = 0; i < count; ++i) {
 
@@ -157,33 +156,31 @@ export class AllReader<Context, Error> implements ReaderCodegen {
         indexVar = resultVar;
       }
 
-      if (maximumCount === 0 && i === minimumCount) {
-        code.push('while(true){');
-      }
-
-      const looping = maximumCount === 0 && i >= minimumCount;
-
       code.push(
           createReaderCallCode(reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
 
-          // Returned a custom error
-          'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, looping ? ';break}' : '}else ',
+          // Returned an error
+          'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, '}else ',
 
-          // There's no match and the minimum number of matches was reached
-          i >= minimumCount ? ['if(', readerResultVar, '===', NO_MATCH, '){', looping ? 'break}' : '}else '] : '',
-
-          // Returned an error code, or NO_MATCH when the minimum number of matches wasn't reached
-          'if(', readerResultVar, '<0){', resultVar, '=', readerResultVar, looping ? ';break}' : '}else ',
-
-          // Returned a zero-width token
-          'if(', readerResultVar, '<=', indexVar, '){', looping ? 'break}' : '}else{',
+          // Returned a token
+          'if(', readerResultVar, '>', indexVar, '){',
 
           // Move to the next offset
-          indexVar, '=', readerResultVar, ';',
+          !maximumCount && i === count - 1 ? '' : [indexVar, '=', readerResultVar, ';'],
       );
     }
 
-    code.push('}'.repeat(maximumCount === 0 ? minimumCount + 1 : maximumCount));
+    if (!maximumCount) {
+      code.push(
+          'do{',
+          resultVar, '=', readerResultVar, ';',
+          createReaderCallCode(reader, inputVar, resultVar, contextVar, readerResultVar, bindings),
+          '}while(typeof ', readerResultVar, '==="number"&&', readerResultVar, '>', resultVar, ')',
+          'if(typeof ', readerResultVar, '!=="number")', resultVar, '=', readerResultVar, ';',
+      );
+    }
+
+    code.push('}'.repeat(count));
 
     return createCodeBindings(code, bindings);
   }
