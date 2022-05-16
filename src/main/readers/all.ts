@@ -39,7 +39,7 @@ export interface AllOptions {
  *
  * @template Context The context passed by tokenizer.
  */
-export function all<Context = any, Error = any>(reader: Reader<Context, Error>, options: AllOptions = {}): Reader<Context, Error> {
+export function all<Context = any, Error = never>(reader: Reader<Context, Error>, options: AllOptions = {}): Reader<Context, Error> {
 
   let {
     minimumCount = 0,

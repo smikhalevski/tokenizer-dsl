@@ -11,7 +11,7 @@ import {createCodeBindings, createReaderCallCode} from './reader-utils';
  *
  * @template Context The context passed by tokenizer.
  */
-export function maybe<Context = any, Error = any>(reader: Reader<Context, Error>): Reader<Context, Error> {
+export function maybe<Context = any, Error = never>(reader: Reader<Context, Error>): Reader<Context, Error> {
   if (reader === none || reader === never) {
     return none;
   }

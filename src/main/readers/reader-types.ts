@@ -11,7 +11,7 @@ export const NO_MATCH = -1;
  * @template Context The context passed by tokenizer.
  * @template Error The error that the reader may return.
  */
-export type Reader<Context, Error> = ReaderFunction<Context, Error> | ReaderCodegen;
+export type Reader<Context = void, Error = never> = ReaderFunction<Context, Error> | ReaderCodegen;
 
 /**
  * Takes the string `input` and the offset in this string `offset` and returns the new offset in `input` if reader
@@ -27,7 +27,7 @@ export type Reader<Context, Error> = ReaderFunction<Context, Error> | ReaderCode
  * @template Context The context passed by tokenizer.
  * @template Error The error that the reader may return.
  */
-export type ReaderFunction<Context, Error> = (input: string, offset: number, context: Context) => number | Error;
+export type ReaderFunction<Context = void, Error = never> = (input: string, offset: number, context: Context) => Error | number;
 
 /**
  * Factory that returns the reader code and values for variables that must be bound to the reader.

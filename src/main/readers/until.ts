@@ -24,7 +24,7 @@ export interface UntilOptions {
  *
  * @template Context The context passed by tokenizer.
  */
-export function until<Context = any, Error = any>(reader: Reader<Context, Error>, options: UntilOptions = {}): Reader<Context, Error> {
+export function until<Context = any, Error = never>(reader: Reader<Context, Error>, options: UntilOptions = {}): Reader<Context, Error> {
 
   const {inclusive = false} = options;
 

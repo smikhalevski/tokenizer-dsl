@@ -8,7 +8,7 @@ import {compileRuleIterator, createRuleTree, Rule, TokenHandler, TokenizerState}
  * @template Context The context passed to the tokenizer.
  * @template Error The error that the reader may return.
  */
-export interface Tokenizer<Type = unknown, Stage = void, Context = void, Error = number> {
+export interface Tokenizer<Type = unknown, Stage = void, Context = void, Error = never> {
 
   /**
    * Reads tokens from the input in a non-streaming fashion. Triggers a {@link TokenHandler.unrecognizedToken} if the
@@ -62,7 +62,7 @@ export interface Tokenizer<Type = unknown, Stage = void, Context = void, Error =
  * @template Context The context that rules may consume.
  * @template Error The error that the reader may return.
  */
-export function createTokenizer<Type, Context = void, Error = number>(rules: Rule<Type, void, Context, Error>[]): Tokenizer<Type, void, Context, Error>;
+export function createTokenizer<Type, Context = void, Error = never>(rules: Rule<Type, void, Context, Error>[]): Tokenizer<Type, void, Context, Error>;
 
 /**
  * Creates a new pure tokenizer function.
@@ -75,7 +75,7 @@ export function createTokenizer<Type, Context = void, Error = number>(rules: Rul
  * @template Context The context that rules may consume.
  * @template Error The error that the reader may return.
  */
-export function createTokenizer<Type, Stage, Context = void, Error = number>(rules: Rule<Type, Stage, Context, Error>[], initialStage: Stage): Tokenizer<Type, Stage, Context, Error>;
+export function createTokenizer<Type, Stage, Context = void, Error = never>(rules: Rule<Type, Stage, Context, Error>[], initialStage: Stage): Tokenizer<Type, Stage, Context, Error>;
 
 export function createTokenizer(rules: Rule[], initialStage?: any) {
   const ruleIterator = compileRuleIterator(createRuleTree(rules));

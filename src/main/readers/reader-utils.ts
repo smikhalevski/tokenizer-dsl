@@ -42,7 +42,7 @@ export function createCodeBindings(code: Code, bindings?: Binding[]): CodeBindin
  *
  * @template Context The context passed by tokenizer.
  */
-export function toReaderFunction<Context = void, Error = number>(reader: Reader<Context, Error>): ReaderFunction<Context, Error> {
+export function toReaderFunction<Context = void, Error = never>(reader: Reader<Context, Error>): ReaderFunction<Context, Error> {
 
   if (typeof reader === 'function') {
     return reader;

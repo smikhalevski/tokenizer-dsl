@@ -7,7 +7,7 @@ import {createCodeBindings, createReaderCallCode} from './reader-utils';
 /**
  * Creates a reader that returns the current offset if the reader matches.
  */
-export function lookahead<Context = any, Error = any>(reader: Reader<Context, Error>): Reader<Context, Error> {
+export function lookahead<Context = any, Error = never>(reader: Reader<Context, Error>): Reader<Context, Error> {
   if (reader === none || reader === never) {
     return reader;
   }

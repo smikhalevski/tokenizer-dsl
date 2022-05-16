@@ -11,7 +11,7 @@ import {createCodeBindings, createReaderCallCode} from './reader-utils';
  *
  * @template Context The context passed by tokenizer.
  */
-export function seq<Context = any, Error = any>(...readers: Reader<Context, Error>[]): Reader<Context, Error> {
+export function seq<Context = any, Error = never>(...readers: Reader<Context, Error>[]): Reader<Context, Error> {
 
   const children: Reader<Context, Error>[] = [];
 
