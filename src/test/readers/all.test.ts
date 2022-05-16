@@ -51,10 +51,10 @@ describe('AllReader', () => {
   test('returns error result from underlying reader', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(3);
-    readerMock.mockReturnValueOnce(-2);
+    readerMock.mockReturnValueOnce('Error');
     readerMock.mockReturnValueOnce(3);
 
-    expect(toReaderFunction(new AllReader(readerMock, 0, 0, 2))('aabbcc', 2)).toBe(-2);
+    expect(toReaderFunction(new AllReader(readerMock, 0, 0, 2))('aabbcc', 2)).toBe('Error');
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
