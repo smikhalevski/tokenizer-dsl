@@ -1,5 +1,5 @@
 import {Binding, Code, CodeBindings, createVar, Var} from 'codedegen';
-import {CharCodeRange, CharCodeRangeReader, createCharPredicateCode} from './char';
+import {CharCodeRange, createCharPredicateCode} from './char';
 import {never} from './never';
 import {none} from './none';
 import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
@@ -22,7 +22,7 @@ export interface AllOptions {
   maximumCount?: number;
 
   /**
-   * The positive number of iterations [to unroll from a loop](https://en.wikipedia.org/wiki/Loop_unrolling). Only
+   * The positive number of iterations [unrolled in a loop](https://en.wikipedia.org/wiki/Loop_unrolling). Only
    * applicable when {@link maximumCount} is omitted. The more iterations are unrolled the more bloated the generated
    * code becomes.
    *
@@ -44,7 +44,7 @@ export function all<Context = any, Error = never>(reader: Reader<Context, Error>
   let {
     minimumCount = 0,
     maximumCount = 0,
-    unrollingCount = 3,
+    unrollingCount = 0,
   } = options;
 
   minimumCount = Math.max(minimumCount | 0, 0);
@@ -136,48 +136,41 @@ export class AllReader<Context, Error> implements ReaderCodegen {
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const {reader, minimumCount, maximumCount} = this;
 
-    let indexVar = createVar();
+    const indexVar = createVar();
     const readerResultVar = createVar();
     const bindings: Binding[] = [];
 
     const code: Code[] = [
-      resultVar, '=', minimumCount ? NO_MATCH : offsetVar, ';',
-
+      resultVar, '=', minimumCount === 0 ? offsetVar : NO_MATCH, ';',
       'var ',
-      minimumCount ? [indexVar, '=', offsetVar, ','] : '',
+      minimumCount === 0 ? '' : [indexVar, '=', offsetVar, ','],
       readerResultVar, '=', resultVar, ';',
     ];
 
-    const count = maximumCount || minimumCount;
+    const count = Math.max(minimumCount, maximumCount);
 
     for (let i = 0; i < count; ++i) {
-
-      if (i >= minimumCount - 1) {
-        indexVar = resultVar;
-      }
+      const offsetVar = i < minimumCount ? indexVar : resultVar;
 
       code.push(
-          createReaderCallCode(reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
-
-          // Returned an error
+          createReaderCallCode(reader, inputVar, offsetVar, contextVar, readerResultVar, bindings),
           'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, '}else ',
-
-          // Returned a token
-          'if(', readerResultVar, '>', indexVar, '){',
-
-          // Move to the next offset
-          !maximumCount && i === count - 1 ? '' : [indexVar, '=', readerResultVar, ';'],
+          'if(', readerResultVar, '>', offsetVar, '){',
+          offsetVar, '=', readerResultVar, ';',
       );
     }
 
-    if (!maximumCount) {
-      code.push(
-          'do{',
-          resultVar, '=', readerResultVar, ';',
-          createReaderCallCode(reader, inputVar, resultVar, contextVar, readerResultVar, bindings),
-          '}while(typeof ', readerResultVar, '==="number"&&', readerResultVar, '>', resultVar, ')',
-          'if(typeof ', readerResultVar, '!=="number")', resultVar, '=', readerResultVar, ';',
-      );
+    if (maximumCount === 0) {
+      code.push('do{');
+      for (let i = 0; i < this.unrollingCount; ++i) {
+        code.push(
+            createReaderCallCode(reader, inputVar, resultVar, contextVar, readerResultVar, bindings),
+            'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, ';break}',
+            'if(', readerResultVar, '<=', resultVar, ')break;',
+            resultVar, '=', readerResultVar, ';',
+        );
+      }
+      code.push('}while(true)');
     }
 
     code.push('}'.repeat(count));
