@@ -25,8 +25,6 @@ export interface AllOptions {
    * The positive number of iterations [unrolled in a loop](https://en.wikipedia.org/wiki/Loop_unrolling). Only
    * applicable when {@link maximumCount} is omitted. The more iterations are unrolled the more bloated the generated
    * code becomes.
-   *
-   * @default 3
    */
   unrollingCount?: number;
 }
@@ -44,7 +42,7 @@ export function all<Context = any, Error = never>(reader: Reader<Context, Error>
   let {
     minimumCount = 0,
     maximumCount = 0,
-    unrollingCount = 0,
+    unrollingCount = 1,
   } = options;
 
   minimumCount = Math.max(minimumCount | 0, 0);
@@ -143,18 +141,20 @@ export class AllReader<Context, Error> implements ReaderCodegen {
     const code: Code[] = [
       resultVar, '=', minimumCount === 0 ? offsetVar : NO_MATCH, ';',
       'var ',
-      indexVar, '=', offsetVar, ',',
+      minimumCount > 1 ? [indexVar, '=', offsetVar, ','] : '',
       readerResultVar, ';',
     ];
 
     const count = Math.max(minimumCount, maximumCount);
 
     for (let i = 0; i < count; ++i) {
+      const nextOffsetVar = i < minimumCount - 1 ? indexVar : resultVar;
+
       code.push(
-          createReaderCallCode(reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
+          createReaderCallCode(reader, inputVar, i === 0 ? offsetVar : nextOffsetVar, contextVar, readerResultVar, bindings),
           'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, '}else ',
-          'if(', readerResultVar, '>', indexVar, '){',
-          i < minimumCount - 1 ? '' : [resultVar, '='], indexVar, '=', readerResultVar, ';'
+          'if(', readerResultVar, '>', i === 0 ? offsetVar : nextOffsetVar, '){',
+          nextOffsetVar, '=', readerResultVar, ';',
       );
     }
 
