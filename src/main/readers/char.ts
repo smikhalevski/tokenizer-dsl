@@ -1,8 +1,8 @@
 import {Code, CodeBindings, createVar, Var} from 'codedegen';
 import {die} from '../utils';
 import {none} from './none';
-import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, toCharCodes} from './reader-utils';
+import {Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings, NO_MATCH, toCharCodes} from './reader-utils';
 
 export type CharRange = string | number | [number | string, number | string];
 

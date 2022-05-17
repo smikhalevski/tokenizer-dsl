@@ -1,6 +1,11 @@
 import {Binding, Code, CodeBindings, compileFunction, createVar, Var} from 'codedegen';
 import {Reader, ReaderFunction} from './reader-types';
 
+/**
+ * OK code returned from a reader that means that it didn't match any chars.
+ */
+export const NO_MATCH = -1;
+
 export function toCharCodes(str: string): number[] {
   const charCodes: number[] = [];
 

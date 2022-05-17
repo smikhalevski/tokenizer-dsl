@@ -1,8 +1,8 @@
 import {Binding, CodeBindings, createVar, Var} from 'codedegen';
 import {never} from './never';
 import {none} from './none';
-import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode} from './reader-utils';
+import {Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings, createReaderCallCode, NO_MATCH} from './reader-utils';
 
 /**
  * Creates a reader that returns the current offset if the reader matches.

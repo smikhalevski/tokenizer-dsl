@@ -1,11 +1,11 @@
 import {Binding, CodeBindings, createVar, Var} from 'codedegen';
 import {never} from './never';
 import {none} from './none';
-import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
+import {Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings, createReaderCallCode} from './reader-utils';
 
 /**
- * Creates a reader that returns `reader` result or current offset if reader returned {@link NO_MATCH}.
+ * Creates a reader that returns `reader` result or current offset if reader returned didn't match.
  *
  * @param reader The reader which match must be considered optional.
  *

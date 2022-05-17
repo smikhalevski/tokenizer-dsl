@@ -1,4 +1,4 @@
-import {all, char, createTokenizer, NO_MATCH, ReaderFunction, Rule, text, TokenHandler} from '../main';
+import {all, char, createTokenizer, ReaderFunction, Rule, text, TokenHandler} from '../main';
 
 describe('createTokenizer', () => {
 
@@ -98,7 +98,7 @@ describe('createTokenizer', () => {
 
   test('reads tokens with reader function', () => {
     const readerMock: ReaderFunction<void, number> = jest.fn((input, offset) => {
-      return offset < input.length ? offset + 1 : NO_MATCH;
+      return offset < input.length ? offset + 1 : -1;
     });
 
     const rule: Rule = {type: 'TypeA', reader: readerMock};

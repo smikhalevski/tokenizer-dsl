@@ -1,11 +1,6 @@
 import {CodeBindings, Var} from 'codedegen';
 
 /**
- * OK code returned from the {@link Reader} that means that it didn't match any chars.
- */
-export const NO_MATCH = -1;
-
-/**
  * The reader definition that can be compiled into a function that reads chars from the input string.
  *
  * @template Context The context passed by tokenizer.
@@ -14,9 +9,9 @@ export const NO_MATCH = -1;
 export type Reader<Context = void, Error = never> = ReaderFunction<Context, Error> | ReaderCodegen;
 
 /**
- * Takes the string `input` and the offset in this string `offset` and returns the new offset in `input` if reader
- * matched or a {@link NO_MATCH} if reader didn't match. The reader may return offsets that exceed the `input`
- * length.
+ * Takes the string `input` and the offset in this string `offset` and returns the next offset that is greater or equal
+ * to `offset` if reader matched or returns an offset that is less than `offset` if reader didn't match. The reader may
+ * return offsets that exceed the `input` length.
  *
  * ```ts
  * const abcReader: Reader = (input, offset) => {

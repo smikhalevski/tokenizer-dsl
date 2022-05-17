@@ -2,8 +2,8 @@ import {Binding, Code, CodeBindings, createVar, Var} from 'codedegen';
 import {die, toInteger} from '../utils';
 import {never} from './never';
 import {none} from './none';
-import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode} from './reader-utils';
+import {Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings, createReaderCallCode, NO_MATCH} from './reader-utils';
 
 export interface AllOptions {
 

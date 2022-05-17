@@ -2,8 +2,8 @@ import {Binding, CodeBindings, createVar, Var} from 'codedegen';
 import {CharCodeRange, CharCodeRangeReader, createCharPredicateCode} from './char';
 import {never} from './never';
 import {none} from './none';
-import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode} from './reader-utils';
+import {Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings, createReaderCallCode, NO_MATCH} from './reader-utils';
 import {CaseSensitiveTextReader} from './text';
 
 export interface UntilOptions {

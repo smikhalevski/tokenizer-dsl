@@ -70,7 +70,7 @@ export function compileRuleIterator<Type, Stage, Context, Error>(tree: RuleTree<
         );
       }
 
-      // If branch matched an empty substring then exit
+      // If branch matched an empty substring then ignore this branch
       code.push('if(', branchResultVar, '>', branchOffsetVar, '){');
 
       // Apply nested branches

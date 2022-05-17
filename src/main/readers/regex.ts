@@ -1,6 +1,6 @@
 import {CodeBindings, createVar, Var} from 'codedegen';
-import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings} from './reader-utils';
+import {Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings, NO_MATCH} from './reader-utils';
 
 /**
  * Creates a reader that matches a substring.

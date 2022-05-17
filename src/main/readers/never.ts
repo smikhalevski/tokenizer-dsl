@@ -1,14 +1,14 @@
-import {NO_MATCH, Reader} from './reader-types';
-import {createCodeBindings} from './reader-utils';
+import {Reader} from './reader-types';
+import {createCodeBindings, NO_MATCH} from './reader-utils';
 
 /**
- * The singleton reader that always returns {@link NO_MATCH}.
+ * The singleton reader that always returns -1.
  */
 export const never: Reader<any, any> = {
 
   factory(inputVar, offsetVar, contextVar, resultVar) {
     return createCodeBindings([
-      resultVar, '=', NO_MATCH, ';'
+      resultVar, '=', NO_MATCH, ';',
     ]);
   }
 };

@@ -1,7 +1,7 @@
 import {CodeBindings, Var} from 'codedegen';
 import {toInteger} from '../utils';
-import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings} from './reader-utils';
+import {Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings, NO_MATCH} from './reader-utils';
 
 /**
  * Creates a reader that skips given number of chars.
