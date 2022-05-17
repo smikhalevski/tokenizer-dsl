@@ -24,7 +24,7 @@ export interface TextOptions {
  */
 export function text(str: string, options: TextOptions = {}): Reader<any, any> {
 
-  const {caseInsensitive = false} = options;
+  const {caseInsensitive} = options;
 
   if (str.length === 0) {
     return none;

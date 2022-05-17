@@ -17,13 +17,9 @@ export interface UntilOptions {
   inclusive?: boolean;
 
   /**
-   * The positive number of read iterations that are [unwound in a loop](https://en.wikipedia.org/wiki/Loop_unrolling).
-   *
-   * Unwinding read iteration may significantly increase performance but results in more bloated code that is generated.
-   *
-   * The best number of unwound iterations is equal to the median number of matches that are expected.
+   * The positive number of read iterations that are [unrolled in a loop](https://en.wikipedia.org/wiki/Loop_unrolling).
    */
-  unwoundCount?: number;
+  unrollCount?: number;
 }
 
 /**
@@ -36,7 +32,7 @@ export interface UntilOptions {
  */
 export function until<Context = any, Error = never>(reader: Reader<Context, Error>, options: UntilOptions = {}): Reader<Context, Error> {
 
-  const {inclusive = false, unwoundCount} = options;
+  const {inclusive = false, unrollCount} = options;
 
   if (reader === never || reader === none) {
     return reader;
@@ -47,17 +43,17 @@ export function until<Context = any, Error = never>(reader: Reader<Context, Erro
     if (charCodeRanges.length === 1 && typeof charCodeRanges[0] === 'number') {
       return new UntilCaseSensitiveTextReader(String.fromCharCode(charCodeRanges[0]), inclusive);
     }
-    return new UntilCharCodeRangeReader(charCodeRanges, inclusive, toInteger(unwoundCount, 10, 1));
+    return new UntilCharCodeRangeReader(charCodeRanges, inclusive, toInteger(unrollCount, 10, 1));
   }
   if (reader instanceof CaseSensitiveTextReader) {
     return new UntilCaseSensitiveTextReader(reader.str, inclusive);
   }
-  return new UntilReader(reader, inclusive, toInteger(unwoundCount, 5, 1));
+  return new UntilReader(reader, inclusive, toInteger(unrollCount, 5, 1));
 }
 
 export class UntilCharCodeRangeReader implements ReaderCodegen {
 
-  constructor(public charCodeRanges: CharCodeRange[], public inclusive: boolean, public unwoundCount: number) {
+  constructor(public charCodeRanges: CharCodeRange[], public inclusive: boolean, public unrollCount: number) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
@@ -77,7 +73,7 @@ export class UntilCharCodeRangeReader implements ReaderCodegen {
       'do{',
     ];
 
-    for (let i = 0; i < this.unwoundCount; ++i) {
+    for (let i = 0; i < this.unrollCount; ++i) {
       code.push(
           'if(', indexVar, '>=', inputLengthVar, ')break;',
           charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
@@ -115,7 +111,7 @@ export class UntilCaseSensitiveTextReader implements ReaderCodegen {
 
 export class UntilReader<Context, Error> implements ReaderCodegen {
 
-  constructor(public reader: Reader<Context, Error>, public inclusive: boolean, public unwoundCount: number) {
+  constructor(public reader: Reader<Context, Error>, public inclusive: boolean, public unrollCount: number) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
@@ -134,7 +130,7 @@ export class UntilReader<Context, Error> implements ReaderCodegen {
       'do{',
     ];
 
-    for (let i = 0; i < this.unwoundCount; ++i) {
+    for (let i = 0; i < this.unrollCount; ++i) {
       code.push(
           createReaderCallCode(this.reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
           'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, ';break}',
