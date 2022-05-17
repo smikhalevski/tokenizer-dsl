@@ -1,5 +1,4 @@
 import {Binding, Code, CodeBindings, createVar, Var} from 'codedegen';
-import {CharCodeRange, CharCodeRangeReader, createCharPredicateCode} from './char';
 import {die, toInteger} from '../utils';
 import {never} from './never';
 import {none} from './none';
@@ -57,80 +56,7 @@ export function all<Context = any, Error = never>(reader: Reader<Context, Error>
   if (minimumCount === 1 && maximumCount === 1 || reader === never || reader === none) {
     return reader;
   }
-  if (reader instanceof CharCodeRangeReader) {
-    return new AllCharCodeRangeReader(reader.charCodeRanges, minimumCount, maximumCount, toInteger(unrollCount, 1, 1));
-  }
   return new AllReader(reader, minimumCount, maximumCount, toInteger(unrollCount, 1, 1));
-}
-
-export class AllCharCodeRangeReader implements ReaderCodegen {
-
-  constructor(public charCodeRanges: CharCodeRange[], public minimumCount: number, public maximumCount: number, public unrollCount: number) {
-  }
-
-  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-    const {charCodeRanges, minimumCount, maximumCount, unrollCount} = this;
-
-    const indexVar = createVar();
-    const inputLengthVar = createVar();
-    const charCodeVar = createVar();
-
-    const code: Code[] = [
-      resultVar, '=', minimumCount > 0 ? NO_MATCH : offsetVar, ';',
-
-      'var ',
-      indexVar, '=', offsetVar, ',',
-      inputLengthVar, '=', inputVar, '.length,',
-      charCodeVar, ';',
-    ];
-
-    const predicateCode = createCharPredicateCode(charCodeVar, charCodeRanges);
-
-    const count = Math.max(minimumCount, maximumCount);
-
-    if (minimumCount > 0) {
-      code.push('if(', offsetVar, '+', minimumCount, '<=', inputLengthVar, '){');
-    }
-
-    for (let i = 0; i < count; ++i) {
-      code.push(
-          i < minimumCount ? '' : ['if(', indexVar, '<', inputLengthVar, '){'],
-          charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
-          'if(', predicateCode, '){',
-          i < minimumCount - 1 ? '' : [resultVar, '='], '++', indexVar, ';',
-      );
-    }
-
-    if (maximumCount === 0) {
-      code.push('do{');
-
-      if (unrollCount > 1) {
-        code.push('if(', resultVar, '+', unrollCount, '>=', inputLengthVar, '){');
-        for (let i = 0; i < unrollCount; ++i) {
-          code.push(
-              charCodeVar, '=', inputVar, '.charCodeAt(', resultVar, ');',
-              'if(!(', predicateCode, '))break;',
-              '++', resultVar, ';',
-          );
-        }
-        code.push('continue}');
-      }
-
-      for (let i = 0; i < unrollCount; ++i) {
-        code.push(
-            'if(', resultVar, '>=', inputLengthVar, ')break;',
-            charCodeVar, '=', inputVar, '.charCodeAt(', resultVar, ');',
-            'if(!(', predicateCode, '))break;',
-            '++', resultVar, ';',
-        );
-      }
-      code.push('}while(true)');
-    }
-
-    code.push('}'.repeat(count * 2 + (minimumCount > 0 ? 1 - minimumCount : 0)));
-
-    return createCodeBindings(code);
-  }
 }
 
 export class AllReader<Context, Error> implements ReaderCodegen {

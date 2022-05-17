@@ -1,15 +1,4 @@
-import {
-  all,
-  AllCharCodeRangeReader,
-  AllReader,
-  never,
-  NO_MATCH,
-  none,
-  text,
-  toReaderFunction
-} from '../../main/readers';
-
-const A = 'a'.charCodeAt(0);
+import {all, AllReader, never, NO_MATCH, none, text, toReaderFunction} from '../../main/readers';
 
 describe('all', () => {
 
@@ -38,55 +27,6 @@ describe('all', () => {
 
   test('returns AllReader', () => {
     expect(all(() => 0)).toBeInstanceOf(AllReader);
-  });
-});
-
-describe('AllCharCodeRangeReader', () => {
-
-  test('reads the exact number of chars', () => {
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 2, 2, 2))('aaaa', 0)).toBe(2);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 2, 2, 2))('aaaa', 1)).toBe(3);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 2, 2, 2))('aaaa', 2)).toBe(4);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 2, 2, 2))('abbb', 0)).toBe(NO_MATCH);
-  });
-
-  test('reads the exact number of chars when length is insufficient', () => {
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 2, 2, 2))('aaaa', 3)).toBe(NO_MATCH);
-  });
-
-  test('reads maximum number of chars', () => {
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 2, 2))('aaaa', 0)).toBe(2);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 2, 2))('aaaa', 1)).toBe(3);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 2, 2))('abbb', 0)).toBe(1);
-  });
-
-  test('reads maximum number of chars does not overflow input length', () => {
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 2, 2))('aaaa', 3)).toBe(4);
-  });
-
-  test('reads minimum and maximum number of chars', () => {
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 2, 2))('aaaa', 0)).toBe(2);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 2, 2))('aaaa', 1)).toBe(3);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 2, 2))('aaaa', 3)).toBe(4);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 2, 2))('aaaa', 4)).toBe(NO_MATCH);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 2, 2))('aabb', 1)).toBe(2);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 2, 2))('aabb', 2)).toBe(NO_MATCH);
-  });
-
-  test('reads minimum number of chars', () => {
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 0, 2))('aaaa', 0)).toBe(4);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 0, 2))('aaaa', 1)).toBe(4);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 0, 2))('aaaa', 4)).toBe(NO_MATCH);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 0, 2))('aabb', 1)).toBe(2);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 0, 2))('aabb', 2)).toBe(NO_MATCH);
-  });
-
-  test('reads unlimited number of chars', () => {
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 0, 2))('aaaa', 0)).toBe(4);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 0, 2))('aaaa', 1)).toBe(4);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 0, 2))('aaaa', 4)).toBe(4);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 0, 2))('aabb', 1)).toBe(2);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 0, 2))('aabb', 2)).toBe(2);
   });
 });
 

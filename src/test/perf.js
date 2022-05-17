@@ -193,7 +193,7 @@ describe('char', () => {
 
 describe('all', () => {
 
-  describe('AllCharCodeRangeReader\tall(char(["abc"]))', () => {
+  describe('AllReader\tall(char(["abc"]))', () => {
 
     const input = '___abcabc___';
 
@@ -211,7 +211,7 @@ describe('all', () => {
     });
   });
 
-  describe('AllCharCodeRangeReader\tall(char(["abc"]), {minimumCount: 2})', () => {
+  describe('AllReader\tall(char(["abc"]), {minimumCount: 2})', () => {
 
     const input = '___abcabc___';
 
@@ -229,7 +229,7 @@ describe('all', () => {
     });
   });
 
-  describe('AllCharCodeRangeReader\tall(char(["abc"]), {maximumCount: 3})', () => {
+  describe('AllReader\tall(char(["abc"]), {maximumCount: 3})', () => {
 
     const input = '___abc___';
 
@@ -247,7 +247,7 @@ describe('all', () => {
     });
   });
 
-  describe('AllCharCodeRangeReader\tall(char(["abc"]), {minimumCount: 2, maximumCount: 3})', () => {
+  describe('AllReader\tall(char(["abc"]), {minimumCount: 2, maximumCount: 3})', () => {
 
     const input = '___abc___';
 
@@ -265,7 +265,7 @@ describe('all', () => {
     });
   });
 
-  describe('AllCharCodeRangeReader\tall(char(["abc"]), {minimumCount: 2, maximumCount: 2})', () => {
+  describe('AllReader\tall(char(["abc"]), {minimumCount: 2, maximumCount: 2})', () => {
 
     const input = '___abc___';
 
