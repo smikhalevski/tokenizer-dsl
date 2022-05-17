@@ -81,7 +81,7 @@ describe('Tokenizer', () => {
 
     const leadingDigitReader = next.char([['1', '9']]);
 
-    const digitsReader = next.all(next.char([['0', '9']]), {unrollCount: 4});
+    const digitsReader = next.all(next.char([['0', '9']]));
 
     const dotReader = next.text('.');
 
@@ -109,11 +109,11 @@ describe('Tokenizer', () => {
         ),
     );
 
-    const alphaReader = next.all(next.char([['a', 'z']]), {minimumCount: 1, unrollCount: 4});
+    const alphaReader = next.all(next.char([['a', 'z']]), {minimumCount: 1});
 
     const semicolonReader = next.text(';');
 
-    const whitespaceReader = next.all(next.char([' \t\n\r']), {unrollCount: 3});
+    const whitespaceReader = next.all(next.char([' \t\n\r']));
 
     const tokenizer = next.createTokenizer([
       {
@@ -207,24 +207,6 @@ describe('all', () => {
 
     test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.all(next.char(['abc'])));
-      measure(() => read(input, 3));
-    });
-  });
-
-  describe('AllCharCodeRangeReader\tall(char(["abc"]), {unrollCount: 10})', () => {
-
-    const input = '___abcabc___';
-
-    test('RegExp', (measure) => {
-      const re = /[abc]*/y;
-      measure(() => {
-        re.lastIndex = 3;
-        re.test(input);
-      });
-    });
-
-    test(nextVersion, (measure) => {
-      const read = next.toReaderFunction(next.all(next.char(['abc']), {unrollCount: 10}));
       measure(() => read(input, 3));
     });
   });
