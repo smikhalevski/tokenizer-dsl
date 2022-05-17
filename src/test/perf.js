@@ -422,6 +422,24 @@ describe('until', () => {
     });
   });
 
+  describe('UntilCharCodeRangeReader\tuntil(char(["abc"]), {inclusive: true})', () => {
+
+    const input = '_________abc___';
+
+    test('RegExp', (measure) => {
+      const re = /[abc]/g;
+      measure(() => {
+        re.lastIndex = 3;
+        re.test(input);
+      });
+    });
+
+    test(nextVersion, (measure) => {
+      const read = next.toReaderFunction(next.until(next.char(['abc']), {inclusive: true}));
+      measure(() => read(input, 3));
+    });
+  });
+
   describe('UntilCaseSensitiveTextReader\tuntil(text("abc"))', () => {
 
     const input = '_________abc___';
@@ -462,6 +480,42 @@ describe('until', () => {
 
     test(nextVersion, (measure) => {
       const read = next.toReaderFunction(next.until(next.text('abc'), {inclusive: true}));
+      measure(() => read(input, 3));
+    });
+  });
+
+  describe('UntilReader\tuntil(text("abc", {caseInsensitive: true}))', () => {
+
+    const input = '_________ABC___';
+
+    test('RegExp', (measure) => {
+      const re = /(?=abc)/ig;
+      measure(() => {
+        re.lastIndex = 3;
+        re.test(input);
+      });
+    });
+
+    test(nextVersion, (measure) => {
+      const read = next.toReaderFunction(next.until(next.text('abc', {caseInsensitive: true})));
+      measure(() => read(input, 3));
+    });
+  });
+
+  describe('UntilReader\tuntil(text("abc", {caseInsensitive: true}), {inclusive: true})', () => {
+
+    const input = '_________ABC___';
+
+    test('RegExp', (measure) => {
+      const re = /abc/ig;
+      measure(() => {
+        re.lastIndex = 3;
+        re.test(input);
+      });
+    });
+
+    test(nextVersion, (measure) => {
+      const read = next.toReaderFunction(next.until(next.text('abc', {caseInsensitive: true}), {inclusive: true}));
       measure(() => read(input, 3));
     });
   });

@@ -1,4 +1,5 @@
-import {Binding, CodeBindings, createVar, Var} from 'codedegen';
+import {Binding, Code, CodeBindings, createVar, Var} from 'codedegen';
+import {toInteger} from '../utils';
 import {CharCodeRange, CharCodeRangeReader, createCharPredicateCode} from './char';
 import {never} from './never';
 import {none} from './none';
@@ -14,6 +15,15 @@ export interface UntilOptions {
    * @default false
    */
   inclusive?: boolean;
+
+  /**
+   * The positive number of read iterations that are [unwound in a loop](https://en.wikipedia.org/wiki/Loop_unrolling).
+   *
+   * Unwinding read iteration may significantly increase performance but results in more bloated code that is generated.
+   *
+   * The best number of unwound iterations is equal to the median number of matches that are expected.
+   */
+  unwoundCount?: number;
 }
 
 /**
@@ -26,7 +36,7 @@ export interface UntilOptions {
  */
 export function until<Context = any, Error = never>(reader: Reader<Context, Error>, options: UntilOptions = {}): Reader<Context, Error> {
 
-  const {inclusive = false} = options;
+  const {inclusive = false, unwoundCount} = options;
 
   if (reader === never || reader === none) {
     return reader;
@@ -37,17 +47,17 @@ export function until<Context = any, Error = never>(reader: Reader<Context, Erro
     if (charCodeRanges.length === 1 && typeof charCodeRanges[0] === 'number') {
       return new UntilCaseSensitiveTextReader(String.fromCharCode(charCodeRanges[0]), inclusive);
     }
-    return new UntilCharCodeRangeReader(charCodeRanges, inclusive);
+    return new UntilCharCodeRangeReader(charCodeRanges, inclusive, toInteger(unwoundCount, 10, 1));
   }
   if (reader instanceof CaseSensitiveTextReader) {
     return new UntilCaseSensitiveTextReader(reader.str, inclusive);
   }
-  return new UntilReader(reader, inclusive);
+  return new UntilReader(reader, inclusive, toInteger(unwoundCount, 5, 1));
 }
 
 export class UntilCharCodeRangeReader implements ReaderCodegen {
 
-  constructor(public charCodeRanges: CharCodeRange[], public inclusive: boolean) {
+  constructor(public charCodeRanges: CharCodeRange[], public inclusive: boolean, public unwoundCount: number) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
@@ -56,17 +66,29 @@ export class UntilCharCodeRangeReader implements ReaderCodegen {
     const indexVar = createVar();
     const charCodeVar = createVar();
 
-    return createCodeBindings([
+    const code: Code[] = [
+      resultVar, '=', NO_MATCH, ';',
+
       'var ',
       inputLengthVar, '=', inputVar, '.length,',
       indexVar, '=', offsetVar, ',',
-      charCodeVar,
-      ';',
-      'while(', indexVar, '<', inputLengthVar,
-      '&&(', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, '),!(', createCharPredicateCode(charCodeVar, this.charCodeRanges), '))',
-      ')++', indexVar, ';',
-      resultVar, '=', indexVar, '===', inputLengthVar, '?', NO_MATCH, ':', indexVar, this.inclusive ? '+1;' : ';',
-    ]);
+      charCodeVar, ';',
+
+      'do{',
+    ];
+
+    for (let i = 0; i < this.unwoundCount; ++i) {
+      code.push(
+          'if(', indexVar, '>=', inputLengthVar, ')break;',
+          charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
+          'if(', createCharPredicateCode(charCodeVar, this.charCodeRanges), '){', resultVar, '=', indexVar, this.inclusive ? '+1' : '', ';break}',
+          '++', indexVar, ';',
+      );
+    }
+
+    code.push('}while(true)');
+
+    return createCodeBindings(code);
   }
 }
 
@@ -76,6 +98,7 @@ export class UntilCaseSensitiveTextReader implements ReaderCodegen {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
+    const {str} = this;
 
     const strVar = createVar();
     const indexVar = createVar();
@@ -83,38 +106,45 @@ export class UntilCaseSensitiveTextReader implements ReaderCodegen {
     return createCodeBindings(
         [
           'var ', indexVar, '=', inputVar, '.indexOf(', strVar, ',', offsetVar, ');',
-          resultVar, '=', indexVar, '===-1?', NO_MATCH, ':', indexVar, this.inclusive ? '+' + this.str.length : '', ';',
+          resultVar, '=', indexVar, this.inclusive ? ['===-1?', NO_MATCH, ':', indexVar, '+', str.length] : '', ';',
         ],
-        [[strVar, this.str]],
+        [[strVar, str]],
     );
   }
 }
 
 export class UntilReader<Context, Error> implements ReaderCodegen {
 
-  constructor(public reader: Reader<Context, Error>, public inclusive: boolean) {
+  constructor(public reader: Reader<Context, Error>, public inclusive: boolean, public unwoundCount: number) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
 
-    const bindings: Binding[] = [];
-    const inputLengthVar = createVar();
     const indexVar = createVar();
     const readerResultVar = createVar();
+    const bindings: Binding[] = [];
 
-    return createCodeBindings(
-        [
-          'var ',
-          inputLengthVar, '=', inputVar, '.length,',
-          indexVar, '=', offsetVar, ',',
-          readerResultVar, '=', NO_MATCH, ';',
-          'while(', indexVar, '<', inputLengthVar, '&&', readerResultVar, '===', NO_MATCH, '){',
+    const code: Code[] = [
+      resultVar, '=', NO_MATCH, ';',
+
+      'var ',
+      indexVar, '=', offsetVar, ',',
+      readerResultVar, ';',
+
+      'do{',
+    ];
+
+    for (let i = 0; i < this.unwoundCount; ++i) {
+      code.push(
           createReaderCallCode(this.reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
-          '++', indexVar,
-          '}',
-          resultVar, '=', this.inclusive ? readerResultVar : [readerResultVar, '>=0?', indexVar, '-1:', readerResultVar], ';',
-        ],
-        bindings,
-    );
+          'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, ';break}',
+          'if(', readerResultVar, '>=', indexVar, '){', resultVar, '=', this.inclusive ? readerResultVar : indexVar, ';break}',
+          '++', indexVar, ';',
+      );
+    }
+
+    code.push('}while(true)');
+
+    return createCodeBindings(code, bindings);
   }
 }

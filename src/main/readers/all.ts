@@ -1,5 +1,5 @@
 import {Binding, Code, CodeBindings, createVar, Var} from 'codedegen';
-import {die} from '../utils';
+import {die, toInteger} from '../utils';
 import {never} from './never';
 import {none} from './none';
 import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
@@ -22,14 +22,12 @@ export interface AllOptions {
   maximumCount?: number;
 
   /**
-   * The number of read iterations that are [unwound in a loop](https://en.wikipedia.org/wiki/Loop_unrolling).
+   * The positive number of read iterations that are [unwound in a loop](https://en.wikipedia.org/wiki/Loop_unrolling).
    *
    * Only applicable when {@link maximumCount} is unlimited. Unwinding read iteration may significantly increase
    * performance but results in more bloated code that is generated.
    *
    * The best number of unwound iterations is equal to the median number of matches that are expected.
-   *
-   * @default 0
    */
   unwoundCount?: number;
 }
@@ -45,14 +43,13 @@ export interface AllOptions {
 export function all<Context = any, Error = never>(reader: Reader<Context, Error>, options: AllOptions = {}): Reader<Context, Error> {
 
   let {
-    minimumCount = 0,
-    maximumCount = 0,
-    unwoundCount = 0,
+    minimumCount,
+    maximumCount,
+    unwoundCount,
   } = options;
 
-  minimumCount = Math.max(minimumCount | 0, 0);
-  maximumCount = Math.max(maximumCount | 0, 0); // 0 = Infinity
-  unwoundCount = Math.max(unwoundCount | 0, 0);
+  minimumCount = toInteger(minimumCount);
+  maximumCount = toInteger(maximumCount); // 0 = Infinity
 
   if (maximumCount !== 0 && minimumCount > maximumCount) {
     die('Maximum must be greater of equal than minimum');
@@ -60,7 +57,7 @@ export function all<Context = any, Error = never>(reader: Reader<Context, Error>
   if (minimumCount === 1 && maximumCount === 1 || reader === never || reader === none) {
     return reader;
   }
-  return new AllReader(reader, minimumCount, maximumCount, unwoundCount);
+  return new AllReader(reader, minimumCount, maximumCount, toInteger(unwoundCount, 5, 1));
 }
 
 export class AllReader<Context, Error> implements ReaderCodegen {
@@ -97,7 +94,7 @@ export class AllReader<Context, Error> implements ReaderCodegen {
 
     if (maximumCount === 0) {
       code.push('do{');
-      for (let i = 0; i <= this.unwoundCount; ++i) {
+      for (let i = 0; i < this.unwoundCount; ++i) {
         code.push(
             createReaderCallCode(reader, inputVar, resultVar, contextVar, readerResultVar, bindings),
             'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, ';break}',

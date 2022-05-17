@@ -1,4 +1,5 @@
 import {CodeBindings, Var} from 'codedegen';
+import {toInteger} from '../utils';
 import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings} from './reader-utils';
 
@@ -10,7 +11,7 @@ import {createCodeBindings} from './reader-utils';
  * @see {@link end}
  */
 export function skip(charCount: number): Reader<any, any> {
-  return new SkipReader(Math.max(0, charCount | 0));
+  return new SkipReader(toInteger(charCount));
 }
 
 export class SkipReader implements ReaderCodegen {

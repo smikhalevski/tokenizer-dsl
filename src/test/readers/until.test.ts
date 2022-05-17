@@ -40,11 +40,11 @@ describe('until', () => {
 describe('UntilCharCodeRangeReader', () => {
 
   test('reads chars until char code is met', () => {
-    expect(toReaderFunction(new UntilCharCodeRangeReader([[B, B]], false))('aaabbb', 0)).toBe(3);
+    expect(toReaderFunction(new UntilCharCodeRangeReader([[B, B]], false, 1))('aaabbb', 0)).toBe(3);
   });
 
   test('reads chars including the searched char', () => {
-    expect(toReaderFunction(new UntilCharCodeRangeReader([[B, B]], true))('aaabbb', 0)).toBe(4);
+    expect(toReaderFunction(new UntilCharCodeRangeReader([[B, B]], true, 1))('aaabbb', 0)).toBe(4);
   });
 });
 
@@ -65,9 +65,9 @@ describe('UntilReader', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(NO_MATCH);
     readerMock.mockReturnValueOnce(NO_MATCH);
-    readerMock.mockReturnValueOnce(0);
+    readerMock.mockReturnValueOnce(4);
 
-    expect(toReaderFunction(new UntilReader(readerMock, false))('aaaa', 0)).toBe(2);
+    expect(toReaderFunction(new UntilReader(readerMock, false, 1))('aaaa', 0)).toBe(2);
     expect(readerMock).toHaveBeenCalledTimes(3);
     expect(readerMock).toHaveBeenNthCalledWith(3, 'aaaa', 2, undefined);
   });
@@ -78,20 +78,20 @@ describe('UntilReader', () => {
     readerMock.mockReturnValueOnce(NO_MATCH);
     readerMock.mockReturnValueOnce(77);
 
-    expect(toReaderFunction(new UntilReader(readerMock, true))('aaaa', 0)).toBe(77);
+    expect(toReaderFunction(new UntilReader(readerMock, true, 1))('aaaa', 0)).toBe(77);
     expect(readerMock).toHaveBeenCalledTimes(3);
     expect(readerMock).toHaveBeenNthCalledWith(3, 'aaaa', 2, undefined);
   });
 
   test('can use inline readers', () => {
-    expect(toReaderFunction(new UntilReader(text('bb'), false))('aabbcc', 0)).toBe(2);
+    expect(toReaderFunction(new UntilReader(text('bb'), false, 1))('aabbcc', 0)).toBe(2);
   });
 
   test('propagates context', () => {
     const readerMock = jest.fn(() => 0);
     const context = Symbol('context');
 
-    expect(toReaderFunction<any>(new UntilReader(readerMock, false))('a', 0, context)).toBe(0);
+    expect(toReaderFunction<any>(new UntilReader(readerMock, false, 1))('a', 0, context)).toBe(0);
 
     expect(readerMock).toHaveBeenCalledTimes(1);
     expect(readerMock).toHaveBeenNthCalledWith(1, 'a', 0, context);
