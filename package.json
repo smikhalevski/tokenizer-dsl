@@ -1,6 +1,6 @@
 {
   "name": "tokenizer-dsl",
-  "version": "3.0.1",
+  "version": "4.0.0",
   "description": "The API for building streaming tokenizers and lexers.",
   "main": "./lib/index-cjs.js",
   "module": "./lib/index.js",
