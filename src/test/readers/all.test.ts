@@ -4,8 +4,11 @@ describe('all', () => {
 
   test('returns never', () => {
     expect(all(never)).toBe(never);
-    expect(all(never, {minimumCount: 2, maximumCount: 1})).toBe(never);
     expect(all(never, {minimumCount: Infinity})).toBe(never);
+  });
+
+  test('throws if minimum is greater than maximum', () => {
+    expect(() => all(never, {minimumCount: 2, maximumCount: 1})).toThrow();
   });
 
   test('returns none', () => {
