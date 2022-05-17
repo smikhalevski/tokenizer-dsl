@@ -1,5 +1,5 @@
-import {Binding, Code, CodeBindings, createVar, Var} from 'codedegen';
-import {die, toInteger} from '../utils';
+import {Binding, Code, CodeBindings, Var} from 'codedegen';
+import {createVar, die, toInteger} from '../utils';
 import {never} from './never';
 import {none} from './none';
 import {Reader, ReaderCodegen} from './reader-types';

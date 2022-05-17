@@ -1,4 +1,5 @@
-import {Binding, Code, CodeBindings, compileFunction, createVar, Var} from 'codedegen';
+import {Binding, Code, CodeBindings, compileFunction, Var} from 'codedegen';
+import {createVar} from '../utils';
 import {Reader, ReaderFunction} from './reader-types';
 
 /**

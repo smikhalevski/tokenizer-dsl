@@ -1,5 +1,6 @@
-import {Binding, Code, compileFunction, createVar, Var} from 'codedegen';
+import {Binding, Code, compileFunction, Var} from 'codedegen';
 import {createReaderCallCode, seq} from '../readers';
+import {createVar} from '../utils';
 import {RuleBranch, RuleTree} from './createRuleTree';
 import {TokenHandler, TokenizerState} from './rule-types';
 
