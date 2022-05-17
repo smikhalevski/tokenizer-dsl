@@ -1,17 +1,19 @@
 import {Binding, Code, CodeBindings, Var} from 'codedegen';
 import {never} from './never';
 import {none} from './none';
-import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
+import {Reader, ReaderCodegen} from './reader-types';
 import {createCodeBindings, createReaderCallCode} from './reader-utils';
 
 /**
  * Creates a reader that returns the result of the first matched reader.
  *
  * @param readers Readers that are called.
+ *
+ * @template Context The context passed by tokenizer.
  */
-export function or<Context = any>(...readers: Reader<Context>[]): Reader<Context> {
+export function or<Context = any, Error = never>(...readers: Reader<Context, Error>[]): Reader<Context, Error> {
 
-  const children: Reader<Context>[] = [];
+  const children: Reader<Context, Error>[] = [];
 
   for (const reader of readers) {
     if (reader === none) {
@@ -35,9 +37,9 @@ export function or<Context = any>(...readers: Reader<Context>[]): Reader<Context
   return new OrReader(children);
 }
 
-export class OrReader<Context> implements ReaderCodegen {
+export class OrReader<Context, Error> implements ReaderCodegen {
 
-  constructor(public readers: Reader<Context>[]) {
+  constructor(public readers: Reader<Context, Error>[]) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
@@ -52,7 +54,7 @@ export class OrReader<Context> implements ReaderCodegen {
 
       code.push(createReaderCallCode(reader, inputVar, offsetVar, contextVar, resultVar, bindings));
       if (i < readersLength - 1) {
-        code.push('if(', resultVar, '===', NO_MATCH, '){');
+        code.push('if(typeof ', resultVar, '==="number"&&', resultVar, '<', offsetVar, '){');
       }
     }
     code.push('}'.repeat(readersLength - 1));

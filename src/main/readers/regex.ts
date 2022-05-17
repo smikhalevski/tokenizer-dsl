@@ -1,13 +1,13 @@
 import {CodeBindings, createVar, Var} from 'codedegen';
-import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings} from './reader-utils';
+import {Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings, NO_MATCH} from './reader-utils';
 
 /**
  * Creates a reader that matches a substring.
  *
  * @param re The `RegExp` to match.
  */
-export function regex(re: RegExp): Reader<any> {
+export function regex(re: RegExp): Reader<any, any> {
   return new RegexReader(re);
 }
 
@@ -16,19 +16,17 @@ export class RegexReader implements ReaderCodegen {
   re;
 
   constructor(re: RegExp) {
-    this.re = RegExp(re.source, re.flags.replace(/[yg]/, '') + (re.sticky !== undefined ? 'y' : 'g'));
+    this.re = re.global || re.sticky ? re : new RegExp(re, re.flags + 'g');
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
 
     const reVar = createVar();
-    const arrVar = createVar();
 
     return createCodeBindings(
         [
           reVar, '.lastIndex=', offsetVar, ';',
-          'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
-          resultVar, '=', arrVar, '===null||', arrVar, '.index!==', offsetVar, '?', NO_MATCH, ':', reVar, '.lastIndex;',
+          resultVar, '=', reVar, '.test(', inputVar, ')?', reVar, '.lastIndex:', NO_MATCH, ';',
         ],
         [[reVar, this.re]],
     );

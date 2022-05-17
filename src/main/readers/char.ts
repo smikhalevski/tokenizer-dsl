@@ -1,7 +1,10 @@
 import {Code, CodeBindings, createVar, Var} from 'codedegen';
+import {die} from '../utils';
 import {none} from './none';
-import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, toCharCode, toCharCodes} from './reader-utils';
+import {Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings, NO_MATCH, toCharCodes} from './reader-utils';
+
+export type CharRange = string | number | [number | string, number | string];
 
 export type CharCodeRange = number | [number, number];
 
@@ -13,12 +16,12 @@ export type CharCodeRange = number | [number, number];
  *
  * @see {@link text}
  */
-export function char(chars: (string | number | [number | string, number | string])[]): Reader<any> {
+export function char(chars: CharRange[]): Reader<any, any> {
   const charCodeRanges: CharCodeRange[] = [];
 
   for (const range of chars) {
     if (typeof range === 'number') {
-      charCodeRanges.push(range);
+      charCodeRanges.push(toCharCode(range));
     } else if (typeof range === 'string') {
       charCodeRanges.push(...toCharCodes(range));
     } else {
@@ -42,8 +45,12 @@ export class CharCodeRangeReader implements ReaderCodegen {
     const charCodeVar = createVar();
 
     return createCodeBindings([
-      'var ', charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, ');',
-      resultVar, '=', createCharPredicateCode(charCodeVar, this.charCodeRanges), '?', offsetVar, '+1:', NO_MATCH, ';',
+      'var ', charCodeVar, ';',
+
+      resultVar, '=',
+      offsetVar, '<', inputVar, '.length&&(',
+      charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '),',
+      createCharPredicateCode(charCodeVar, this.charCodeRanges), ')?', offsetVar, '+1:', NO_MATCH, ';',
     ]);
   }
 }
@@ -64,4 +71,17 @@ export function createCharPredicateCode(charCodeVar: Var, charCodeRanges: CharCo
     }
   }
   return code;
+}
+
+function toCharCode(value: string | number): number {
+  if (typeof value === 'number') {
+    if (value < 0) {
+      die('Illegal char code');
+    }
+    return value | 0;
+  }
+  if (value.length !== 1) {
+    die('Expected a single char');
+  }
+  return value.charCodeAt(0);
 }

@@ -1,24 +1,28 @@
 import {CodeBindings, Var} from 'codedegen';
 
 /**
- * OK code returned from the {@link Reader} that means that it didn't match any chars.
+ * The reader definition that can be compiled into a function that reads chars from the input string.
+ *
+ * @template Context The context passed by tokenizer.
+ * @template Error The error that the reader may return.
  */
-export const NO_MATCH = -1;
-
-export type Reader<Context> = ReaderFunction<Context> | ReaderCodegen;
+export type Reader<Context = void, Error = never> = ReaderFunction<Context, Error> | ReaderCodegen;
 
 /**
- * Takes the string `input` and the offset in this string `offset` and returns the new offset in `input` if reader
- * matched or a {@link NO_MATCH} if reader didn't match. The reader may return offsets that exceed the `input`
- * length.
+ * Takes the string `input` and the offset in this string `offset` and returns the next offset that is greater or equal
+ * to `offset` if reader matched or returns an offset that is less than `offset` if reader didn't match. The reader may
+ * return offsets that exceed the `input` length.
  *
  * ```ts
  * const abcReader: Reader = (input, offset) => {
  *   return input.startsWith('abc', offset) ? offset + 3 : NO_MATCH;
  * };
  * ```
+ *
+ * @template Context The context passed by tokenizer.
+ * @template Error The error that the reader may return.
  */
-export type ReaderFunction<Context> = (input: string, offset: number, context: Context) => number;
+export type ReaderFunction<Context = void, Error = never> = (input: string, offset: number, context: Context) => Error | number;
 
 /**
  * Factory that returns the reader code and values for variables that must be bound to the reader.

@@ -1,25 +1,14 @@
-import {
-  all,
-  AllCaseSensitiveTextReader,
-  AllCharCodeRangeReader,
-  AllReader,
-  AllRegexReader,
-  MaybeReader,
-  never,
-  NO_MATCH,
-  none,
-  text,
-  toReaderFunction
-} from '../../main/readers';
-
-const A = 'a'.charCodeAt(0);
+import {all, AllReader, never, NO_MATCH, none, text, toReaderFunction} from '../../main/readers';
 
 describe('all', () => {
 
   test('returns never', () => {
     expect(all(never)).toBe(never);
-    expect(all(never, {minimumCount: 2, maximumCount: 1})).toBe(never);
     expect(all(never, {minimumCount: Infinity})).toBe(never);
+  });
+
+  test('throws if minimum is greater than maximum', () => {
+    expect(() => all(never, {minimumCount: 2, maximumCount: 1})).toThrow();
   });
 
   test('returns none', () => {
@@ -31,120 +20,13 @@ describe('all', () => {
     expect(all(() => 0, {maximumCount: 0})).toBeInstanceOf(AllReader);
   });
 
-  test('returns MaybeReader', () => {
-    expect(all(() => 0, {maximumCount: 1})).toBeInstanceOf(MaybeReader);
-  });
-
   test('returns reader', () => {
     const baseReaderMock = () => 0;
     expect(all(baseReaderMock, {minimumCount: 1, maximumCount: 1})).toBe(baseReaderMock);
   });
 
-  test('returns AllCaseSensitiveTextReader', () => {
-    expect(all(text('a'))).toBeInstanceOf(AllCharCodeRangeReader);
-    expect(all(text('aaa'))).toBeInstanceOf(AllCaseSensitiveTextReader);
-  });
-
   test('returns AllReader', () => {
     expect(all(() => 0)).toBeInstanceOf(AllReader);
-  });
-});
-
-describe('AllCharCodeRangeReader', () => {
-
-  test('reads exact number of chars', () => {
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 2, 2))('aaaa', 0)).toBe(2);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 2, 2))('aaaa', 1)).toBe(3);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 2, 2))('aaaa', 2)).toBe(4);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 2, 2))('abbb', 0)).toBe(NO_MATCH);
-  });
-
-  test('reads exact number of chars when length is insufficient', () => {
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 2, 2))('aaaa', 3)).toBe(NO_MATCH);
-  });
-
-  test('reads maximum number of chars', () => {
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 2))('aaaa', 0)).toBe(2);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 2))('aaaa', 1)).toBe(3);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 2))('abbb', 0)).toBe(1);
-  });
-
-  test('reads maximum number of chars does not overflow input length', () => {
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 2))('aaaa', 3)).toBe(4);
-  });
-
-  test('reads minimum and maximum number of chars', () => {
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 2))('aaaa', 0)).toBe(2);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 2))('aaaa', 1)).toBe(3);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 2))('aaaa', 3)).toBe(4);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 2))('aaaa', 4)).toBe(NO_MATCH);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 2))('aabb', 1)).toBe(2);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 2))('aabb', 2)).toBe(NO_MATCH);
-  });
-
-  test('reads minimum number of chars', () => {
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 0))('aaaa', 0)).toBe(4);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 0))('aaaa', 1)).toBe(4);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 0))('aaaa', 4)).toBe(NO_MATCH);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 0))('aabb', 1)).toBe(2);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 1, 0))('aabb', 2)).toBe(NO_MATCH);
-  });
-
-  test('reads unlimited number of chars', () => {
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 0))('aaaa', 0)).toBe(4);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 0))('aaaa', 1)).toBe(4);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 0))('aaaa', 4)).toBe(4);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 0))('aabb', 1)).toBe(2);
-    expect(toReaderFunction(new AllCharCodeRangeReader([A], 0, 0))('aabb', 2)).toBe(2);
-  });
-});
-
-describe('AllCaseSensitiveTextReader', () => {
-
-  test('reads sequential case-insensitive substrings', () => {
-    expect(toReaderFunction(new AllCaseSensitiveTextReader('abc', 0, 0))('abcabcabcd', 3)).toBe(9);
-    expect(toReaderFunction(new AllCaseSensitiveTextReader('abc', 3, 0))('abcabcabcd', 3)).toBe(NO_MATCH);
-  });
-
-  test('reads if count is sufficient', () => {
-    expect(toReaderFunction(new AllCaseSensitiveTextReader('ab', 2, 0))('abababc', 2)).toBe(6);
-  });
-
-  test('does not read if count is insufficient', () => {
-    expect(toReaderFunction(new AllCaseSensitiveTextReader('ab', 2, 0))('aabb', 1)).toBe(NO_MATCH);
-  });
-
-  test('reads limited number of chars', () => {
-    expect(toReaderFunction(new AllCaseSensitiveTextReader('ab', 0, 2))('abababab', 2)).toBe(6);
-  });
-
-  test('stops at string end', () => {
-    expect(toReaderFunction(new AllCaseSensitiveTextReader('ab', 0, 0))('abababab', 0)).toBe(8);
-  });
-});
-
-describe('AllRegexReader', () => {
-
-  test('reads sequential regex matches', () => {
-    expect(toReaderFunction(new AllRegexReader(/a/, 0, 0))('aaaaabaaa', 3)).toBe(5);
-    expect(toReaderFunction(new AllRegexReader(/a/, 3, 0))('aaaaabaaa', 3)).toBe(NO_MATCH);
-    expect(toReaderFunction(new AllRegexReader(/a/, 0, 3))('aaaaa', 0)).toBe(3);
-  });
-
-  test('reads if count is sufficient', () => {
-    expect(toReaderFunction(new AllRegexReader(/ab/, 2, 0))('abababc', 2)).toBe(6);
-  });
-
-  test('does not read if count is insufficient', () => {
-    expect(toReaderFunction(new AllRegexReader(/ab/, 2, 0))('aabb', 1)).toBe(NO_MATCH);
-  });
-
-  test('reads limited number of chars', () => {
-    expect(toReaderFunction(new AllRegexReader(/ab/, 0, 2))('abababab', 2)).toBe(6);
-  });
-
-  test('stops at string end', () => {
-    expect(toReaderFunction(new AllRegexReader(/ab/, 0, 0))('abababab', 0)).toBe(8);
   });
 });
 
@@ -172,10 +54,10 @@ describe('AllReader', () => {
   test('returns error result from underlying reader', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(3);
-    readerMock.mockReturnValueOnce(-2);
+    readerMock.mockReturnValueOnce('Error');
     readerMock.mockReturnValueOnce(3);
 
-    expect(toReaderFunction(new AllReader(readerMock, 0, 0))('aabbcc', 2)).toBe(-2);
+    expect(toReaderFunction(new AllReader(readerMock, 0, 0))('aabbcc', 2)).toBe('Error');
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 

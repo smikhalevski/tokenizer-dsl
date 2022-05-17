@@ -1,8 +1,9 @@
 import {Code, CodeBindings, createVar, Var} from 'codedegen';
+import {die} from '../utils';
 import {CharCodeRangeReader} from './char';
 import {none} from './none';
-import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, toCharCodes} from './reader-utils';
+import {Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings, NO_MATCH, toCharCodes} from './reader-utils';
 
 export interface TextOptions {
 
@@ -22,9 +23,9 @@ export interface TextOptions {
  *
  * @see {@link char}
  */
-export function text(str: string, options: TextOptions = {}): Reader<any> {
+export function text(str: string, options: TextOptions = {}): Reader<any, any> {
 
-  const {caseInsensitive = false} = options;
+  const {caseInsensitive} = options;
 
   if (str.length === 0) {
     return none;
@@ -35,7 +36,7 @@ export function text(str: string, options: TextOptions = {}): Reader<any> {
 
   if (caseInsensitive && strUpper !== strLower) {
     if (strUpper.length !== strLower.length) {
-      throw new Error('Unsupported char');
+      die('Unsupported char');
     }
     return new CaseInsensitiveTextReader(str);
   }
@@ -83,7 +84,7 @@ export class CaseInsensitiveTextReader implements ReaderCodegen {
 
     const code: Code[] = [
       'var ', charCodeVar, ';',
-      resultVar, '=', offsetVar, '+', charCount - 1, '<', inputVar, '.length',
+      resultVar, '=', offsetVar, '+', charCount, '<=', inputVar, '.length',
     ];
 
     for (let i = 0; i < charCount; ++i) {
@@ -92,17 +93,17 @@ export class CaseInsensitiveTextReader implements ReaderCodegen {
       const upperCharCode = upperCharCodes[i];
 
       if (lowerCharCode === upperCharCode) {
-        code.push('&&', inputVar, '.charCodeAt(', offsetVar, '++)===', lowerCharCode);
+        code.push('&&', inputVar, '.charCodeAt(', offsetVar, '+', i, ')===', lowerCharCode);
       } else {
         code.push(
             '&&(',
-            charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '++),',
+            charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '+', i, '),',
             charCodeVar, '===', lowerCharCode, '||', charCodeVar, '===', upperCharCode,
             ')',
         );
       }
     }
-    code.push('?', offsetVar, ':', NO_MATCH, ';');
+    code.push('?', offsetVar, '+', charCount, ':', NO_MATCH, ';');
 
     return createCodeBindings(code);
   }

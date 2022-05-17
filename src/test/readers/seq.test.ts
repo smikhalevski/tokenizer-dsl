@@ -12,7 +12,7 @@ describe('seq', () => {
   });
 
   test('returns reader', () => {
-    const readerMock: Reader<any> = () => 0;
+    const readerMock: Reader<any, any> = () => 0;
     expect(seq(readerMock)).toBe(readerMock);
   });
 
@@ -37,13 +37,23 @@ describe('SeqReader', () => {
     expect(toReaderFunction(new SeqReader([() => 2, () => 4]))('aabbcc', 2)).toBe(4);
   });
 
-  test('returns error result', () => {
+  test('returns negative integer as an error result', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(4);
-    readerMock.mockReturnValueOnce(-2);
+    readerMock.mockReturnValueOnce('Error');
     readerMock.mockReturnValueOnce(5);
 
-    expect(toReaderFunction(new SeqReader([readerMock, readerMock, readerMock]))('aabbcc', 2)).toBe(-2);
+    expect(toReaderFunction(new SeqReader([readerMock, readerMock, readerMock]))('aabbcc', 2)).toBe('Error');
+    expect(readerMock).toHaveBeenCalledTimes(2);
+  });
+
+  test('returns non number value as an error result', () => {
+    const readerMock = jest.fn();
+    readerMock.mockReturnValueOnce(4);
+    readerMock.mockReturnValueOnce('123');
+    readerMock.mockReturnValueOnce(5);
+
+    expect(toReaderFunction(new SeqReader([readerMock, readerMock, readerMock]))('aabbcc', 2)).toBe('123');
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 

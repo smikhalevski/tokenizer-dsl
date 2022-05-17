@@ -3,14 +3,12 @@ import {
   never,
   NO_MATCH,
   none,
-  regex,
   text,
   toReaderFunction,
   until,
   UntilCaseSensitiveTextReader,
   UntilCharCodeRangeReader,
-  UntilReader,
-  UntilRegexReader
+  UntilReader
 } from '../../main/readers';
 
 const B = 'b'.charCodeAt(0);
@@ -32,10 +30,6 @@ describe('until', () => {
 
   test('returns UntilCharCodeRangeReader', () => {
     expect(until(char([97, 98]))).toBeInstanceOf(UntilCharCodeRangeReader);
-  });
-
-  test('returns UntilRegexReader', () => {
-    expect(until(regex(/a/))).toBeInstanceOf(UntilRegexReader);
   });
 
   test('returns UntilReader', () => {
@@ -65,26 +59,13 @@ describe('UntilCaseSensitiveTextReader', () => {
   });
 });
 
-describe('UntilRegexReader', () => {
-
-  test('reads until regex is met', () => {
-    expect(toReaderFunction(new UntilRegexReader(/b/, false))('aaabbbaaabbb', 0)).toBe(3);
-    expect(toReaderFunction(new UntilRegexReader(/b/, false))('aaabbbaaabbb', 6)).toBe(9);
-    expect(toReaderFunction(new UntilRegexReader(/c/, false))('aaabbbaaabbb', 6)).toBe(NO_MATCH);
-  });
-
-  test('reads chars including matched substr', () => {
-    expect(toReaderFunction(new UntilRegexReader(/bb/, true))('aaabbbb', 0)).toBe(5);
-  });
-});
-
 describe('UntilReader', () => {
 
   test('advances reader by one char on each iteration', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(NO_MATCH);
     readerMock.mockReturnValueOnce(NO_MATCH);
-    readerMock.mockReturnValueOnce(0);
+    readerMock.mockReturnValueOnce(4);
 
     expect(toReaderFunction(new UntilReader(readerMock, false))('aaaa', 0)).toBe(2);
     expect(readerMock).toHaveBeenCalledTimes(3);

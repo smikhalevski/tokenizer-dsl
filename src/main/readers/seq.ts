@@ -2,16 +2,18 @@ import {Binding, Code, CodeBindings, createVar, Var} from 'codedegen';
 import {never} from './never';
 import {none} from './none';
 import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode} from './reader-utils';
+import {createCodeBindings, createReaderCallCode, NO_MATCH} from './reader-utils';
 
 /**
  * Creates a reader that applies readers one after another.
  *
  * @param readers Readers that are called.
+ *
+ * @template Context The context passed by tokenizer.
  */
-export function seq<Context = any>(...readers: Reader<Context>[]): Reader<Context> {
+export function seq<Context = any, Error = never>(...readers: Reader<Context, Error>[]): Reader<Context, Error> {
 
-  const children: Reader<Context>[] = [];
+  const children: Reader<Context, Error>[] = [];
 
   for (const reader of readers) {
     if (reader instanceof SeqReader) {
@@ -35,9 +37,9 @@ export function seq<Context = any>(...readers: Reader<Context>[]): Reader<Contex
   return new SeqReader(children);
 }
 
-export class SeqReader<Context> implements ReaderCodegen {
+export class SeqReader<Context, Error> implements ReaderCodegen {
 
-  constructor(public readers: Reader<Context>[]) {
+  constructor(public readers: Reader<Context, Error>[]) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
@@ -54,14 +56,8 @@ export class SeqReader<Context> implements ReaderCodegen {
       code.push(
           'var ', readerResultVar, ';',
           createReaderCallCode(reader, inputVar, offsetVar, contextVar, readerResultVar, bindings),
-
-          // Break seq if NO_MATCH or an error (NaN or < 0)
-          'if(!(', readerResultVar, '>=0)){',
-          resultVar, '=', readerResultVar,
-          '}else{',
-
-          // Ensure that a numeric value is used
-          readerResultVar, '/=1;',
+          'if(typeof ', readerResultVar, '!=="number")', resultVar, '=', readerResultVar, ';else ',
+          'if(', readerResultVar, '<', offsetVar, ')', resultVar, '=', NO_MATCH, ';else{'
       );
 
       offsetVar = readerResultVar;

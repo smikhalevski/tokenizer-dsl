@@ -1,9 +1,10 @@
 import {Binding, Code, CodeBindings, compileFunction, createVar, Var} from 'codedegen';
 import {Reader, ReaderFunction} from './reader-types';
 
-export function toCharCode(value: string | number): number {
-  return typeof value === 'number' ? value | 0 : value.charCodeAt(0);
-}
+/**
+ * OK code returned from a reader that means that it didn't match any chars.
+ */
+export const NO_MATCH = -1;
 
 export function toCharCodes(str: string): number[] {
   const charCodes: number[] = [];
@@ -14,16 +15,16 @@ export function toCharCodes(str: string): number[] {
   return charCodes;
 }
 
-export function createReaderCallCode<Context>(reader: Reader<Context>, inputVar: Var, offsetVar: Var, contextVar: Var, returnVar: Var, bindings: Binding[]): Code {
+export function createReaderCallCode<Context, Error>(reader: Reader<Context, Error>, inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var, bindings: Binding[]): Code {
 
   if (typeof reader === 'function') {
     const readerVar = createVar();
     bindings.push([readerVar, reader]);
 
-    return [returnVar, '=', readerVar, '(', inputVar, ',', offsetVar, ',', contextVar, ')', ';'];
+    return [resultVar, '=', readerVar, '(', inputVar, ',', offsetVar, ',', contextVar, ')', ';'];
   }
 
-  const codeBindings = reader.factory(inputVar, offsetVar, contextVar, returnVar);
+  const codeBindings = reader.factory(inputVar, offsetVar, contextVar, resultVar);
 
   if (codeBindings.bindings) {
     bindings.push(...codeBindings.bindings);
@@ -35,7 +36,14 @@ export function createCodeBindings(code: Code, bindings?: Binding[]): CodeBindin
   return {code, bindings};
 }
 
-export function toReaderFunction<Context = void>(reader: Reader<Context>): ReaderFunction<Context> {
+/**
+ * Converts the {@link Reader} instance to a function.
+ *
+ * @param reader The reader to convert to a function.
+ *
+ * @template Context The context passed by tokenizer.
+ */
+export function toReaderFunction<Context = void, Error = never>(reader: Reader<Context, Error>): ReaderFunction<Context, Error> {
 
   if (typeof reader === 'function') {
     return reader;

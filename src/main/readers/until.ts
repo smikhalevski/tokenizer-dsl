@@ -2,9 +2,8 @@ import {Binding, CodeBindings, createVar, Var} from 'codedegen';
 import {CharCodeRange, CharCodeRangeReader, createCharPredicateCode} from './char';
 import {never} from './never';
 import {none} from './none';
-import {NO_MATCH, Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode} from './reader-utils';
-import {RegexReader} from './regex';
+import {Reader, ReaderCodegen} from './reader-types';
+import {createCodeBindings, createReaderCallCode, NO_MATCH} from './reader-utils';
 import {CaseSensitiveTextReader} from './text';
 
 export interface UntilOptions {
@@ -22,16 +21,15 @@ export interface UntilOptions {
  *
  * @param reader The reader that reads chars.
  * @param options Reader options.
+ *
+ * @template Context The context passed by tokenizer.
  */
-export function until<Context = any>(reader: Reader<Context>, options: UntilOptions = {}): Reader<Context> {
+export function until<Context = any, Error = never>(reader: Reader<Context, Error>, options: UntilOptions = {}): Reader<Context, Error> {
 
   const {inclusive = false} = options;
 
   if (reader === never || reader === none) {
     return reader;
-  }
-  if (reader instanceof RegexReader) {
-    return new UntilRegexReader(reader.re, inclusive);
   }
   if (reader instanceof CharCodeRangeReader) {
     const {charCodeRanges} = reader;
@@ -59,15 +57,19 @@ export class UntilCharCodeRangeReader implements ReaderCodegen {
     const charCodeVar = createVar();
 
     return createCodeBindings([
+      resultVar, '=', NO_MATCH, ';',
+
       'var ',
       inputLengthVar, '=', inputVar, '.length,',
       indexVar, '=', offsetVar, ',',
-      charCodeVar,
-      ';',
-      'while(', indexVar, '<', inputLengthVar,
-      '&&(', charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, '),!(', createCharPredicateCode(charCodeVar, this.charCodeRanges), '))',
-      ')++', indexVar, ';',
-      resultVar, '=', indexVar, '===', inputLengthVar, '?', NO_MATCH, ':', indexVar, this.inclusive ? '+1;' : ';',
+      charCodeVar, ';',
+
+      'do{',
+      'if(', indexVar, '>=', inputLengthVar, ')break;',
+      charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
+      'if(', createCharPredicateCode(charCodeVar, this.charCodeRanges), '){', resultVar, '=', indexVar, this.inclusive ? '+1' : '', ';break}',
+      '++', indexVar, ';',
+      '}while(true)',
     ]);
   }
 }
@@ -78,6 +80,7 @@ export class UntilCaseSensitiveTextReader implements ReaderCodegen {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
+    const {str} = this;
 
     const strVar = createVar();
     const indexVar = createVar();
@@ -85,60 +88,38 @@ export class UntilCaseSensitiveTextReader implements ReaderCodegen {
     return createCodeBindings(
         [
           'var ', indexVar, '=', inputVar, '.indexOf(', strVar, ',', offsetVar, ');',
-          resultVar, '=', indexVar, '===-1?', NO_MATCH, ':', indexVar, this.inclusive ? '+' + this.str.length : '', ';',
+          resultVar, '=', indexVar, this.inclusive ? ['===-1?', NO_MATCH, ':', indexVar, '+', str.length] : '', ';',
         ],
-        [[strVar, this.str]],
+        [[strVar, str]],
     );
   }
 }
 
-export class UntilRegexReader implements ReaderCodegen {
+export class UntilReader<Context, Error> implements ReaderCodegen {
 
-  re;
-
-  constructor(re: RegExp, public inclusive: boolean) {
-    this.re = RegExp(re.source, re.flags.replace(/[yg]/, '') + 'g');
+  constructor(public reader: Reader<Context, Error>, public inclusive: boolean) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
 
-    const reVar = createVar();
-    const arrVar = createVar();
-
-    return createCodeBindings(
-        [
-          reVar, '.lastIndex=', offsetVar, ';',
-          'var ', arrVar, '=', reVar, '.exec(', inputVar, ');',
-          resultVar, '=', arrVar, '===null?', NO_MATCH, ':', this.inclusive ? [reVar, '.lastIndex'] : [arrVar, '.index'], ';',
-        ],
-        [[reVar, this.re]],
-    );
-  }
-}
-
-export class UntilReader<Context> implements ReaderCodegen {
-
-  constructor(public reader: Reader<Context>, public inclusive: boolean) {
-  }
-
-  factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-
-    const bindings: Binding[] = [];
-    const inputLengthVar = createVar();
     const indexVar = createVar();
     const readerResultVar = createVar();
+    const bindings: Binding[] = [];
 
     return createCodeBindings(
         [
+          resultVar, '=', NO_MATCH, ';',
+
           'var ',
-          inputLengthVar, '=', inputVar, '.length,',
           indexVar, '=', offsetVar, ',',
-          readerResultVar, '=', NO_MATCH, ';',
-          'while(', indexVar, '<', inputLengthVar, '&&', readerResultVar, '===', NO_MATCH, '){',
+          readerResultVar, ';',
+
+          'do{',
           createReaderCallCode(this.reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
-          '++', indexVar,
-          '}',
-          resultVar, '=', this.inclusive ? readerResultVar : [readerResultVar, '>=0?', indexVar, '-1:', readerResultVar], ';',
+          'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, ';break}',
+          'if(', readerResultVar, '>=', indexVar, '){', resultVar, '=', this.inclusive ? readerResultVar : indexVar, ';break}',
+          '++', indexVar, ';',
+          '}while(true)',
         ],
         bindings,
     );

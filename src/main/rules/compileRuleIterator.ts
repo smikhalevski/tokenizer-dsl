@@ -1,17 +1,17 @@
 import {Binding, Code, compileFunction, createVar, Var} from 'codedegen';
-import {createReaderCallCode, NO_MATCH, seq} from '../readers';
+import {createReaderCallCode, seq} from '../readers';
 import {RuleBranch, RuleTree} from './createRuleTree';
 import {TokenHandler, TokenizerState} from './rule-types';
 
 /**
  * The callback that reads tokens from the input defined by iterator state.
  */
-export type RuleIterator<Type, Stage, Context> = (state: TokenizerState<Stage>, handler: TokenHandler<Type, Context>, context: Context, streaming?: boolean) => void;
+export type RuleIterator<Type, Stage, Context, Error> = (state: TokenizerState<Stage>, handler: TokenHandler<Type, Context, Error>, context: Context, streaming?: boolean) => void;
 
 /**
  * Compiles rules into a function that applies them one after another in a loop.
  */
-export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, Stage, Context>): RuleIterator<Type, Stage, Context> {
+export function compileRuleIterator<Type, Stage, Context, Error>(tree: RuleTree<Type, Stage, Context, Error>): RuleIterator<Type, Stage, Context, Error> {
 
   const stateVar = createVar();
   const handlerVar = createVar();
@@ -36,7 +36,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
   const {stages, branchesByStageIndex, branches} = tree;
   const bindings: Binding[] = [[stagesVar, stages]];
 
-  const createRuleIteratorBranchesCode = (branches: RuleBranch<Type, Stage, Context>[], branchOffsetVar: Var, stagesEnabled: boolean): Code => {
+  const createRuleIteratorBranchesCode = (branches: RuleBranch<Type, Stage, Context, Error>[], branchOffsetVar: Var, stagesEnabled: boolean): Code => {
 
     const branchResultVar = createVar();
 
@@ -45,21 +45,38 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     ];
 
     for (const branch of branches) {
+      const {rule} = branch;
 
-      code.push(
-          createReaderCallCode(seq(...branch.readers), chunkVar, branchOffsetVar, contextVar, branchResultVar, bindings),
+      const ruleTypeVar = createVar();
+      const ruleToCallbackVar = createVar();
 
-          // If the branch matched and the offset is shifted forward (a token has a non-zero length),
-          // or an error (NaN or < 0)
-          'if(', branchResultVar, '!==', NO_MATCH, '&&!(', branchResultVar, '<=', branchOffsetVar, '&&', branchResultVar, '>=0)){',
-      );
+      if (rule) {
+        bindings.push([ruleTypeVar, rule.type]);
+
+        if (typeof rule.to === 'function') {
+          bindings.push([ruleToCallbackVar, rule.to]);
+        }
+      }
+
+      // Read branch
+      code.push(createReaderCallCode(seq(...branch.readers), chunkVar, branchOffsetVar, contextVar, branchResultVar, bindings));
+
+      // Emit an error
+      if (rule) {
+        code.push(
+            'if(typeof ', branchResultVar, '!=="number"){',
+            errorCallbackVar, '&&', errorCallbackVar, '(', ruleTypeVar, ',', chunkVar, ',', nextOffsetVar, ',', branchResultVar, ',', contextVar, ',', stateVar, ');',
+            'return}',
+        );
+      }
+
+      // If branch matched an empty substring then ignore this branch
+      code.push('if(', branchResultVar, '>', branchOffsetVar, '){');
 
       // Apply nested branches
       if (branch.children) {
         code.push(createRuleIteratorBranchesCode(branch.children, branchResultVar, stagesEnabled));
       }
-
-      const {rule} = branch;
 
       // If there's no termination rule then exit
       if (!rule) {
@@ -67,25 +84,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
         continue;
       }
 
-      const ruleTypeVar = createVar();
-      const ruleToCallbackVar = createVar();
-
-      bindings.push([ruleTypeVar, rule.type]);
-
-      if (typeof rule.to === 'function') {
-        bindings.push([ruleToCallbackVar, rule.to]);
-      }
-
       code.push([
-
-        // Emit an error if result is NaN or < 0
-        'if(!(', branchResultVar, '>=0)){',
-        errorCallbackVar, '&&', errorCallbackVar, '(', ruleTypeVar, ',', chunkVar, ',', nextOffsetVar, ',', branchResultVar, ',', contextVar, ',', stateVar, ');',
-        'return}',
-
-        // Ensure that a numeric value is used
-        // Not an object with valueOf or a string containing digits
-        branchResultVar, '/=1;',
 
         // Emit confirmed token
         'if(', prevRuleIndexVar, '!==-1){',
@@ -120,8 +119,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     'var ',
     stageIndexVar, '=', stagesVar, '.indexOf(', stateVar, '.stage),',
     chunkVar, '=', stateVar, '.chunk,',
-    offsetVar, '=', stateVar, '.offset/1,',
-
+    offsetVar, '=', stateVar, '.offset,',
     tokenCallbackVar, '=', handlerVar, '.token,',
     errorCallbackVar, '=', handlerVar, '.error,',
     unrecognizedTokenCallbackVar, '=', handlerVar, '.unrecognizedToken,',
@@ -162,5 +160,5 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     '&&', unrecognizedTokenCallbackVar, '(', chunkVar, ',', nextOffsetVar, ',', contextVar, ',', stateVar, ');',
   ];
 
-  return compileFunction<RuleIterator<Type, Stage, Context>>([stateVar, handlerVar, contextVar, streamingVar], code, bindings);
+  return compileFunction<RuleIterator<Type, Stage, Context, Error>>([stateVar, handlerVar, contextVar, streamingVar], code, bindings);
 }
