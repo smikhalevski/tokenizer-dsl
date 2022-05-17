@@ -2,10 +2,10 @@
 
 The API for building streaming tokenizers and lexers.
 
-- [2× faster than `RegExp`-base alternatives](#performance);
-- Less than [3 kB gzipped](https://bundlephobia.com/result?p=tokenizer-dsl) including dependencies;
+- [2× faster than `RegExp`-based alternatives](#performance);
+- [3.5 kB gzipped](https://bundlephobia.com/result?p=tokenizer-dsl) including dependencies;
+- No heap allocations during tokenization;
 - Compiled tokenizer is a pure function;
-- No memory allocations during tokenization;
 
 ```shell
 npm install --save-prod tokenizer-dsl
