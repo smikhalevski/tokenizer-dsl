@@ -20,15 +20,6 @@ export interface AllOptions {
    * @default 0
    */
   maximumCount?: number;
-
-  /**
-   * The positive number of read iterations that are [unrolled in a loop](https://en.wikipedia.org/wiki/Loop_unrolling).
-   *
-   * Only applicable when {@link maximumCount} is unlimited.
-   *
-   * The best number of unrolled iterations is equal to the median number of matches that are expected.
-   */
-  unrollCount?: number;
 }
 
 /**
@@ -44,7 +35,6 @@ export function all<Context = any, Error = never>(reader: Reader<Context, Error>
   let {
     minimumCount,
     maximumCount,
-    unrollCount,
   } = options;
 
   minimumCount = toInteger(minimumCount);
@@ -56,12 +46,12 @@ export function all<Context = any, Error = never>(reader: Reader<Context, Error>
   if (minimumCount === 1 && maximumCount === 1 || reader === never || reader === none) {
     return reader;
   }
-  return new AllReader(reader, minimumCount, maximumCount, toInteger(unrollCount, 1, 1));
+  return new AllReader(reader, minimumCount, maximumCount);
 }
 
 export class AllReader<Context, Error> implements ReaderCodegen {
 
-  constructor(public reader: Reader<Context, Error>, public minimumCount: number, public maximumCount: number, public unrollCount: number) {
+  constructor(public reader: Reader<Context, Error>, public minimumCount: number, public maximumCount: number) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
@@ -72,7 +62,7 @@ export class AllReader<Context, Error> implements ReaderCodegen {
     const bindings: Binding[] = [];
 
     const code: Code[] = [
-      resultVar, '=', minimumCount === 0 ? offsetVar : NO_MATCH, ';',
+      resultVar, '=', minimumCount > 0 ? NO_MATCH : offsetVar, ';',
       'var ',
       minimumCount > 1 ? [indexVar, '=', offsetVar, ','] : '',
       readerResultVar, ';',
@@ -92,16 +82,14 @@ export class AllReader<Context, Error> implements ReaderCodegen {
     }
 
     if (maximumCount === 0) {
-      code.push('do{');
-      for (let i = 0; i < this.unrollCount; ++i) {
-        code.push(
-            createReaderCallCode(reader, inputVar, resultVar, contextVar, readerResultVar, bindings),
-            'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, ';break}',
-            'if(', readerResultVar, '<=', resultVar, ')break;',
-            resultVar, '=', readerResultVar, ';',
-        );
-      }
-      code.push('}while(true)');
+      code.push(
+          'do{',
+          createReaderCallCode(reader, inputVar, resultVar, contextVar, readerResultVar, bindings),
+          'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, ';break}',
+          'if(', readerResultVar, '<=', resultVar, ')break;',
+          resultVar, '=', readerResultVar, ';',
+          '}while(true)',
+      );
     }
 
     code.push('}'.repeat(count));

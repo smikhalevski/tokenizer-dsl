@@ -1,5 +1,4 @@
-import {Binding, Code, CodeBindings, createVar, Var} from 'codedegen';
-import {toInteger} from '../utils';
+import {Binding, CodeBindings, createVar, Var} from 'codedegen';
 import {CharCodeRange, CharCodeRangeReader, createCharPredicateCode} from './char';
 import {never} from './never';
 import {none} from './none';
@@ -15,11 +14,6 @@ export interface UntilOptions {
    * @default false
    */
   inclusive?: boolean;
-
-  /**
-   * The positive number of read iterations that are [unrolled in a loop](https://en.wikipedia.org/wiki/Loop_unrolling).
-   */
-  unrollCount?: number;
 }
 
 /**
@@ -32,7 +26,7 @@ export interface UntilOptions {
  */
 export function until<Context = any, Error = never>(reader: Reader<Context, Error>, options: UntilOptions = {}): Reader<Context, Error> {
 
-  const {inclusive = false, unrollCount} = options;
+  const {inclusive = false} = options;
 
   if (reader === never || reader === none) {
     return reader;
@@ -43,17 +37,17 @@ export function until<Context = any, Error = never>(reader: Reader<Context, Erro
     if (charCodeRanges.length === 1 && typeof charCodeRanges[0] === 'number') {
       return new UntilCaseSensitiveTextReader(String.fromCharCode(charCodeRanges[0]), inclusive);
     }
-    return new UntilCharCodeRangeReader(charCodeRanges, inclusive, toInteger(unrollCount, 10, 1));
+    return new UntilCharCodeRangeReader(charCodeRanges, inclusive);
   }
   if (reader instanceof CaseSensitiveTextReader) {
     return new UntilCaseSensitiveTextReader(reader.str, inclusive);
   }
-  return new UntilReader(reader, inclusive, toInteger(unrollCount, 5, 1));
+  return new UntilReader(reader, inclusive);
 }
 
 export class UntilCharCodeRangeReader implements ReaderCodegen {
 
-  constructor(public charCodeRanges: CharCodeRange[], public inclusive: boolean, public unrollCount: number) {
+  constructor(public charCodeRanges: CharCodeRange[], public inclusive: boolean) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
@@ -62,7 +56,7 @@ export class UntilCharCodeRangeReader implements ReaderCodegen {
     const indexVar = createVar();
     const charCodeVar = createVar();
 
-    const code: Code[] = [
+    return createCodeBindings([
       resultVar, '=', NO_MATCH, ';',
 
       'var ',
@@ -71,20 +65,12 @@ export class UntilCharCodeRangeReader implements ReaderCodegen {
       charCodeVar, ';',
 
       'do{',
-    ];
-
-    for (let i = 0; i < this.unrollCount; ++i) {
-      code.push(
-          'if(', indexVar, '>=', inputLengthVar, ')break;',
-          charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
-          'if(', createCharPredicateCode(charCodeVar, this.charCodeRanges), '){', resultVar, '=', indexVar, this.inclusive ? '+1' : '', ';break}',
-          '++', indexVar, ';',
-      );
-    }
-
-    code.push('}while(true)');
-
-    return createCodeBindings(code);
+      'if(', indexVar, '>=', inputLengthVar, ')break;',
+      charCodeVar, '=', inputVar, '.charCodeAt(', indexVar, ');',
+      'if(', createCharPredicateCode(charCodeVar, this.charCodeRanges), '){', resultVar, '=', indexVar, this.inclusive ? '+1' : '', ';break}',
+      '++', indexVar, ';',
+      '}while(true)',
+    ]);
   }
 }
 
@@ -111,7 +97,7 @@ export class UntilCaseSensitiveTextReader implements ReaderCodegen {
 
 export class UntilReader<Context, Error> implements ReaderCodegen {
 
-  constructor(public reader: Reader<Context, Error>, public inclusive: boolean, public unrollCount: number) {
+  constructor(public reader: Reader<Context, Error>, public inclusive: boolean) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
@@ -120,27 +106,22 @@ export class UntilReader<Context, Error> implements ReaderCodegen {
     const readerResultVar = createVar();
     const bindings: Binding[] = [];
 
-    const code: Code[] = [
-      resultVar, '=', NO_MATCH, ';',
+    return createCodeBindings(
+        [
+          resultVar, '=', NO_MATCH, ';',
 
-      'var ',
-      indexVar, '=', offsetVar, ',',
-      readerResultVar, ';',
+          'var ',
+          indexVar, '=', offsetVar, ',',
+          readerResultVar, ';',
 
-      'do{',
-    ];
-
-    for (let i = 0; i < this.unrollCount; ++i) {
-      code.push(
+          'do{',
           createReaderCallCode(this.reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
           'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, ';break}',
           'if(', readerResultVar, '>=', indexVar, '){', resultVar, '=', this.inclusive ? readerResultVar : indexVar, ';break}',
           '++', indexVar, ';',
-      );
-    }
-
-    code.push('}while(true)');
-
-    return createCodeBindings(code, bindings);
+          '}while(true)',
+        ],
+        bindings,
+    );
   }
 }

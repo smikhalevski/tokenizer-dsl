@@ -38,7 +38,7 @@ describe('AllReader', () => {
     readerMock.mockReturnValueOnce(4);
     readerMock.mockReturnValueOnce(NO_MATCH);
 
-    expect(toReaderFunction(new AllReader(readerMock, 0, 0, 2))('aabbcc', 2)).toBe(4);
+    expect(toReaderFunction(new AllReader(readerMock, 0, 0))('aabbcc', 2)).toBe(4);
     expect(readerMock).toHaveBeenCalledTimes(3);
   });
 
@@ -47,7 +47,7 @@ describe('AllReader', () => {
     readerMock.mockReturnValueOnce(3);
     readerMock.mockReturnValueOnce(3);
 
-    expect(toReaderFunction(new AllReader(readerMock, 0, 0, 2))('aabbcc', 2)).toBe(3);
+    expect(toReaderFunction(new AllReader(readerMock, 0, 0))('aabbcc', 2)).toBe(3);
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -57,7 +57,7 @@ describe('AllReader', () => {
     readerMock.mockReturnValueOnce('Error');
     readerMock.mockReturnValueOnce(3);
 
-    expect(toReaderFunction(new AllReader(readerMock, 0, 0, 2))('aabbcc', 2)).toBe('Error');
+    expect(toReaderFunction(new AllReader(readerMock, 0, 0))('aabbcc', 2)).toBe('Error');
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -66,7 +66,7 @@ describe('AllReader', () => {
     readerMock.mockReturnValueOnce(1);
     readerMock.mockReturnValueOnce(NO_MATCH);
 
-    expect(toReaderFunction(new AllReader(readerMock, 2, 0, 2))('a', 0)).toBe(NO_MATCH);
+    expect(toReaderFunction(new AllReader(readerMock, 2, 0))('a', 0)).toBe(NO_MATCH);
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -77,7 +77,7 @@ describe('AllReader', () => {
     readerMock.mockReturnValueOnce(3);
     readerMock.mockReturnValueOnce(NO_MATCH);
 
-    expect(toReaderFunction(new AllReader(readerMock, 2, 0, 2))('aaa', 0)).toBe(3);
+    expect(toReaderFunction(new AllReader(readerMock, 2, 0))('aaa', 0)).toBe(3);
     expect(readerMock).toHaveBeenCalledTimes(4);
   });
 
@@ -87,7 +87,7 @@ describe('AllReader', () => {
     readerMock.mockReturnValueOnce(2);
     readerMock.mockReturnValueOnce(3);
 
-    expect(toReaderFunction(new AllReader(readerMock, 0, 2, 2))('aaa', 0)).toBe(2);
+    expect(toReaderFunction(new AllReader(readerMock, 0, 2))('aaa', 0)).toBe(2);
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -96,19 +96,19 @@ describe('AllReader', () => {
     readerMock.mockReturnValueOnce(1);
     readerMock.mockReturnValueOnce(NO_MATCH);
 
-    expect(toReaderFunction(new AllReader(readerMock, 0, 2, 2))('a', 0)).toBe(1);
+    expect(toReaderFunction(new AllReader(readerMock, 0, 2))('a', 0)).toBe(1);
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
   test('can use inline readers', () => {
-    expect(toReaderFunction(new AllReader(text('a'), 0, 0, 2))('aabbcc', 0)).toBe(2);
+    expect(toReaderFunction(new AllReader(text('a'), 0, 0))('aabbcc', 0)).toBe(2);
   });
 
   test('propagates context', () => {
     const readerMock = jest.fn(() => 0);
     const context = Symbol('context');
 
-    expect(toReaderFunction<any>(new AllReader(readerMock, 0, 0, 2))('a', 0, context)).toBe(0);
+    expect(toReaderFunction<any>(new AllReader(readerMock, 0, 0))('a', 0, context)).toBe(0);
 
     expect(readerMock).toHaveBeenCalledTimes(1);
     expect(readerMock).toHaveBeenNthCalledWith(1, 'a', 0, context);
