@@ -1,5 +1,5 @@
 export {all, AllOptions} from './readers/all';
-export {char} from './readers/char';
+export {char, CharRange} from './readers/char';
 export {end} from './readers/end';
 export {lookahead} from './readers/lookahead';
 export {maybe} from './readers/maybe';

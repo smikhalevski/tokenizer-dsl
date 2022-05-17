@@ -25,8 +25,8 @@ export class MaybeReader<Context, Error> implements ReaderCodegen {
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
 
-    const bindings: Binding[] = [];
     const readerResultVar = createVar();
+    const bindings: Binding[] = [];
 
     return createCodeBindings(
         [

@@ -1,10 +1,6 @@
 import {Binding, Code, CodeBindings, compileFunction, createVar, Var} from 'codedegen';
 import {Reader, ReaderFunction} from './reader-types';
 
-export function toCharCode(value: string | number): number {
-  return typeof value === 'number' ? value | 0 : value.charCodeAt(0);
-}
-
 export function toCharCodes(str: string): number[] {
   const charCodes: number[] = [];
 
