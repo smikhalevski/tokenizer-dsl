@@ -10,7 +10,7 @@ import {createCodeBindings, NO_MATCH} from './reader-utils';
  *
  * @see {@link end}
  */
-export function skip(charCount: number): Reader<any, any> {
+export function skip(charCount: number): Reader<any> {
   return new SkipReader(toInteger(charCount));
 }
 

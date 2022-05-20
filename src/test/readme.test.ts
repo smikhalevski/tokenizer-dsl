@@ -10,9 +10,6 @@ describe('Readme', () => {
     token(type, chunk, offset, length, context, state) {
       tokenCallbackMock(type, state.chunkOffset + offset, length, context);
     },
-    error(type, chunk, offset, errorCode, context, state) {
-      errorCallbackMock(type, state.chunkOffset + offset, errorCode, context);
-    },
     unrecognizedToken(chunk, offset, context, state) {
       unrecognizedTokenCallbackMock(state.chunkOffset + offset, context);
     }
@@ -83,10 +80,9 @@ describe('Readme', () => {
         'value'
     );
 
-    let state;
-    state = tokenizer.write('123', handler);
-    state = tokenizer.write('.456; +', handler, state);
-    state = tokenizer.write('777; 42', handler, state);
+    const state = tokenizer.write('123', handler);
+    tokenizer.write('.456; +', handler, state);
+    tokenizer.write('777; 42', handler, state);
     tokenizer.end(handler, state);
 
     expect(tokenCallbackMock).toHaveBeenCalledTimes(3);

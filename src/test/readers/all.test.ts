@@ -51,16 +51,6 @@ describe('AllReader', () => {
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
-  test('returns error result from underlying reader', () => {
-    const readerMock = jest.fn();
-    readerMock.mockReturnValueOnce(3);
-    readerMock.mockReturnValueOnce('Error');
-    readerMock.mockReturnValueOnce(3);
-
-    expect(toReaderFunction(new AllReader(readerMock, 0, 0))('aabbcc', 2)).toBe('Error');
-    expect(readerMock).toHaveBeenCalledTimes(2);
-  });
-
   test('returns NO_MATCH if minimum matches was not reached', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(1);

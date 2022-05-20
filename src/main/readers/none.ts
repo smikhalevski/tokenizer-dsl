@@ -7,7 +7,7 @@ import {createCodeBindings} from './reader-utils';
  * @see {@link skip}
  * @see {@link end}
  */
-export const none: Reader<any, any> = {
+export const none: Reader<any> = {
 
   factory(inputVar, offsetVar, contextVar, resultVar) {
     return createCodeBindings([

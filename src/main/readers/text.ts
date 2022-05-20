@@ -23,7 +23,7 @@ export interface TextOptions {
  *
  * @see {@link char}
  */
-export function text(str: string, options: TextOptions = {}): Reader<any, any> {
+export function text(str: string, options: TextOptions = {}): Reader<any> {
 
   const {caseInsensitive} = options;
 

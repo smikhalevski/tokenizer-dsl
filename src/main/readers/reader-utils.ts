@@ -16,7 +16,7 @@ export function toCharCodes(str: string): number[] {
   return charCodes;
 }
 
-export function createReaderCallCode<Context, Error>(reader: Reader<Context, Error>, inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var, bindings: Binding[]): Code {
+export function createReaderCallCode<Context>(reader: Reader<Context>, inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var, bindings: Binding[]): Code {
 
   if (typeof reader === 'function') {
     const readerVar = createVar();
@@ -44,7 +44,7 @@ export function createCodeBindings(code: Code, bindings?: Binding[]): CodeBindin
  *
  * @template Context The context passed by tokenizer.
  */
-export function toReaderFunction<Context = void, Error = never>(reader: Reader<Context, Error>): ReaderFunction<Context, Error> {
+export function toReaderFunction<Context = void>(reader: Reader<Context>): ReaderFunction<Context> {
 
   if (typeof reader === 'function') {
     return reader;

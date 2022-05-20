@@ -12,16 +12,16 @@ import {createCodeBindings, createReaderCallCode} from './reader-utils';
  *
  * @template Context The context passed by tokenizer.
  */
-export function maybe<Context = any, Error = never>(reader: Reader<Context, Error>): Reader<Context, Error> {
+export function maybe<Context = any>(reader: Reader<Context>): Reader<Context> {
   if (reader === none || reader === never) {
     return none;
   }
   return new MaybeReader(reader);
 }
 
-export class MaybeReader<Context, Error> implements ReaderCodegen {
+export class MaybeReader<Context> implements ReaderCodegen {
 
-  constructor(public reader: Reader<Context, Error>) {
+  constructor(public reader: Reader<Context>) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
@@ -33,7 +33,7 @@ export class MaybeReader<Context, Error> implements ReaderCodegen {
         [
           'var ', readerResultVar, ';',
           createReaderCallCode(this.reader, inputVar, offsetVar, contextVar, readerResultVar, bindings),
-          resultVar, '=typeof ', readerResultVar, '==="number"&&', readerResultVar, '<', offsetVar, '?', offsetVar, ':', readerResultVar, ';',
+          resultVar, '=', readerResultVar, '<', offsetVar, '?', offsetVar, ':', readerResultVar, ';',
         ],
         bindings,
     );

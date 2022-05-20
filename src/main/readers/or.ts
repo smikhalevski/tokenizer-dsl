@@ -11,9 +11,9 @@ import {createCodeBindings, createReaderCallCode} from './reader-utils';
  *
  * @template Context The context passed by tokenizer.
  */
-export function or<Context = any, Error = never>(...readers: Reader<Context, Error>[]): Reader<Context, Error> {
+export function or<Context = any>(...readers: Reader<Context>[]): Reader<Context> {
 
-  const children: Reader<Context, Error>[] = [];
+  const children: Reader<Context>[] = [];
 
   for (const reader of readers) {
     if (reader === none) {
@@ -37,9 +37,9 @@ export function or<Context = any, Error = never>(...readers: Reader<Context, Err
   return new OrReader(children);
 }
 
-export class OrReader<Context, Error> implements ReaderCodegen {
+export class OrReader<Context> implements ReaderCodegen {
 
-  constructor(public readers: Reader<Context, Error>[]) {
+  constructor(public readers: Reader<Context>[]) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
@@ -50,12 +50,10 @@ export class OrReader<Context, Error> implements ReaderCodegen {
     const bindings: Binding[] = [];
 
     for (let i = 0; i < readersLength; ++i) {
-      const reader = readers[i];
-
-      code.push(createReaderCallCode(reader, inputVar, offsetVar, contextVar, resultVar, bindings));
-      if (i < readersLength - 1) {
-        code.push('if(typeof ', resultVar, '==="number"&&', resultVar, '<', offsetVar, '){');
-      }
+      code.push(
+          createReaderCallCode(readers[i], inputVar, offsetVar, contextVar, resultVar, bindings),
+          i < readersLength - 1 ? ['if(', resultVar, '<', offsetVar, '){'] : '',
+      );
     }
     code.push('}'.repeat(readersLength - 1));
 

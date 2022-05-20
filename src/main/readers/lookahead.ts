@@ -8,16 +8,16 @@ import {createCodeBindings, createReaderCallCode, NO_MATCH} from './reader-utils
 /**
  * Creates a reader that returns the current offset if the reader matches.
  */
-export function lookahead<Context = any, Error = never>(reader: Reader<Context, Error>): Reader<Context, Error> {
+export function lookahead<Context = any>(reader: Reader<Context>): Reader<Context> {
   if (reader === none || reader === never) {
     return reader;
   }
   return new LookaheadReader(reader);
 }
 
-export class LookaheadReader<Context, Error> implements ReaderCodegen {
+export class LookaheadReader<Context> implements ReaderCodegen {
 
-  constructor(public reader: Reader<Context, Error>) {
+  constructor(public reader: Reader<Context>) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
@@ -29,7 +29,7 @@ export class LookaheadReader<Context, Error> implements ReaderCodegen {
         [
           'var ', readerResultVar, ';',
           createReaderCallCode(this.reader, inputVar, offsetVar, contextVar, readerResultVar, bindings),
-          resultVar, '=typeof ', readerResultVar, '!=="number"||', readerResultVar, '<', offsetVar, '?', NO_MATCH, ':', offsetVar, ';',
+          resultVar, '=', readerResultVar, '<', offsetVar, '?', NO_MATCH, ':', offsetVar, ';',
         ],
         bindings,
     );

@@ -7,7 +7,7 @@ describe('or', () => {
   });
 
   test('returns single reader', () => {
-    const readerMock: Reader<any, any> = () => 0;
+    const readerMock: Reader<any> = () => 0;
     expect(or(readerMock)).toBe(readerMock);
   });
 

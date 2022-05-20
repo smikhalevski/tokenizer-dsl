@@ -25,7 +25,7 @@ export interface UntilOptions {
  *
  * @template Context The context passed by tokenizer.
  */
-export function until<Context = any, Error = never>(reader: Reader<Context, Error>, options: UntilOptions = {}): Reader<Context, Error> {
+export function until<Context = any>(reader: Reader<Context>, options: UntilOptions = {}): Reader<Context> {
 
   const {inclusive = false} = options;
 
@@ -96,9 +96,9 @@ export class UntilCaseSensitiveTextReader implements ReaderCodegen {
   }
 }
 
-export class UntilReader<Context, Error> implements ReaderCodegen {
+export class UntilReader<Context> implements ReaderCodegen {
 
-  constructor(public reader: Reader<Context, Error>, public inclusive: boolean) {
+  constructor(public reader: Reader<Context>, public inclusive: boolean) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
@@ -117,7 +117,6 @@ export class UntilReader<Context, Error> implements ReaderCodegen {
 
           'do{',
           createReaderCallCode(this.reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
-          'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, ';break}',
           'if(', readerResultVar, '>=', indexVar, '){', resultVar, '=', this.inclusive ? readerResultVar : indexVar, ';break}',
           '++', indexVar, ';',
           '}while(true)',

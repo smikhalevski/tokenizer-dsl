@@ -16,7 +16,7 @@ export type CharCodeRange = number | [number, number];
  *
  * @see {@link text}
  */
-export function char(chars: CharRange[]): Reader<any, any> {
+export function char(chars: CharRange[]): Reader<any> {
   const charCodeRanges: CharCodeRange[] = [];
 
   for (const range of chars) {

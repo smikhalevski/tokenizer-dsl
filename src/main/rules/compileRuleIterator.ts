@@ -7,12 +7,12 @@ import {TokenHandler, TokenizerState} from './rule-types';
 /**
  * The callback that reads tokens from the input defined by iterator state.
  */
-export type RuleIterator<Type, Stage, Context, Error> = (state: TokenizerState<Stage>, handler: TokenHandler<Type, Context, Error>, context: Context, streaming?: boolean) => void;
+export type RuleIterator<Type, Stage, Context> = (state: TokenizerState<Stage>, handler: TokenHandler<Type, Context>, context: Context, streaming?: boolean) => void;
 
 /**
  * Compiles rules into a function that applies them one after another in a loop.
  */
-export function compileRuleIterator<Type, Stage, Context, Error>(tree: RuleTree<Type, Stage, Context, Error>): RuleIterator<Type, Stage, Context, Error> {
+export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, Stage, Context>): RuleIterator<Type, Stage, Context> {
 
   const stateVar = createVar();
   const handlerVar = createVar();
@@ -24,7 +24,6 @@ export function compileRuleIterator<Type, Stage, Context, Error>(tree: RuleTree<
   const offsetVar = createVar();
 
   const tokenCallbackVar = createVar();
-  const errorCallbackVar = createVar();
   const unrecognizedTokenCallbackVar = createVar();
 
   const prevRuleIndexVar = createVar();
@@ -37,7 +36,7 @@ export function compileRuleIterator<Type, Stage, Context, Error>(tree: RuleTree<
   const {stages, branchesByStageIndex, branches} = tree;
   const bindings: Binding[] = [[stagesVar, stages]];
 
-  const createRuleIteratorBranchesCode = (branches: RuleBranch<Type, Stage, Context, Error>[], branchOffsetVar: Var, stagesEnabled: boolean): Code => {
+  const createRuleIteratorBranchesCode = (branches: RuleBranch<Type, Stage, Context>[], branchOffsetVar: Var, stagesEnabled: boolean): Code => {
 
     const branchResultVar = createVar();
 
@@ -48,31 +47,11 @@ export function compileRuleIterator<Type, Stage, Context, Error>(tree: RuleTree<
     for (const branch of branches) {
       const {rule} = branch;
 
-      const ruleTypeVar = createVar();
-      const ruleToCallbackVar = createVar();
-
-      if (rule) {
-        bindings.push([ruleTypeVar, rule.type]);
-
-        if (typeof rule.to === 'function') {
-          bindings.push([ruleToCallbackVar, rule.to]);
-        }
-      }
-
       // Read branch
-      code.push(createReaderCallCode(seq(...branch.readers), chunkVar, branchOffsetVar, contextVar, branchResultVar, bindings));
-
-      // Emit an error
-      if (rule) {
-        code.push(
-            'if(typeof ', branchResultVar, '!=="number"){',
-            errorCallbackVar, '&&', errorCallbackVar, '(', ruleTypeVar, ',', chunkVar, ',', nextOffsetVar, ',', branchResultVar, ',', contextVar, ',', stateVar, ');',
-            'return}',
-        );
-      }
-
-      // If branch matched an empty substring then ignore this branch
-      code.push('if(', branchResultVar, '>', branchOffsetVar, '){');
+      code.push(
+          createReaderCallCode(seq(...branch.readers), chunkVar, branchOffsetVar, contextVar, branchResultVar, bindings),
+          'if(', branchResultVar, '>', branchOffsetVar, '){',
+      );
 
       // Apply nested branches
       if (branch.children) {
@@ -83,6 +62,15 @@ export function compileRuleIterator<Type, Stage, Context, Error>(tree: RuleTree<
       if (!rule) {
         code.push('}');
         continue;
+      }
+
+      const ruleTypeVar = createVar();
+      const ruleToCallbackVar = createVar();
+
+      bindings.push([ruleTypeVar, rule.type]);
+
+      if (typeof rule.to === 'function') {
+        bindings.push([ruleToCallbackVar, rule.to]);
       }
 
       code.push([
@@ -122,7 +110,6 @@ export function compileRuleIterator<Type, Stage, Context, Error>(tree: RuleTree<
     chunkVar, '=', stateVar, '.chunk,',
     offsetVar, '=', stateVar, '.offset,',
     tokenCallbackVar, '=', handlerVar, '.token,',
-    errorCallbackVar, '=', handlerVar, '.error,',
     unrecognizedTokenCallbackVar, '=', handlerVar, '.unrecognizedToken,',
 
     prevRuleIndexVar, '=-1,',
@@ -161,5 +148,5 @@ export function compileRuleIterator<Type, Stage, Context, Error>(tree: RuleTree<
     '&&', unrecognizedTokenCallbackVar, '(', chunkVar, ',', nextOffsetVar, ',', contextVar, ',', stateVar, ');',
   ];
 
-  return compileFunction<RuleIterator<Type, Stage, Context, Error>>([stateVar, handlerVar, contextVar, streamingVar], code, bindings);
+  return compileFunction<RuleIterator<Type, Stage, Context>>([stateVar, handlerVar, contextVar, streamingVar], code, bindings);
 }

@@ -8,7 +8,7 @@ import {createCodeBindings, NO_MATCH} from './reader-utils';
  *
  * @param re The `RegExp` to match.
  */
-export function regex(re: RegExp): Reader<any, any> {
+export function regex(re: RegExp): Reader<any> {
   return new RegexReader(re);
 }
 
