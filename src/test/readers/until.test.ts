@@ -1,7 +1,6 @@
 import {
   char,
   never,
-  NO_MATCH,
   none,
   text,
   toReaderFunction,
@@ -63,8 +62,8 @@ describe('UntilReader', () => {
 
   test('advances reader by one char on each iteration', () => {
     const readerMock = jest.fn();
-    readerMock.mockReturnValueOnce(NO_MATCH);
-    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(-1);
+    readerMock.mockReturnValueOnce(-1);
     readerMock.mockReturnValueOnce(4);
 
     expect(toReaderFunction(new UntilReader(readerMock, false))('aaaa', 0)).toBe(2);
@@ -74,8 +73,8 @@ describe('UntilReader', () => {
 
   test('reads inclusive', () => {
     const readerMock = jest.fn();
-    readerMock.mockReturnValueOnce(NO_MATCH);
-    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(-1);
+    readerMock.mockReturnValueOnce(-1);
     readerMock.mockReturnValueOnce(77);
 
     expect(toReaderFunction(new UntilReader(readerMock, true))('aaaa', 0)).toBe(77);

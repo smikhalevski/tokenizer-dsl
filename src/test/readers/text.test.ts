@@ -1,11 +1,4 @@
-import {
-  CaseInsensitiveTextReader,
-  CaseSensitiveTextReader,
-  NO_MATCH,
-  none,
-  text,
-  toReaderFunction
-} from '../../main/readers';
+import {CaseInsensitiveTextReader, CaseSensitiveTextReader, none, text, toReaderFunction} from '../../main/readers';
 
 describe('text', () => {
 
@@ -34,8 +27,8 @@ describe('CaseSensitiveTextReader', () => {
 
     expect(read('aaaabc', 3)).toBe(6);
     expect(read('aaaabcde', 3)).toBe(6);
-    expect(read('aaaab', 3)).toBe(NO_MATCH);
-    expect(read('aaaABC', 3)).toBe(NO_MATCH);
+    expect(read('aaaab', 3)).toBe(-1);
+    expect(read('aaaABC', 3)).toBe(-1);
   });
 });
 
@@ -46,6 +39,6 @@ describe('CaseInsensitiveTextReader', () => {
 
     expect(read('AAAABC', 3)).toBe(6);
     expect(read('AAAABCDE', 3)).toBe(6);
-    expect(read('AAAAB', 3)).toBe(NO_MATCH);
+    expect(read('AAAAB', 3)).toBe(-1);
   });
 });

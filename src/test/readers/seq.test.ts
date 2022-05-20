@@ -1,4 +1,4 @@
-import {never, NO_MATCH, none, Reader, seq, SeqReader, text, toReaderFunction} from '../../main/readers';
+import {never, none, Reader, seq, SeqReader, text, toReaderFunction} from '../../main/readers';
 
 describe('seq', () => {
 
@@ -26,10 +26,10 @@ describe('SeqReader', () => {
   test('fails if any of readers fail', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(4);
-    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(-1);
     readerMock.mockReturnValueOnce(5);
 
-    expect(toReaderFunction(new SeqReader([readerMock, readerMock, readerMock]))('aabbcc', 2)).toBe(NO_MATCH);
+    expect(toReaderFunction(new SeqReader([readerMock, readerMock, readerMock]))('aabbcc', 2)).toBe(-1);
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 

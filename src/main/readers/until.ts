@@ -4,7 +4,7 @@ import {CharCodeRange, CharCodeRangeReader, createCharPredicateCode} from './cha
 import {never} from './never';
 import {none} from './none';
 import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode, NO_MATCH} from './reader-utils';
+import {createCodeBindings, createReaderCallCode} from './reader-utils';
 import {CaseSensitiveTextReader} from './text';
 
 export interface UntilOptions {
@@ -58,7 +58,7 @@ export class UntilCharCodeRangeReader implements ReaderCodegen {
     const charCodeVar = createVar();
 
     return createCodeBindings([
-      resultVar, '=' + NO_MATCH + ';',
+      resultVar, '=-1;',
 
       'var ',
       inputLengthVar, '=', inputVar, '.length,',
@@ -89,7 +89,7 @@ export class UntilCaseSensitiveTextReader implements ReaderCodegen {
     return createCodeBindings(
         [
           'var ', indexVar, '=', inputVar, '.indexOf(', strVar, ',', offsetVar, ');',
-          resultVar, '=', indexVar, this.inclusive ? ['===-1?' + NO_MATCH + ':', indexVar, '+', str.length] : '', ';',
+          resultVar, '=', indexVar, this.inclusive ? ['===-1?-1:', indexVar, '+', str.length] : '', ';',
         ],
         [[strVar, str]],
     );
@@ -109,7 +109,7 @@ export class UntilReader<Context> implements ReaderCodegen {
 
     return createCodeBindings(
         [
-          resultVar, '=' + NO_MATCH + ';',
+          resultVar, '=-1;',
 
           'var ',
           indexVar, '=', offsetVar, ',',

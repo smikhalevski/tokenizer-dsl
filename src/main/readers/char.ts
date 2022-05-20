@@ -2,7 +2,7 @@ import {Code, CodeBindings, Var} from 'codedegen';
 import {createVar, die} from '../utils';
 import {none} from './none';
 import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, NO_MATCH, toCharCodes} from './reader-utils';
+import {createCodeBindings, toCharCodes} from './reader-utils';
 
 export type CharRange = string | number | [number | string, number | string];
 
@@ -50,7 +50,7 @@ export class CharCodeRangeReader implements ReaderCodegen {
       resultVar, '=',
       offsetVar, '<', inputVar, '.length&&(',
       charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '),',
-      createCharPredicateCode(charCodeVar, this.charCodeRanges), ')?', offsetVar, '+1:' + NO_MATCH + ';',
+      createCharPredicateCode(charCodeVar, this.charCodeRanges), ')?', offsetVar, '+1:-1;',
     ]);
   }
 }

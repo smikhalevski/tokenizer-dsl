@@ -1,4 +1,4 @@
-import {all, AllReader, never, NO_MATCH, none, text, toReaderFunction} from '../../main/readers';
+import {all, AllReader, never, none, text, toReaderFunction} from '../../main/readers';
 
 describe('all', () => {
 
@@ -32,11 +32,11 @@ describe('all', () => {
 
 describe('AllReader', () => {
 
-  test('reads until reader returns NO_MATCH', () => {
+  test('reads until reader returns -1', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(3);
     readerMock.mockReturnValueOnce(4);
-    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(-1);
 
     expect(toReaderFunction(new AllReader(readerMock, 0, 0))('aabbcc', 2)).toBe(4);
     expect(readerMock).toHaveBeenCalledTimes(3);
@@ -51,12 +51,12 @@ describe('AllReader', () => {
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
-  test('returns NO_MATCH if minimum matches was not reached', () => {
+  test('returns -1 if minimum matches was not reached', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(1);
-    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(-1);
 
-    expect(toReaderFunction(new AllReader(readerMock, 2, 0))('a', 0)).toBe(NO_MATCH);
+    expect(toReaderFunction(new AllReader(readerMock, 2, 0))('a', 0)).toBe(-1);
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
@@ -65,7 +65,7 @@ describe('AllReader', () => {
     readerMock.mockReturnValueOnce(1);
     readerMock.mockReturnValueOnce(2);
     readerMock.mockReturnValueOnce(3);
-    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(-1);
 
     expect(toReaderFunction(new AllReader(readerMock, 2, 0))('aaa', 0)).toBe(3);
     expect(readerMock).toHaveBeenCalledTimes(4);
@@ -84,7 +84,7 @@ describe('AllReader', () => {
   test('maximum does not affect the minimum', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(1);
-    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(-1);
 
     expect(toReaderFunction(new AllReader(readerMock, 0, 2))('a', 0)).toBe(1);
     expect(readerMock).toHaveBeenCalledTimes(2);

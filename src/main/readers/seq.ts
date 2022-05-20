@@ -3,7 +3,7 @@ import {createVar} from '../utils';
 import {never} from './never';
 import {none} from './none';
 import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode, NO_MATCH} from './reader-utils';
+import {createCodeBindings, createReaderCallCode} from './reader-utils';
 
 /**
  * Creates a reader that applies readers one after another.
@@ -52,7 +52,7 @@ export class SeqReader<Context> implements ReaderCodegen {
     const readersLength = readers.length;
     const bindings: Binding[] = [];
     const code: Code[] = [
-      resultVar, '=' + NO_MATCH + ';',
+      resultVar, '=-1;',
 
       'var ',
       indexVar, '=', offsetVar, ',',

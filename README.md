@@ -377,7 +377,7 @@ readers as a code factories.
 Let's recreate the reader from the previous section with the codegen approach:
 
 ```ts
-import {Reader, NO_MATCH} from 'tokenizer-dsl';
+import {Reader} from 'tokenizer-dsl';
 
 const fooReader: Reader = {
 

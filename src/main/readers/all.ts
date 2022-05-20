@@ -3,7 +3,7 @@ import {createVar, die, toInteger} from '../utils';
 import {never} from './never';
 import {none} from './none';
 import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode, NO_MATCH} from './reader-utils';
+import {createCodeBindings, createReaderCallCode} from './reader-utils';
 
 export interface AllOptions {
 
@@ -62,7 +62,7 @@ export class AllReader<Context> implements ReaderCodegen {
     const bindings: Binding[] = [];
 
     const code: Code[] = [
-      resultVar, '=', minimumCount > 0 ? NO_MATCH : offsetVar, ';',
+      resultVar, '=', minimumCount > 0 ? '-1' : offsetVar, ';',
       'var ',
       minimumCount > 1 ? [indexVar, '=', offsetVar, ','] : '',
       readerResultVar, minimumCount === 0 && maximumCount === 0 ? ['=', offsetVar] : '', ';',

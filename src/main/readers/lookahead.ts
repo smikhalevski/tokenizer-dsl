@@ -2,7 +2,7 @@ import {Binding, CodeBindings, Var} from 'codedegen';
 import {never} from './never';
 import {none} from './none';
 import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode, NO_MATCH} from './reader-utils';
+import {createCodeBindings, createReaderCallCode} from './reader-utils';
 
 /**
  * Creates a reader that returns the current offset if the reader matches.
@@ -26,7 +26,7 @@ export class LookaheadReader<Context> implements ReaderCodegen {
     return createCodeBindings(
         [
           createReaderCallCode(this.reader, inputVar, offsetVar, contextVar, resultVar, bindings),
-          resultVar, '=', resultVar, '<', offsetVar, '?' + NO_MATCH + ':', offsetVar, ';',
+          resultVar, '=', resultVar, '<', offsetVar, '?-1:', offsetVar, ';',
         ],
         bindings,
     );

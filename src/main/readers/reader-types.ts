@@ -14,7 +14,7 @@ export type Reader<Context = void> = ReaderFunction<Context> | ReaderCodegen;
  *
  * ```ts
  * const abcReader: Reader = (input, offset) => {
- *   return input.startsWith('abc', offset) ? offset + 3 : NO_MATCH;
+ *   return input.startsWith('abc', offset) ? offset + 3 : -1;
  * };
  * ```
  *
