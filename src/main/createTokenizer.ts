@@ -10,8 +10,7 @@ import {compileRuleIterator, createRuleTree, Rule, TokenHandler, TokenizerState}
 export interface Tokenizer<Type = unknown, Stage = void, Context = void> {
 
   /**
-   * Reads tokens from the input in a non-streaming fashion. Triggers a {@link TokenHandler.unrecognizedToken} if the
-   * input wasn't read in full.
+   * Reads tokens from the input in a non-streaming fashion.
    *
    * @param input The input string to tokenize.
    * @param handler The callbacks that are invoked when tokens are read from the string.
@@ -21,9 +20,8 @@ export interface Tokenizer<Type = unknown, Stage = void, Context = void> {
   (input: string, handler: TokenHandler<Type, Context>, context: Context): TokenizerState<Stage>;
 
   /**
-   * Reads tokens from the chunk in a streaming fashion. Does not trigger a {@link TokenHandler.unrecognizedToken} is
-   * input wasn't read in full. During streaming, {@link TokenHandler.token} is triggered only with confirmed tokens.
-   * Token is confirmed if the consequent token was successfully read.
+   * Reads tokens from the chunk in a streaming fashion. During streaming, {@link TokenHandler} is triggered only with
+   * confirmed tokens. Token is confirmed if the consequent token was successfully read.
    *
    * ```ts
    * let state;
@@ -41,8 +39,7 @@ export interface Tokenizer<Type = unknown, Stage = void, Context = void> {
   write(chunk: string, handler: TokenHandler<Type, Context>, state: TokenizerState<Stage> | void, context: Context): TokenizerState<Stage>;
 
   /**
-   * Reads remaining tokens from the {@link TokenizerState.chunk}. Triggers a {@link TokenHandler.unrecognizedToken} if
-   * the  {@link TokenizerState.chunk} wasn't read in full.
+   * Reads remaining tokens from the {@link TokenizerState.chunk}.
    *
    * @param handler The callbacks that are invoked when tokens are read from the string.
    * @param state The mutable state returned by the previous {@link Tokenizer.write} call.

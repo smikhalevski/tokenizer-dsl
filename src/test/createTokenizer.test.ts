@@ -2,23 +2,14 @@ import {all, char, createTokenizer, Reader, Rule, text, TokenHandler} from '../m
 
 describe('createTokenizer', () => {
 
-  const tokenCallbackMock = jest.fn();
-  const errorCallbackMock = jest.fn();
-  const unrecognizedTokenCallbackMock = jest.fn();
+  const handlerMock = jest.fn();
 
-  const handler: TokenHandler = {
-    token(type, chunk, offset, length, context, state) {
-      tokenCallbackMock(type, state.chunkOffset + offset, length, context);
-    },
-    unrecognizedToken(chunk, offset, context, state) {
-      unrecognizedTokenCallbackMock(state.chunkOffset + offset, context);
-    }
+  const handler: TokenHandler = (type, chunk, offset, length, context, state) => {
+    handlerMock(type, state.chunkOffset + offset, length, context);
   };
 
   beforeEach(() => {
-    tokenCallbackMock.mockRestore();
-    errorCallbackMock.mockRestore();
-    unrecognizedTokenCallbackMock.mockRestore();
+    handlerMock.mockRestore();
   });
 
   test('reads tokens in non-streaming mode', () => {
@@ -39,10 +30,10 @@ describe('createTokenizer', () => {
       offset: 5
     });
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeB', 2, 3, undefined);
+    expect(handlerMock).toHaveBeenCalledTimes(3);
+    expect(handlerMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(3, 'TypeB', 2, 3, undefined);
   });
 
   test('reads tokens in streaming mode', () => {
@@ -56,26 +47,23 @@ describe('createTokenizer', () => {
 
     const state = tokenizer.write('aabbb', handler);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(2);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1, undefined);
+    expect(handlerMock).toHaveBeenCalledTimes(2);
+    expect(handlerMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1, undefined);
 
     tokenizer.write('BBB', handler, state);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(2);
+    expect(handlerMock).toHaveBeenCalledTimes(2);
 
     tokenizer.write('a', handler, state);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeB', 2, 6, undefined);
+    expect(handlerMock).toHaveBeenCalledTimes(3);
+    expect(handlerMock).toHaveBeenNthCalledWith(3, 'TypeB', 2, 6, undefined);
 
     tokenizer.end(handler, state);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(4);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, 'TypeA', 8, 1, undefined);
-
-    expect(errorCallbackMock).not.toHaveBeenCalled();
-    expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
+    expect(handlerMock).toHaveBeenCalledTimes(4);
+    expect(handlerMock).toHaveBeenNthCalledWith(4, 'TypeA', 8, 1, undefined);
   });
 
   test('reads tokens with reader function', () => {
@@ -89,7 +77,7 @@ describe('createTokenizer', () => {
 
     tokenizer('abc', handler);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
+    expect(handlerMock).toHaveBeenCalledTimes(3);
     expect(readerMock).toHaveBeenCalledTimes(3);
   });
 });

@@ -23,9 +23,6 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
   const chunkVar = createVar();
   const offsetVar = createVar();
 
-  const tokenCallbackVar = createVar();
-  const unrecognizedTokenCallbackVar = createVar();
-
   const prevRuleIndexVar = createVar();
   const prevRuleTypeVar = createVar();
   const nextOffsetVar = createVar();
@@ -77,7 +74,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
 
         // Emit confirmed token
         'if(', prevRuleIndexVar, '!==-1){',
-        tokenCallbackVar, '(', prevRuleTypeVar, ',', chunkVar, ',', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
+        handlerVar, '(', prevRuleTypeVar, ',', chunkVar, ',', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
         prevRuleIndexVar, '=-1}',
 
         // If stagesEnabled === true then stageIndex !== -1
@@ -109,8 +106,6 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     stageIndexVar, '=', stagesVar, '.indexOf(', stateVar, '.stage),',
     chunkVar, '=', stateVar, '.chunk,',
     offsetVar, '=', stateVar, '.offset,',
-    tokenCallbackVar, '=', handlerVar, '.token,',
-    unrecognizedTokenCallbackVar, '=', handlerVar, '.unrecognizedToken,',
 
     prevRuleIndexVar, '=-1,',
     prevRuleTypeVar, ',',
@@ -135,17 +130,12 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
 
     // Emit trailing unconfirmed token
     'if(', prevRuleIndexVar, '!==-1){',
-    tokenCallbackVar, '(', prevRuleTypeVar, ',', chunkVar, ',', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
+    handlerVar, '(', prevRuleTypeVar, ',', chunkVar, ',', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
     '}',
 
     // Update stage only if stages are enabled
     branchesByStageIndex.length ? [stateVar, '.stage=', stagesVar, '[', stageIndexVar, '];'] : '',
     stateVar, '.offset=', nextOffsetVar, ';',
-
-    // Trigger unrecognized token
-    nextOffsetVar, '!==', chunkLengthVar,
-    '&&', unrecognizedTokenCallbackVar,
-    '&&', unrecognizedTokenCallbackVar, '(', chunkVar, ',', nextOffsetVar, ',', contextVar, ',', stateVar, ');',
   ];
 
   return compileFunction<RuleIterator<Type, Stage, Context>>([stateVar, handlerVar, contextVar, streamingVar], code, bindings);

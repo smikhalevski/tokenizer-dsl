@@ -148,11 +148,8 @@ As the last step, we should call a tokenizer and provide it an input and a token
 ```ts
 import {TokenHandler} from 'tokenizer-dsl';
 
-const handler: TokenHandler = {
-
-  token(type, input, offset, length, context, state) {
-    console.log(type, input.substr(offset, length));
-  }
+const handler: TokenHandler = (type, input, offset, length, context, state) => {
+  console.log(type, input.substr(offset, length));
 };
 
 tokenize('123.456; aaa; +777; bbb; -42', handler);
@@ -171,34 +168,6 @@ NUMBER +777
 SEMICOLON ;
 WHITESPACE  
 NUMBER -42
-```
-
-To capture unrecognized tokens you can add an `unrecognizedToken` callback to the handler:
-
-```ts
-const handler: TokenHandler = {
-
-  token(type, input, offset, length, context, state) {
-    console.log(type, input.substr(offset, length));
-  },
-
-  unrecognizedToken(offset, context) {
-    console.log('Unrecognized token at position', offset);
-  }
-};
-```
-
-Let's test it with a malformed input. Notice the `'_'` char that isn't recognized by tokenization rules that we defined:
-
-```ts
-tokenize('abc_', handler);
-```
-
-The console output would be:
-
-```
-ALPHA abc
-Unrecognized token at position 4
 ```
 
 # Built-in readers
