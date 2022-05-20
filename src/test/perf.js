@@ -20,10 +20,7 @@ describe('Tokenizer', () => {
 
       const reWhitespace = /[ \t\r\n]+/y;
 
-      const handler = {
-        token(chunk, offset, length) {
-        },
-      };
+      const handler = () => undefined;
 
       const tokenizer = (input, stage, offset, handler) => {
         let lastIndex;
@@ -36,7 +33,7 @@ describe('Tokenizer', () => {
 
               reNumber.lastIndex = offset;
               if (reNumber.test(input) && offset < (lastIndex = reNumber.lastIndex)) {
-                handler.token(input, offset, lastIndex - offset);
+                handler(input, offset, lastIndex - offset);
                 offset = lastIndex;
                 stage = 1;
                 continue;
@@ -44,7 +41,7 @@ describe('Tokenizer', () => {
 
               reAlpha.lastIndex = offset;
               if (reAlpha.test(input) && offset < (lastIndex = reAlpha.lastIndex)) {
-                handler.token(input, offset, lastIndex - offset);
+                handler(input, offset, lastIndex - offset);
                 offset = lastIndex;
                 stage = 1;
                 continue;
@@ -119,13 +116,13 @@ describe('Tokenizer', () => {
       const tokenizer = next.createTokenizer([
         {
           on: [0],
-          type: 'ALPHA',
+          type: 111,
           reader: alphaReader,
           to: 1,
         },
         {
           on: [0],
-          type: 'NUMBER',
+          type: 222,
           reader: numberReader,
           to: 1,
         },
@@ -141,10 +138,7 @@ describe('Tokenizer', () => {
         },
       ], 0);
 
-      const handler = {
-        token(chunk, type, offset, length, context, state) {
-        },
-      };
+      const handler = () => undefined;
 
       measure(() => tokenizer(input, handler));
 
@@ -167,10 +161,7 @@ describe('Tokenizer', () => {
 
       const reWhitespace = /[ \t\r\n]+/y;
 
-      const handler = {
-        token(chunk, offset, length) {
-        },
-      };
+      const handler = () => undefined;
 
       const tokenizer = (input, offset, handler) => {
         let lastIndex;
@@ -179,14 +170,14 @@ describe('Tokenizer', () => {
 
           reNumber.lastIndex = offset;
           if (reNumber.test(input) && offset < (lastIndex = reNumber.lastIndex)) {
-            handler.token(input, offset, lastIndex - offset);
+            handler(input, offset, lastIndex - offset);
             offset = lastIndex;
             continue;
           }
 
           reAlpha.lastIndex = offset;
           if (reAlpha.test(input) && offset < (lastIndex = reAlpha.lastIndex)) {
-            handler.token(input, offset, lastIndex - offset);
+            handler(input, offset, lastIndex - offset);
             offset = lastIndex;
             continue;
           }
@@ -253,11 +244,11 @@ describe('Tokenizer', () => {
 
       const tokenizer = next.createTokenizer([
         {
-          type: 'ALPHA',
+          type: 111,
           reader: alphaReader,
         },
         {
-          type: 'NUMBER',
+          type: 222,
           reader: numberReader,
         },
         {
@@ -270,10 +261,7 @@ describe('Tokenizer', () => {
         },
       ]);
 
-      const handler = {
-        token(chunk, type, offset, length, context, state) {
-        },
-      };
+      const handler = () => undefined;
 
       measure(() => tokenizer(input, handler));
 
