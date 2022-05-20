@@ -50,7 +50,7 @@ export class CharCodeRangeReader implements ReaderCodegen {
       resultVar, '=',
       offsetVar, '<', inputVar, '.length&&(',
       charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '),',
-      createCharPredicateCode(charCodeVar, this.charCodeRanges), ')?', offsetVar, '+1:', NO_MATCH, ';',
+      createCharPredicateCode(charCodeVar, this.charCodeRanges), ')?', offsetVar, '+1:' + NO_MATCH + ';',
     ]);
   }
 }

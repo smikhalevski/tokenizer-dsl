@@ -27,7 +27,7 @@ export class RegexReader implements ReaderCodegen {
     return createCodeBindings(
         [
           reVar, '.lastIndex=', offsetVar, ';',
-          resultVar, '=', reVar, '.test(', inputVar, ')?', reVar, '.lastIndex:', NO_MATCH, ';',
+          resultVar, '=', reVar, '.test(', inputVar, ')?', reVar, '.lastIndex:' + NO_MATCH + ';',
         ],
         [[reVar, this.re]],
     );

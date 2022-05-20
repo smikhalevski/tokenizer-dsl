@@ -46,13 +46,13 @@ export class SeqReader<Context> implements ReaderCodegen {
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const {readers} = this;
 
-    const readerResultVar = createVar();
     const indexVar = createVar();
+    const readerResultVar = createVar();
 
     const readersLength = readers.length;
     const bindings: Binding[] = [];
     const code: Code[] = [
-      resultVar, '=', NO_MATCH, ';',
+      resultVar, '=' + NO_MATCH + ';',
 
       'var ',
       indexVar, '=', offsetVar, ',',
@@ -63,7 +63,7 @@ export class SeqReader<Context> implements ReaderCodegen {
       code.push(
           createReaderCallCode(readers[i], inputVar, indexVar, contextVar, readerResultVar, bindings),
           'if(', readerResultVar, '>=', indexVar, '){',
-          i === readersLength - 1 ? resultVar : indexVar, '=', readerResultVar, ';',
+          i < readersLength - 1 ? indexVar : resultVar, '=', readerResultVar, ';',
       );
     }
 

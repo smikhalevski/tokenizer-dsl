@@ -46,14 +46,15 @@ export class OrReader<Context> implements ReaderCodegen {
     const {readers} = this;
 
     const readersLength = readers.length;
-    const code: Code[] = [];
     const bindings: Binding[] = [];
+    const code: Code[] = [];
 
     for (let i = 0; i < readersLength; ++i) {
-      code.push(
-          createReaderCallCode(readers[i], inputVar, offsetVar, contextVar, resultVar, bindings),
-          i < readersLength - 1 ? ['if(', resultVar, '<', offsetVar, '){'] : '',
-      );
+      code.push(createReaderCallCode(readers[i], inputVar, offsetVar, contextVar, resultVar, bindings));
+
+      if (i < readersLength - 1) {
+        code.push('if(', resultVar, '<', offsetVar, '){');
+      }
     }
     code.push('}'.repeat(readersLength - 1));
 
