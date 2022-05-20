@@ -22,7 +22,7 @@ export function createReaderCallCode<Context>(reader: Reader<Context>, inputVar:
     const readerVar = createVar();
     bindings.push([readerVar, reader]);
 
-    return [resultVar, '=', readerVar, '(', inputVar, ',', offsetVar, ',', contextVar, ')', ';'];
+    return [resultVar, '=', readerVar, '(', inputVar, ',', offsetVar, ',', contextVar, ');'];
   }
 
   const codeBindings = reader.factory(inputVar, offsetVar, contextVar, resultVar);
