@@ -11,10 +11,10 @@ export interface RuleTree<Type, Stage, Context> {
   /**
    * The list of branches parallel to {@link stages}. May be empty if rules didn't define any stages.
    */
-  branchesByStageIndex: RuleBranch<Type, Stage, Context>[][];
+  branchesOnStage: RuleBranch<Type, Stage, Context>[][];
 
   /**
-   * The list of branches that are used if there are no stages and {@link branchesByStageIndex} is empty.
+   * The list of branches that are used if there are no stages and {@link branchesOnStage} is empty.
    */
   branches: RuleBranch<Type, Stage, Context>[];
 }
@@ -60,11 +60,11 @@ export function createRuleTree<Type, Stage, Context>(rules: Rule<Type, Stage, Co
     }
   }
 
-  const branchesByStageIndex: RuleBranch<Type, Stage, Context>[][] = [];
+  const branchesOnStage: RuleBranch<Type, Stage, Context>[][] = [];
   const branches: RuleBranch<Type, Stage, Context>[] = [];
 
   for (let i = 0; i < stages.length; ++i) {
-    branchesByStageIndex.push([]);
+    branchesOnStage.push([]);
   }
 
   for (const rule of rules) {
@@ -75,13 +75,13 @@ export function createRuleTree<Type, Stage, Context>(rules: Rule<Type, Stage, Co
     // Append the rule to branches
     if (rule.on) {
       for (const stage of rule.on) {
-        appendRule(branchesByStageIndex[stages.indexOf(stage)], rule, ruleIndex);
+        appendRule(branchesOnStage[stages.indexOf(stage)], rule, ruleIndex);
       }
       continue;
     }
 
     // Rule has no stages defined, so it is applied on every stage
-    for (const stagePlan of branchesByStageIndex) {
+    for (const stagePlan of branchesOnStage) {
       appendRule(stagePlan, rule, ruleIndex);
     }
     appendRule(branches, rule, ruleIndex);
@@ -89,7 +89,7 @@ export function createRuleTree<Type, Stage, Context>(rules: Rule<Type, Stage, Co
 
   return {
     stages,
-    branchesByStageIndex,
+    branchesOnStage,
     branches,
   };
 }

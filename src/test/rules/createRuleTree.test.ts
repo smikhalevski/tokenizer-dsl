@@ -11,7 +11,7 @@ describe('createRuleTree', () => {
 
     const ruleIterationPlan: RuleTree<any, any, any> = {
       stages: [],
-      branchesByStageIndex: [],
+      branchesOnStage: [],
       branches: [
         {
           readers: [reader1, reader2],
@@ -32,7 +32,7 @@ describe('createRuleTree', () => {
 
     const ruleIterationPlan: RuleTree<any, any, any> = {
       stages: ['A'],
-      branchesByStageIndex: [
+      branchesOnStage: [
         [{
           readers: [reader1, reader2],
           rule,
@@ -55,7 +55,7 @@ describe('createRuleTree', () => {
 
     const ruleIterationPlan: RuleTree<any, any, any> = {
       stages: ['A'],
-      branchesByStageIndex: [
+      branchesOnStage: [
         [{
           readers: [reader1],
           children: [
@@ -88,7 +88,7 @@ describe('createRuleTree', () => {
 
     const ruleIterationPlan: RuleTree<any, any, any> = {
       stages: ['A', 'B'],
-      branchesByStageIndex: [
+      branchesOnStage: [
         // A
         [{
           readers: [reader1, reader12],
@@ -118,7 +118,7 @@ describe('createRuleTree', () => {
 
     const ruleIterationPlan: RuleTree<any, any, any> = {
       stages: ['A'],
-      branchesByStageIndex: [
+      branchesOnStage: [
         [{
           readers: [reader1],
           children: [

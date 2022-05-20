@@ -14,12 +14,14 @@ export type RuleIterator<Type, Stage, Context> = (state: TokenizerState<Stage>, 
  */
 export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, Stage, Context>): RuleIterator<Type, Stage, Context> {
 
+  const {stages, branchesOnStage, branches} = tree;
+
   const stateVar = createVar();
   const handlerVar = createVar();
   const contextVar = createVar();
   const streamingVar = createVar();
 
-  const stageIndexVar = createVar();
+  const stageVar = createVar();
   const chunkVar = createVar();
   const offsetVar = createVar();
 
@@ -30,16 +32,17 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
 
   const stagesVar = createVar();
 
-  const {stages, branchesByStageIndex, branches} = tree;
-  const bindings: Binding[] = [[stagesVar, stages]];
+  // If true then raw stages cannot be used in the output code and must be resolved by the index in stagesVar
+  const stagesIndexed = stages.some((stage) => typeof stage !== 'number' || stage === (stage | 0));
+  const stagesEnabled = stages.length !== 0;
 
-  const createRuleIteratorBranchesCode = (branches: RuleBranch<Type, Stage, Context>[], branchOffsetVar: Var, stagesEnabled: boolean): Code => {
+  const bindings: Binding[] = stagesIndexed ? [[stagesVar, stages]] : [];
+
+  const createRuleIteratorBranchesCode = (branches: RuleBranch<Type, Stage, Context>[], branchOffsetVar: Var): Code => {
 
     const branchResultVar = createVar();
 
-    const code: Code[] = [
-      'var ', branchResultVar, ';',
-    ];
+    const code: Code[] = ['var ', branchResultVar, ';'];
 
     for (const branch of branches) {
       const {rule} = branch;
@@ -52,7 +55,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
 
       // Apply nested branches
       if (branch.children) {
-        code.push(createRuleIteratorBranchesCode(branch.children, branchResultVar, stagesEnabled));
+        code.push(createRuleIteratorBranchesCode(branch.children, branchResultVar));
       }
 
       // If there's no termination rule then exit
@@ -64,10 +67,12 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
       const ruleTypeVar = createVar();
       const ruleToCallbackVar = createVar();
 
-      bindings.push([ruleTypeVar, rule.type]);
+      const ruleTo = rule.to;
 
-      if (typeof rule.to === 'function') {
-        bindings.push([ruleToCallbackVar, rule.to]);
+      // Update bindings
+      bindings.push([ruleTypeVar, rule.type]);
+      if (typeof ruleTo === 'function') {
+        bindings.push([ruleToCallbackVar, ruleTo]);
       }
 
       code.push([
@@ -77,8 +82,8 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
         handlerVar, '(', prevRuleTypeVar, ',', chunkVar, ',', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
         prevRuleIndexVar, '=-1}',
 
-        // If stagesEnabled === true then stageIndex !== -1
-        stagesEnabled ? [stateVar, '.stage=', stagesVar, '[', stageIndexVar, '];'] : '',
+        // If stagesEnabled then stageIndex is never -1 so no out-of-bounds check is required
+        stagesEnabled ? [stateVar, '.stage=', stagesIndexed ? [stagesVar, '[', stageVar, ']'] : stageVar, ';'] : '',
         stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
         rule.silent ? '' : [
@@ -86,9 +91,9 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
           prevRuleTypeVar, '=', ruleTypeVar, ';',
         ],
 
-        rule.to === undefined ? '' : typeof rule.to === 'function'
-            ? [stageIndexVar, '=', stagesVar, '.indexOf(', ruleToCallbackVar, '(', chunkVar, ',', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, ',', stateVar, '));']
-            : [stageIndexVar, '=', stages.indexOf(rule.to), ';'],
+        ruleTo === undefined ? '' : typeof ruleTo === 'function'
+            ? [stageVar, '=', stagesIndexed ? [stagesVar, '.indexOf('] : '(', ruleToCallbackVar, '(', chunkVar, ',', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, ',', stateVar, '));']
+            : [stageVar, '=', stagesIndexed ? stages.indexOf(ruleTo) : ruleTo as unknown as number, ';'],
 
         nextOffsetVar, '=', branchResultVar, ';',
 
@@ -103,7 +108,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
 
   const code: Code = [
     'var ',
-    stageIndexVar, '=', stagesVar, '.indexOf(', stateVar, '.stage),',
+    stagesEnabled ? [stageVar, '=', stagesIndexed ? [stagesVar, '.indexOf('] : '(', stateVar, '.stage),'] : '',
     chunkVar, '=', stateVar, '.chunk,',
     offsetVar, '=', stateVar, '.offset,',
 
@@ -114,27 +119,30 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
 
     'while(', nextOffsetVar, '<', chunkLengthVar, '){',
 
-    // Apply rules from the current stage
-    branchesByStageIndex.length === 0 ? createRuleIteratorBranchesCode(branches, nextOffsetVar, false) : [
-      'switch(', stageIndexVar, '){',
-      branchesByStageIndex.map((branches, stageIndex) => [
-        'case ', stageIndex, ':', createRuleIteratorBranchesCode(branches, nextOffsetVar, true),
-        'break;'
-      ]),
-      '}',
-    ],
+    // Apply rules available on the current stage
+    stagesEnabled
+        ? [
+          'switch(', stageVar, '){',
+          branchesOnStage.map((branches, stageIndex) => [
+            'case ', stagesIndexed ? stageIndex : stages[stageIndex] as unknown as number, ':',
+            createRuleIteratorBranchesCode(branches, nextOffsetVar),
+            'break;'
+          ]),
+          '}',
+        ]
+        : createRuleIteratorBranchesCode(branches, nextOffsetVar),
 
     'break}',
 
     'if(', streamingVar, ')return;',
 
-    // Emit trailing unconfirmed token
+    // Emit last unconfirmed token
     'if(', prevRuleIndexVar, '!==-1){',
     handlerVar, '(', prevRuleTypeVar, ',', chunkVar, ',', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
     '}',
 
-    // Update stage only if stages are enabled
-    branchesByStageIndex.length === 0 ? '' : [stateVar, '.stage=', stagesVar, '[', stageIndexVar, '];'],
+    // Update unconfirmed stage and offset
+    stagesEnabled ? [stateVar, '.stage=', stagesIndexed ? [stagesVar, '[', stageVar, ']'] : stageVar, ';'] : '',
     stateVar, '.offset=', nextOffsetVar, ';',
   ];
 
