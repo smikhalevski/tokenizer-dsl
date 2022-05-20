@@ -23,7 +23,7 @@ export class SkipReader implements ReaderCodegen {
     const {charCount} = this;
 
     return createCodeBindings([
-      resultVar, '=', offsetVar, '+', charCount, '<=', inputVar, '.length?', offsetVar, '+', charCount, ':', NO_MATCH, ';',
+      resultVar, '=', offsetVar, '+', charCount, '<=', inputVar, '.length?', offsetVar, '+', charCount, ':' + NO_MATCH + ';',
     ]);
   }
 }

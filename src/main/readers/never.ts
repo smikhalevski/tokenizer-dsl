@@ -8,7 +8,7 @@ export const never: Reader<any> = {
 
   factory(inputVar, offsetVar, contextVar, resultVar) {
     return createCodeBindings([
-      resultVar, '=', NO_MATCH, ';',
+      resultVar, '=' + NO_MATCH + ';',
     ]);
   }
 };

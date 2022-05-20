@@ -60,7 +60,7 @@ export class CaseSensitiveTextReader implements ReaderCodegen {
         [
           resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
           toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, '+', i, ')===', charCode]),
-          '?', offsetVar, '+', str.length, ':', NO_MATCH, ';',
+          '?', offsetVar, '+', str.length, ':' + NO_MATCH + ';',
         ],
         [[strVar, str]],
     );
@@ -103,7 +103,7 @@ export class CaseInsensitiveTextReader implements ReaderCodegen {
         );
       }
     }
-    code.push('?', offsetVar, '+', charCount, ':', NO_MATCH, ';');
+    code.push('?', offsetVar, '+', charCount, ':' + NO_MATCH + ';');
 
     return createCodeBindings(code);
   }

@@ -35,7 +35,7 @@ export interface ReaderCodegen {
    * const abcReaderCodegenFactory: ReaderCodegenFactory = (inputVar, offsetVar, contextVar, resultVar) => {
    *   const abcVar = Symbol();
    *   return {
-   *     code: [resultVar, '=', inputVar, '.startsWith(', abcVar, ',', offsetVar, ')?', offsetVar, '+3:', NO_MATCH, ';'],
+   *     code: [resultVar, '=', inputVar, '.startsWith(', abcVar, ',', offsetVar, ')?', offsetVar, '+3:-1;'],
    *     bindings: [[abcVar, 'abc']],
    *   };
    * };

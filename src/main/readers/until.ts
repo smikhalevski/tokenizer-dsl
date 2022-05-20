@@ -58,7 +58,7 @@ export class UntilCharCodeRangeReader implements ReaderCodegen {
     const charCodeVar = createVar();
 
     return createCodeBindings([
-      resultVar, '=', NO_MATCH, ';',
+      resultVar, '=' + NO_MATCH + ';',
 
       'var ',
       inputLengthVar, '=', inputVar, '.length,',
@@ -89,7 +89,7 @@ export class UntilCaseSensitiveTextReader implements ReaderCodegen {
     return createCodeBindings(
         [
           'var ', indexVar, '=', inputVar, '.indexOf(', strVar, ',', offsetVar, ');',
-          resultVar, '=', indexVar, this.inclusive ? ['===-1?', NO_MATCH, ':', indexVar, '+', str.length] : '', ';',
+          resultVar, '=', indexVar, this.inclusive ? ['===-1?' + NO_MATCH + ':', indexVar, '+', str.length] : '', ';',
         ],
         [[strVar, str]],
     );
@@ -109,7 +109,7 @@ export class UntilReader<Context> implements ReaderCodegen {
 
     return createCodeBindings(
         [
-          resultVar, '=', NO_MATCH, ';',
+          resultVar, '=' + NO_MATCH + ';',
 
           'var ',
           indexVar, '=', offsetVar, ',',
