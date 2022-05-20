@@ -25,7 +25,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
   const chunkVar = createVar();
   const offsetVar = createVar();
 
-  const prevRuleIndexVar = createVar();
+  const prevRuleIdVar = createVar();
   const prevRuleTypeVar = createVar();
   const nextOffsetVar = createVar();
   const chunkLengthVar = createVar();
@@ -78,16 +78,16 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
       code.push([
 
         // Emit confirmed token
-        'if(', prevRuleIndexVar, '!==-1){',
+        'if(', prevRuleIdVar, '!==-1){',
         handlerVar, '(', prevRuleTypeVar, ',', chunkVar, ',', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
-        prevRuleIndexVar, '=-1}',
+        prevRuleIdVar, '=-1}',
 
         // If stagesEnabled then stageIndex is never -1 so no out-of-bounds check is required
         stagesEnabled ? [stateVar, '.stage=', stagesIndexed ? [stagesVar, '[', stageVar, ']'] : stageVar, ';'] : '',
         stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
         rule.silent ? '' : [
-          prevRuleIndexVar, '=', branch.ruleIndex, ';',
+          prevRuleIdVar, '=', branch.ruleId, ';',
           prevRuleTypeVar, '=', ruleTypeVar, ';',
         ],
 
@@ -112,7 +112,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     chunkVar, '=', stateVar, '.chunk,',
     offsetVar, '=', stateVar, '.offset,',
 
-    prevRuleIndexVar, '=-1,',
+    prevRuleIdVar, '=-1,',
     prevRuleTypeVar, ',',
     nextOffsetVar, '=', offsetVar, ',',
     chunkLengthVar, '=', chunkVar, '.length;',
@@ -137,7 +137,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     'if(', streamingVar, ')return;',
 
     // Emit last unconfirmed token
-    'if(', prevRuleIndexVar, '!==-1){',
+    'if(', prevRuleIdVar, '!==-1){',
     handlerVar, '(', prevRuleTypeVar, ',', chunkVar, ',', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
     '}',
 

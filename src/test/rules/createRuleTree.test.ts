@@ -16,7 +16,7 @@ describe('createRuleTree', () => {
         {
           readers: [reader1, reader2],
           rule,
-          ruleIndex: 0,
+          ruleId: 0,
         },
       ],
     };
@@ -36,7 +36,7 @@ describe('createRuleTree', () => {
         [{
           readers: [reader1, reader2],
           rule,
-          ruleIndex: 0,
+          ruleId: 0,
         }],
       ],
       branches: [],
@@ -62,12 +62,12 @@ describe('createRuleTree', () => {
             {
               readers: [reader12],
               rule: rule1,
-              ruleIndex: 0,
+              ruleId: 0,
             },
             {
               readers: [reader22],
               rule: rule2,
-              ruleIndex: 1,
+              ruleId: 1,
             },
           ],
         }],
@@ -93,13 +93,13 @@ describe('createRuleTree', () => {
         [{
           readers: [reader1, reader12],
           rule: rule1,
-          ruleIndex: 0,
+          ruleId: 0,
         }],
         // B
         [{
           readers: [reader1, reader22],
           rule: rule2,
-          ruleIndex: 1,
+          ruleId: 1,
         }],
       ],
       branches: [],
@@ -125,12 +125,12 @@ describe('createRuleTree', () => {
             {
               readers: [reader12],
               rule: rule1,
-              ruleIndex: 0,
+              ruleId: 0,
             },
             {
               readers: [reader22],
               rule: rule2,
-              ruleIndex: 1,
+              ruleId: 1,
             },
           ],
         }],
@@ -138,7 +138,7 @@ describe('createRuleTree', () => {
       branches: [{
         readers: [reader1, reader22],
         rule: rule2,
-        ruleIndex: 1,
+        ruleId: 1,
       }],
     };
 
@@ -158,7 +158,7 @@ describe('appendRule', () => {
       {
         readers: [reader1, reader2],
         rule,
-        ruleIndex: 777,
+        ruleId: 777,
       },
     ];
 
@@ -177,12 +177,12 @@ describe('appendRule', () => {
       {
         readers: [reader11, reader12],
         rule: rule1,
-        ruleIndex: 777,
+        ruleId: 777,
       },
       {
         readers: [reader21],
         rule: rule2,
-        ruleIndex: 888,
+        ruleId: 888,
       },
     ];
 
@@ -204,12 +204,12 @@ describe('appendRule', () => {
           {
             readers: [reader12],
             rule: rule1,
-            ruleIndex: 777,
+            ruleId: 777,
           },
           {
             readers: [reader21],
             rule: rule2,
-            ruleIndex: 888,
+            ruleId: 888,
           },
         ]
       },
@@ -232,11 +232,11 @@ describe('appendRule', () => {
           {
             readers: [reader12],
             rule: rule1,
-            ruleIndex: 777,
+            ruleId: 777,
           },
         ],
         rule: rule2,
-        ruleIndex: 888,
+        ruleId: 888,
       },
     ];
 
@@ -254,7 +254,7 @@ describe('appendRule', () => {
       {
         readers: [reader1],
         rule: rule1,
-        ruleIndex: 777,
+        ruleId: 777,
       },
     ];
 
