@@ -32,11 +32,10 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
 
   const stagesVar = createVar();
 
-  // If true then stage values must be resolved by index in stagesVar, otherwise stage values can be inlined
-  const stagesEncoded = stages.some(isEncodingRequired);
   const stagesEnabled = stages.length !== 0;
+  const stagesInlined = stages.every(Number.isInteger);
 
-  const bindings: Binding[] = stagesEncoded ? [[stagesVar, stages]] : [];
+  const bindings: Binding[] = stagesInlined ? [] : [[stagesVar, stages]];
 
   const createRuleIteratorBranchesCode = (branches: RuleBranch<Type, Stage, Context>[], branchOffsetVar: Var): Code => {
 
@@ -69,9 +68,9 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
       const typeVar = createVar();
       const toCallbackVar = createVar();
 
-      const typeEncoded = isEncodingRequired(type);
+      const typeInlined = Number.isInteger(type);
 
-      if (typeEncoded) {
+      if (!typeInlined) {
         bindings.push([typeVar, type]);
       }
       if (typeof to === 'function') {
@@ -86,17 +85,17 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
         prevRuleIdVar, '=-1}',
 
         // If stagesEnabled then stageIndex is never -1 so no out-of-bounds check is required
-        stagesEnabled ? [stateVar, '.stage=', stagesEncoded ? [stagesVar, '[', stageVar, ']'] : stageVar, ';'] : '',
+        stagesEnabled ? [stateVar, '.stage=', stagesInlined ? stageVar : [stagesVar, '[', stageVar, ']'], ';'] : '',
         stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
         rule.silent ? '' : [
           prevRuleIdVar, '=', branch.ruleId, ';',
-          prevRuleTypeVar, '=', typeEncoded ? typeVar : stringify(type), ';',
+          prevRuleTypeVar, '=', typeInlined ? JSON.stringify(type) : typeVar, ';',
         ],
 
         to === undefined ? '' : typeof to === 'function'
-            ? [stageVar, '=', stagesEncoded ? [stagesVar, '.indexOf('] : '(', toCallbackVar, '(', chunkVar, ',', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, ',', stateVar, '));']
-            : [stageVar, '=', stagesEncoded ? stages.indexOf(to) : stringify(to), ';'],
+            ? [stageVar, '=', stagesInlined ? '(' : [stagesVar, '.indexOf('], toCallbackVar, '(', chunkVar, ',', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, ',', stateVar, '));']
+            : [stageVar, '=', stagesInlined ? JSON.stringify(to) : stages.indexOf(to), ';'],
 
         nextOffsetVar, '=', branchResultVar, ';',
 
@@ -111,7 +110,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
 
   const code: Code = [
     'var ',
-    stagesEnabled ? [stageVar, '=', stagesEncoded ? [stagesVar, '.indexOf('] : '(', stateVar, '.stage),'] : '',
+    stagesEnabled ? [stageVar, '=', stagesInlined ? '(' : [stagesVar, '.indexOf('], stateVar, '.stage),'] : '',
     chunkVar, '=', stateVar, '.chunk,',
     offsetVar, '=', stateVar, '.offset,',
 
@@ -127,7 +126,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
         ? [
           'switch(', stageVar, '){',
           branchesOnStage.map((branches, stageIndex) => [
-            'case ', stagesEncoded ? stageIndex : stringify(stages[stageIndex]), ':',
+            'case ', stagesInlined ? JSON.stringify(stages[stageIndex]) : stageIndex, ':',
             createRuleIteratorBranchesCode(branches, nextOffsetVar),
             'break;'
           ]),
@@ -145,15 +144,9 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     '}',
 
     // Update unconfirmed stage and offset
-    stagesEnabled ? [stateVar, '.stage=', stagesEncoded ? [stagesVar, '[', stageVar, ']'] : stageVar, ';'] : '',
+    stagesEnabled ? [stateVar, '.stage=', stagesInlined ? stageVar : [stagesVar, '[', stageVar, ']'], ';'] : '',
     stateVar, '.offset=', nextOffsetVar, ';',
   ];
 
   return compileFunction<RuleIterator<Type, Stage, Context>>([stateVar, handlerVar, contextVar, streamingVar], code, bindings);
 }
-
-function isEncodingRequired(value: any): boolean {
-  return value !== (value | 0);
-}
-
-const stringify = JSON.stringify;
