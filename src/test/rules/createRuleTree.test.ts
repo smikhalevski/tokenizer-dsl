@@ -16,7 +16,6 @@ describe('createRuleTree', () => {
         {
           readers: [reader1, reader2],
           rule,
-          ruleId: 0,
         },
       ],
     };
@@ -36,7 +35,6 @@ describe('createRuleTree', () => {
         [{
           readers: [reader1, reader2],
           rule,
-          ruleId: 0,
         }],
       ],
       branches: [],
@@ -62,12 +60,10 @@ describe('createRuleTree', () => {
             {
               readers: [reader12],
               rule: rule1,
-              ruleId: 0,
             },
             {
               readers: [reader22],
               rule: rule2,
-              ruleId: 1,
             },
           ],
         }],
@@ -93,13 +89,11 @@ describe('createRuleTree', () => {
         [{
           readers: [reader1, reader12],
           rule: rule1,
-          ruleId: 0,
         }],
         // B
         [{
           readers: [reader1, reader22],
           rule: rule2,
-          ruleId: 1,
         }],
       ],
       branches: [],
@@ -125,12 +119,10 @@ describe('createRuleTree', () => {
             {
               readers: [reader12],
               rule: rule1,
-              ruleId: 0,
             },
             {
               readers: [reader22],
               rule: rule2,
-              ruleId: 1,
             },
           ],
         }],
@@ -138,7 +130,6 @@ describe('createRuleTree', () => {
       branches: [{
         readers: [reader1, reader22],
         rule: rule2,
-        ruleId: 1,
       }],
     };
 
@@ -158,11 +149,10 @@ describe('appendRule', () => {
       {
         readers: [reader1, reader2],
         rule,
-        ruleId: 777,
       },
     ];
 
-    expect(appendRule([], rule, 777)).toEqual(branches);
+    expect(appendRule([], rule)).toEqual(branches);
   });
 
   test('appends a rule without a common prefix', () => {
@@ -177,16 +167,14 @@ describe('appendRule', () => {
       {
         readers: [reader11, reader12],
         rule: rule1,
-        ruleId: 777,
       },
       {
         readers: [reader21],
         rule: rule2,
-        ruleId: 888,
       },
     ];
 
-    expect(appendRule(appendRule([], rule1, 777), rule2, 888)).toEqual(branches);
+    expect(appendRule(appendRule([], rule1), rule2)).toEqual(branches);
   });
 
   test('appends a rule with a common prefix', () => {
@@ -204,18 +192,16 @@ describe('appendRule', () => {
           {
             readers: [reader12],
             rule: rule1,
-            ruleId: 777,
           },
           {
             readers: [reader21],
             rule: rule2,
-            ruleId: 888,
           },
         ]
       },
     ];
 
-    expect(appendRule(appendRule([], rule1, 777), rule2, 888)).toEqual(branches);
+    expect(appendRule(appendRule([], rule1), rule2)).toEqual(branches);
   });
 
   test('appends termination rule', () => {
@@ -232,15 +218,13 @@ describe('appendRule', () => {
           {
             readers: [reader12],
             rule: rule1,
-            ruleId: 777,
           },
         ],
         rule: rule2,
-        ruleId: 888,
       },
     ];
 
-    expect(appendRule(appendRule([], rule1, 777), rule2, 888)).toEqual(branches);
+    expect(appendRule(appendRule([], rule1), rule2)).toEqual(branches);
   });
 
   test('ignores absorbed rules', () => {
@@ -254,10 +238,9 @@ describe('appendRule', () => {
       {
         readers: [reader1],
         rule: rule1,
-        ruleId: 777,
       },
     ];
 
-    expect(appendRule(appendRule([], rule1, 777), rule2, 888)).toEqual(branches);
+    expect(appendRule(appendRule([], rule1), rule2)).toEqual(branches);
   });
 });

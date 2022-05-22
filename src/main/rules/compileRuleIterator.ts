@@ -25,7 +25,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
   const chunkVar = createVar();
   const offsetVar = createVar();
 
-  const prevRuleIdVar = createVar();
+  const prevRulePendingVar = createVar();
   const prevRuleTypeVar = createVar();
   const nextOffsetVar = createVar();
   const chunkLengthVar = createVar();
@@ -80,16 +80,16 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
       code.push([
 
         // Emit confirmed token
-        'if(', prevRuleIdVar, '!==-1){',
+        'if(', prevRulePendingVar, '){',
         handlerVar, '(', prevRuleTypeVar, ',', chunkVar, ',', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
-        prevRuleIdVar, '=-1}',
+        prevRulePendingVar, '=false}',
 
         // If stagesEnabled then stageIndex is never -1 so no out-of-bounds check is required
         stagesEnabled ? [stateVar, '.stage=', stagesInlined ? stageVar : [stagesVar, '[', stageVar, ']'], ';'] : '',
         stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
         rule.silent ? '' : [
-          prevRuleIdVar, '=', branch.ruleId, ';',
+          prevRulePendingVar, '=true;',
           prevRuleTypeVar, '=', typeInlined ? JSON.stringify(type) : typeVar, ';',
         ],
 
@@ -114,7 +114,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     chunkVar, '=', stateVar, '.chunk,',
     offsetVar, '=', stateVar, '.offset,',
 
-    prevRuleIdVar, '=-1,',
+    prevRulePendingVar, '=false,',
     prevRuleTypeVar, ',',
     nextOffsetVar, '=', offsetVar, ',',
     chunkLengthVar, '=', chunkVar, '.length;',
@@ -139,7 +139,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     'if(', streamingVar, ')return;',
 
     // Emit last unconfirmed token
-    'if(', prevRuleIdVar, '!==-1){',
+    'if(', prevRulePendingVar, '){',
     handlerVar, '(', prevRuleTypeVar, ',', chunkVar, ',', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
     '}',
 
