@@ -67,7 +67,7 @@ export interface Rule<Type = unknown, Stage = void, Context = void> {
  *
  * @template Stage The tokenizer stage type.
  */
-export interface TokenizerState<Stage = void> {
+export interface TokenizerState<Stage = any> {
 
   /**
    * The current tokenizer stage.

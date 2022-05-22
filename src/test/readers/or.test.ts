@@ -37,23 +37,13 @@ describe('OrReader', () => {
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
-  test('returns negative integer as an error result', () => {
+  test('returns last non matched offset', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(-1);
     readerMock.mockReturnValueOnce(-2);
     readerMock.mockReturnValueOnce(4);
 
     expect(toReaderFunction(new OrReader([readerMock, readerMock]))('aabbcc', 2)).toBe(-2);
-    expect(readerMock).toHaveBeenCalledTimes(2);
-  });
-
-  test('returns non number value as an error result', () => {
-    const readerMock = jest.fn();
-    readerMock.mockReturnValueOnce(-1);
-    readerMock.mockReturnValueOnce('Error');
-    readerMock.mockReturnValueOnce(4);
-
-    expect(toReaderFunction(new OrReader([readerMock, readerMock]))('aabbcc', 2)).toBe('Error');
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
