@@ -1,4 +1,4 @@
-import {NO_MATCH, regex, RegexReader, toReaderFunction} from '../../main/readers';
+import {regex, RegexReader, toReaderFunction} from '../../main/readers';
 
 describe('regex', () => {
 
@@ -14,8 +14,8 @@ describe('RegexReader', () => {
 
     expect(read('aaaabc', 3)).toBe(6);
     expect(read('aaaabcde', 3)).toBe(6);
-    expect(read('aaaab', 3)).toBe(NO_MATCH);
-    expect(read('aaaABC', 3)).toBe(NO_MATCH);
+    expect(read('aaaab', 3)).toBe(-1);
+    expect(read('aaaABC', 3)).toBe(-1);
   });
 
   test('starts from the given offset', () => {
@@ -23,6 +23,6 @@ describe('RegexReader', () => {
   });
 
   test('ignores matches that do not start at offset', () => {
-    expect(toReaderFunction(new RegexReader(/abc/y))('aaaabcabc', 5)).toBe(NO_MATCH);
+    expect(toReaderFunction(new RegexReader(/abc/y))('aaaabcabc', 5)).toBe(-1);
   });
 });

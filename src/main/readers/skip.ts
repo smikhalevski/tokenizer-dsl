@@ -1,7 +1,7 @@
 import {CodeBindings, Var} from 'codedegen';
 import {toInteger} from '../utils';
 import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, NO_MATCH} from './reader-utils';
+import {createCodeBindings} from './reader-utils';
 
 /**
  * Creates a reader that skips given number of chars.
@@ -10,7 +10,7 @@ import {createCodeBindings, NO_MATCH} from './reader-utils';
  *
  * @see {@link end}
  */
-export function skip(charCount: number): Reader<any, any> {
+export function skip(charCount: number): Reader<any> {
   return new SkipReader(toInteger(charCount));
 }
 
@@ -23,7 +23,7 @@ export class SkipReader implements ReaderCodegen {
     const {charCount} = this;
 
     return createCodeBindings([
-      resultVar, '=', offsetVar, '+', charCount, '<=', inputVar, '.length?', offsetVar, '+', charCount, ':', NO_MATCH, ';',
+      resultVar, '=', offsetVar, '+', charCount, '<=', inputVar, '.length?', offsetVar, '+', charCount, ':-1;',
     ]);
   }
 }

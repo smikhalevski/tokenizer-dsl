@@ -4,9 +4,8 @@ import {CodeBindings, Var} from 'codedegen';
  * The reader definition that can be compiled into a function that reads chars from the input string.
  *
  * @template Context The context passed by tokenizer.
- * @template Error The error that the reader may return.
  */
-export type Reader<Context = void, Error = never> = ReaderFunction<Context, Error> | ReaderCodegen;
+export type Reader<Context = void> = ReaderFunction<Context> | ReaderCodegen;
 
 /**
  * Takes the string `input` and the offset in this string `offset` and returns the next offset that is greater or equal
@@ -15,14 +14,13 @@ export type Reader<Context = void, Error = never> = ReaderFunction<Context, Erro
  *
  * ```ts
  * const abcReader: Reader = (input, offset) => {
- *   return input.startsWith('abc', offset) ? offset + 3 : NO_MATCH;
+ *   return input.startsWith('abc', offset) ? offset + 3 : -1;
  * };
  * ```
  *
  * @template Context The context passed by tokenizer.
- * @template Error The error that the reader may return.
  */
-export type ReaderFunction<Context = void, Error = never> = (input: string, offset: number, context: Context) => Error | number;
+export type ReaderFunction<Context = void> = (input: string, offset: number, context: Context) => number;
 
 /**
  * Factory that returns the reader code and values for variables that must be bound to the reader.
@@ -37,7 +35,7 @@ export interface ReaderCodegen {
    * const abcReaderCodegenFactory: ReaderCodegenFactory = (inputVar, offsetVar, contextVar, resultVar) => {
    *   const abcVar = Symbol();
    *   return {
-   *     code: [resultVar, '=', inputVar, '.startsWith(', abcVar, ',', offsetVar, ')?', offsetVar, '+3:', NO_MATCH, ';'],
+   *     code: [resultVar, '=', inputVar, '.startsWith(', abcVar, ',', offsetVar, ')?', offsetVar, '+3:-1;'],
    *     bindings: [[abcVar, 'abc']],
    *   };
    * };

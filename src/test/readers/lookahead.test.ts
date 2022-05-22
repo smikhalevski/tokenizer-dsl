@@ -1,4 +1,4 @@
-import {lookahead, LookaheadReader, never, NO_MATCH, none, text, toReaderFunction} from '../../main/readers';
+import {lookahead, LookaheadReader, never, none, text, toReaderFunction} from '../../main/readers';
 
 describe('lookahead', () => {
 
@@ -27,7 +27,7 @@ describe('LookaheadReader', () => {
 
   test('can use inline readers', () => {
     expect(toReaderFunction(new LookaheadReader(text('aa')))('aabbcc', 0)).toBe(0);
-    expect(toReaderFunction(new LookaheadReader(text('bb')))('aabbcc', 0)).toBe(NO_MATCH);
+    expect(toReaderFunction(new LookaheadReader(text('bb')))('aabbcc', 0)).toBe(-1);
   });
 
   test('propagates context', () => {

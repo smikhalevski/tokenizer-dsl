@@ -1,4 +1,4 @@
-import {char, CharCodeRangeReader, NO_MATCH, none, toReaderFunction} from '../../main/readers';
+import {char, CharCodeRangeReader, none, toReaderFunction} from '../../main/readers';
 
 const A = 'a'.charCodeAt(0);
 
@@ -26,6 +26,6 @@ describe('CharCodeRangeReader', () => {
   });
 
   test('does not read unmatched char', () => {
-    expect(toReaderFunction(new CharCodeRangeReader([A]))('aaabbb', 4)).toBe(NO_MATCH);
+    expect(toReaderFunction(new CharCodeRangeReader([A]))('aaabbb', 4)).toBe(-1);
   });
 });

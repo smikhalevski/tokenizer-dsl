@@ -1,9 +1,9 @@
-import {Binding, Code, CodeBindings, createVar, Var} from 'codedegen';
-import {die, toInteger} from '../utils';
+import {Binding, Code, CodeBindings, Var} from 'codedegen';
+import {createVar, die, toInteger} from '../utils';
 import {never} from './never';
 import {none} from './none';
 import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode, NO_MATCH} from './reader-utils';
+import {createCodeBindings, createReaderCallCode} from './reader-utils';
 
 export interface AllOptions {
 
@@ -30,7 +30,7 @@ export interface AllOptions {
  *
  * @template Context The context passed by tokenizer.
  */
-export function all<Context = any, Error = never>(reader: Reader<Context, Error>, options: AllOptions = {}): Reader<Context, Error> {
+export function all<Context = any>(reader: Reader<Context>, options: AllOptions = {}): Reader<Context> {
 
   let {
     minimumCount,
@@ -49,9 +49,9 @@ export function all<Context = any, Error = never>(reader: Reader<Context, Error>
   return new AllReader(reader, minimumCount, maximumCount);
 }
 
-export class AllReader<Context, Error> implements ReaderCodegen {
+export class AllReader<Context> implements ReaderCodegen {
 
-  constructor(public reader: Reader<Context, Error>, public minimumCount: number, public maximumCount: number) {
+  constructor(public reader: Reader<Context>, public minimumCount: number, public maximumCount: number) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
@@ -62,10 +62,10 @@ export class AllReader<Context, Error> implements ReaderCodegen {
     const bindings: Binding[] = [];
 
     const code: Code[] = [
-      resultVar, '=', minimumCount > 0 ? NO_MATCH : offsetVar, ';',
+      resultVar, '=', minimumCount > 0 ? '-1' : offsetVar, ';',
       'var ',
       minimumCount > 1 ? [indexVar, '=', offsetVar, ','] : '',
-      readerResultVar, ';',
+      readerResultVar, minimumCount === 0 && maximumCount === 0 ? ['=', offsetVar] : '', ';',
     ];
 
     const count = Math.max(minimumCount, maximumCount);
@@ -75,20 +75,17 @@ export class AllReader<Context, Error> implements ReaderCodegen {
 
       code.push(
           createReaderCallCode(reader, inputVar, i === 0 ? offsetVar : nextOffsetVar, contextVar, readerResultVar, bindings),
-          'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, '}else ',
           'if(', readerResultVar, '>', i === 0 ? offsetVar : nextOffsetVar, '){',
-          nextOffsetVar, '=', readerResultVar, ';',
+          maximumCount === 0 && i === count - 1 ? '' : [nextOffsetVar, '=', readerResultVar, ';'],
       );
     }
 
     if (maximumCount === 0) {
       code.push(
           'do{',
-          createReaderCallCode(reader, inputVar, resultVar, contextVar, readerResultVar, bindings),
-          'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, ';break}',
-          'if(', readerResultVar, '<=', resultVar, ')break;',
           resultVar, '=', readerResultVar, ';',
-          '}while(true)',
+          createReaderCallCode(reader, inputVar, resultVar, contextVar, readerResultVar, bindings),
+          '}while(', readerResultVar, '>', resultVar, ')',
       );
     }
 

@@ -1,9 +1,10 @@
-import {Binding, CodeBindings, createVar, Var} from 'codedegen';
+import {Binding, CodeBindings, Var} from 'codedegen';
+import {createVar} from '../utils';
 import {CharCodeRange, CharCodeRangeReader, createCharPredicateCode} from './char';
 import {never} from './never';
 import {none} from './none';
 import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode, NO_MATCH} from './reader-utils';
+import {createCodeBindings, createReaderCallCode} from './reader-utils';
 import {CaseSensitiveTextReader} from './text';
 
 export interface UntilOptions {
@@ -24,7 +25,7 @@ export interface UntilOptions {
  *
  * @template Context The context passed by tokenizer.
  */
-export function until<Context = any, Error = never>(reader: Reader<Context, Error>, options: UntilOptions = {}): Reader<Context, Error> {
+export function until<Context = any>(reader: Reader<Context>, options: UntilOptions = {}): Reader<Context> {
 
   const {inclusive = false} = options;
 
@@ -57,7 +58,7 @@ export class UntilCharCodeRangeReader implements ReaderCodegen {
     const charCodeVar = createVar();
 
     return createCodeBindings([
-      resultVar, '=', NO_MATCH, ';',
+      resultVar, '=-1;',
 
       'var ',
       inputLengthVar, '=', inputVar, '.length,',
@@ -88,16 +89,16 @@ export class UntilCaseSensitiveTextReader implements ReaderCodegen {
     return createCodeBindings(
         [
           'var ', indexVar, '=', inputVar, '.indexOf(', strVar, ',', offsetVar, ');',
-          resultVar, '=', indexVar, this.inclusive ? ['===-1?', NO_MATCH, ':', indexVar, '+', str.length] : '', ';',
+          resultVar, '=', indexVar, this.inclusive ? ['===-1?-1:', indexVar, '+', str.length] : '', ';',
         ],
         [[strVar, str]],
     );
   }
 }
 
-export class UntilReader<Context, Error> implements ReaderCodegen {
+export class UntilReader<Context> implements ReaderCodegen {
 
-  constructor(public reader: Reader<Context, Error>, public inclusive: boolean) {
+  constructor(public reader: Reader<Context>, public inclusive: boolean) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
@@ -108,7 +109,7 @@ export class UntilReader<Context, Error> implements ReaderCodegen {
 
     return createCodeBindings(
         [
-          resultVar, '=', NO_MATCH, ';',
+          resultVar, '=-1;',
 
           'var ',
           indexVar, '=', offsetVar, ',',
@@ -116,7 +117,6 @@ export class UntilReader<Context, Error> implements ReaderCodegen {
 
           'do{',
           createReaderCallCode(this.reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
-          'if(typeof ', readerResultVar, '!=="number"){', resultVar, '=', readerResultVar, ';break}',
           'if(', readerResultVar, '>=', indexVar, '){', resultVar, '=', this.inclusive ? readerResultVar : indexVar, ';break}',
           '++', indexVar, ';',
           '}while(true)',

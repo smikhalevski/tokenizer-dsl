@@ -1,36 +1,22 @@
-import {all, char, createTokenizer, ReaderFunction, Rule, text, TokenHandler} from '../main';
+import {all, createTokenizer, Reader, text, TokenHandler} from '../main';
 
 describe('createTokenizer', () => {
 
-  const tokenCallbackMock = jest.fn();
-  const errorCallbackMock = jest.fn();
-  const unrecognizedTokenCallbackMock = jest.fn();
+  const handlerMock = jest.fn();
 
-  const handler: TokenHandler = {
-    token(type, chunk, offset, length, context, state) {
-      tokenCallbackMock(type, state.chunkOffset + offset, length, context);
-    },
-    error(type, chunk, offset, errorCode, context, state) {
-      errorCallbackMock(type, state.chunkOffset + offset, errorCode, context);
-    },
-    unrecognizedToken(chunk, offset, context, state) {
-      unrecognizedTokenCallbackMock(state.chunkOffset + offset, context);
-    }
+  const handler: TokenHandler = (type, chunk, offset, length, context, state) => {
+    handlerMock(type, state.chunkOffset + offset, length, context);
   };
 
   beforeEach(() => {
-    tokenCallbackMock.mockRestore();
-    errorCallbackMock.mockRestore();
-    unrecognizedTokenCallbackMock.mockRestore();
+    handlerMock.mockRestore();
   });
 
-  test('reads tokens', () => {
-    const ruleA: Rule = {type: 'TypeA', reader: text('a')};
-    const ruleB: Rule = {type: 'TypeB', reader: all(char(['b'.charCodeAt(0), 'B'.charCodeAt(0)]))};
+  test('reads tokens in non-streaming mode', () => {
 
-    const tokenizer = createTokenizer([
-      ruleA,
-      ruleB,
+    const tokenizer = createTokenizer<string, void>([
+      {type: 'TYPE_A', reader: text('a')},
+      {type: 'TYPE_B', reader: all(text('b', {caseInsensitive: true}))},
     ]);
 
     const state = tokenizer('aabbb', handler);
@@ -42,72 +28,50 @@ describe('createTokenizer', () => {
       offset: 5
     });
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeB', 2, 3, undefined);
+    expect(handlerMock).toHaveBeenCalledTimes(3);
+    expect(handlerMock).toHaveBeenNthCalledWith(1, 'TYPE_A', 0, 1, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(2, 'TYPE_A', 1, 1, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(3, 'TYPE_B', 2, 3, undefined);
   });
 
-  test('reads tokens', () => {
-    const rule: Rule = {type: 'TypeA', reader: text('a')};
+  test('reads tokens in streaming mode', () => {
 
-    const tokenizer = createTokenizer([rule]);
-
-    const state1 = tokenizer.write('aaa', handler);
-    const state2 = tokenizer.write('aaa', handler, state1);
-    const state3 = tokenizer.end(handler, state2);
-
-    expect(state1).not.toBe(state2);
-    expect(state2).not.toBe(state3);
-  });
-
-  test('reads streaming tokens', () => {
-    const ruleA: Rule = {type: 'TypeA', reader: text('a')};
-    const ruleB: Rule = {type: 'TypeB', reader: all(char(['b'.charCodeAt(0), 'B'.charCodeAt(0)]))};
-
-    const tokenizer = createTokenizer([
-      ruleA,
-      ruleB,
+    const tokenizer = createTokenizer<string, void>([
+      {type: 'TYPE_A', reader: text('a')},
+      {type: 'TYPE_B', reader: all(text('b', {caseInsensitive: true}))},
     ]);
 
-    let state;
+    const state = tokenizer.write('aabbb', handler);
 
-    state = tokenizer.write('aabbb', handler);
+    expect(handlerMock).toHaveBeenCalledTimes(2);
+    expect(handlerMock).toHaveBeenNthCalledWith(1, 'TYPE_A', 0, 1, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(2, 'TYPE_A', 1, 1, undefined);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(2);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'TypeA', 0, 1, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'TypeA', 1, 1, undefined);
+    tokenizer.write('BBB', handler, state);
 
-    state = tokenizer.write('BBB', handler, state);
+    expect(handlerMock).toHaveBeenCalledTimes(2);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(2);
+    tokenizer.write('a', handler, state);
 
-    state = tokenizer.write('a', handler, state);
-
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'TypeB', 2, 6, undefined);
+    expect(handlerMock).toHaveBeenCalledTimes(3);
+    expect(handlerMock).toHaveBeenNthCalledWith(3, 'TYPE_B', 2, 6, undefined);
 
     tokenizer.end(handler, state);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(4);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, 'TypeA', 8, 1, undefined);
-
-    expect(errorCallbackMock).not.toHaveBeenCalled();
-    expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
+    expect(handlerMock).toHaveBeenCalledTimes(4);
+    expect(handlerMock).toHaveBeenNthCalledWith(4, 'TYPE_A', 8, 1, undefined);
   });
 
   test('reads tokens with reader function', () => {
-    const readerMock: ReaderFunction<void, number> = jest.fn((input, offset) => {
-      return offset < input.length ? offset + 1 : -1;
-    });
+    const readerMock: Reader = jest.fn((input, offset) => offset < input.length ? offset + 1 : -1);
 
-    const rule: Rule = {type: 'TypeA', reader: readerMock};
-
-    const tokenizer = createTokenizer([rule]);
+    const tokenizer = createTokenizer([
+      {reader: readerMock},
+    ]);
 
     tokenizer('abc', handler);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
+    expect(handlerMock).toHaveBeenCalledTimes(3);
     expect(readerMock).toHaveBeenCalledTimes(3);
   });
 });

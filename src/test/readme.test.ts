@@ -2,26 +2,14 @@ import {all, char, createTokenizer, maybe, or, Rule, seq, text, TokenHandler} fr
 
 describe('Readme', () => {
 
-  const tokenCallbackMock = jest.fn();
-  const errorCallbackMock = jest.fn();
-  const unrecognizedTokenCallbackMock = jest.fn();
+  const handlerMock = jest.fn();
 
-  const handler: TokenHandler = {
-    token(type, chunk, offset, length, context, state) {
-      tokenCallbackMock(type, state.chunkOffset + offset, length, context);
-    },
-    error(type, chunk, offset, errorCode, context, state) {
-      errorCallbackMock(type, state.chunkOffset + offset, errorCode, context);
-    },
-    unrecognizedToken(chunk, offset, context, state) {
-      unrecognizedTokenCallbackMock(state.chunkOffset + offset, context);
-    }
+  const handler: TokenHandler = (type, chunk, offset, length, context, state) => {
+    handlerMock(type, state.chunkOffset + offset, length, context);
   };
 
   beforeEach(() => {
-    tokenCallbackMock.mockRestore();
-    errorCallbackMock.mockRestore();
-    unrecognizedTokenCallbackMock.mockRestore();
+    handlerMock.mockRestore();
   });
 
   test('Overview', () => {
@@ -83,16 +71,15 @@ describe('Readme', () => {
         'value'
     );
 
-    let state;
-    state = tokenizer.write('123', handler);
-    state = tokenizer.write('.456; +', handler, state);
-    state = tokenizer.write('777; 42', handler, state);
+    const state = tokenizer.write('123', handler);
+    tokenizer.write('.456; +', handler, state);
+    tokenizer.write('777; 42', handler, state);
     tokenizer.end(handler, state);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(3);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'NUMBER', 0, 7, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'NUMBER', 9, 4, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'NUMBER', 15, 2, undefined);
+    expect(handlerMock).toHaveBeenCalledTimes(3);
+    expect(handlerMock).toHaveBeenNthCalledWith(1, 'NUMBER', 0, 7, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(2, 'NUMBER', 9, 4, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(3, 'NUMBER', 15, 2, undefined);
   });
 
   test('Usage', () => {
@@ -132,26 +119,21 @@ describe('Readme', () => {
 
     tokenize('foo;123;bar;456', handler);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(7);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'ALPHA', 0, 3, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'SEMICOLON', 3, 1, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'INTEGER', 4, 3, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, 'SEMICOLON', 7, 1, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(5, 'ALPHA', 8, 3, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(6, 'SEMICOLON', 11, 1, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(7, 'INTEGER', 12, 3, undefined);
+    expect(handlerMock).toHaveBeenCalledTimes(7);
+    expect(handlerMock).toHaveBeenNthCalledWith(1, 'ALPHA', 0, 3, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(2, 'SEMICOLON', 3, 1, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(3, 'INTEGER', 4, 3, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(4, 'SEMICOLON', 7, 1, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(5, 'ALPHA', 8, 3, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(6, 'SEMICOLON', 11, 1, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(7, 'INTEGER', 12, 3, undefined);
 
-    expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
-
-    tokenCallbackMock.mockReset();
+    handlerMock.mockReset();
 
     tokenize('abcd__', handler);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'ALPHA', 0, 4, undefined);
-
-    expect(unrecognizedTokenCallbackMock).toHaveBeenCalledTimes(1);
-    expect(unrecognizedTokenCallbackMock).toHaveBeenNthCalledWith(1, 4, undefined);
+    expect(handlerMock).toHaveBeenCalledTimes(1);
+    expect(handlerMock).toHaveBeenNthCalledWith(1, 'ALPHA', 0, 4, undefined);
   });
 
   test('Stages', () => {
@@ -183,23 +165,18 @@ describe('Readme', () => {
 
     tokenize('foobarfoobar', handler);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(4);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'FOO', 0, 3, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'BAR', 3, 3, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'FOO', 6, 3, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, 'BAR', 9, 3, undefined);
+    expect(handlerMock).toHaveBeenCalledTimes(4);
+    expect(handlerMock).toHaveBeenNthCalledWith(1, 'FOO', 0, 3, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(2, 'BAR', 3, 3, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(3, 'FOO', 6, 3, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(4, 'BAR', 9, 3, undefined);
 
-    expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
-
-    tokenCallbackMock.mockReset();
+    handlerMock.mockReset();
 
     tokenize('foofoo', handler);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(1);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'FOO', 0, 3, undefined);
-
-    expect(unrecognizedTokenCallbackMock).toHaveBeenCalledTimes(1);
-    expect(unrecognizedTokenCallbackMock).toHaveBeenNthCalledWith(1, 3, undefined);
+    expect(handlerMock).toHaveBeenCalledTimes(1);
+    expect(handlerMock).toHaveBeenNthCalledWith(1, 'FOO', 0, 3, undefined);
   });
 
   test('Undefined stages', () => {
@@ -237,15 +214,13 @@ describe('Readme', () => {
 
     tokenize('foo  bar  foo  bar', handler);
 
-    expect(tokenCallbackMock).toHaveBeenCalledTimes(7);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(1, 'FOO', 0, 3, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(2, 'SPACE', 3, 2, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(3, 'BAR', 5, 3, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(4, 'SPACE', 8, 2, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(5, 'FOO', 10, 3, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(6, 'SPACE', 13, 2, undefined);
-    expect(tokenCallbackMock).toHaveBeenNthCalledWith(7, 'BAR', 15, 3, undefined);
-
-    expect(unrecognizedTokenCallbackMock).not.toHaveBeenCalled();
+    expect(handlerMock).toHaveBeenCalledTimes(7);
+    expect(handlerMock).toHaveBeenNthCalledWith(1, 'FOO', 0, 3, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(2, 'SPACE', 3, 2, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(3, 'BAR', 5, 3, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(4, 'SPACE', 8, 2, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(5, 'FOO', 10, 3, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(6, 'SPACE', 13, 2, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(7, 'BAR', 15, 3, undefined);
   });
 });

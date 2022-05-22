@@ -1,8 +1,8 @@
-import {Code, CodeBindings, createVar, Var} from 'codedegen';
-import {die} from '../utils';
+import {Code, CodeBindings, Var} from 'codedegen';
+import {createVar, die} from '../utils';
 import {none} from './none';
 import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, NO_MATCH, toCharCodes} from './reader-utils';
+import {createCodeBindings, toCharCodes} from './reader-utils';
 
 export type CharRange = string | number | [number | string, number | string];
 
@@ -16,7 +16,7 @@ export type CharCodeRange = number | [number, number];
  *
  * @see {@link text}
  */
-export function char(chars: CharRange[]): Reader<any, any> {
+export function char(chars: CharRange[]): Reader<any> {
   const charCodeRanges: CharCodeRange[] = [];
 
   for (const range of chars) {
@@ -50,7 +50,7 @@ export class CharCodeRangeReader implements ReaderCodegen {
       resultVar, '=',
       offsetVar, '<', inputVar, '.length&&(',
       charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '),',
-      createCharPredicateCode(charCodeVar, this.charCodeRanges), ')?', offsetVar, '+1:', NO_MATCH, ';',
+      createCharPredicateCode(charCodeVar, this.charCodeRanges), ')?', offsetVar, '+1:-1;',
     ]);
   }
 }

@@ -1,4 +1,4 @@
-import {maybe, MaybeReader, never, NO_MATCH, none, text, toReaderFunction} from '../../main/readers';
+import {maybe, MaybeReader, never, none, text, toReaderFunction} from '../../main/readers';
 
 describe('maybe', () => {
 
@@ -24,7 +24,7 @@ describe('MaybeReader', () => {
 
   test('returns offset if reader did not match', () => {
     const readerMock = jest.fn();
-    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(-1);
 
     expect(toReaderFunction(new MaybeReader(readerMock))('aabbcc', 2)).toBe(2);
     expect(readerMock).toHaveBeenCalledTimes(1);

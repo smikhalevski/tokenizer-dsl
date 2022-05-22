@@ -1,8 +1,9 @@
-import {Binding, Code, CodeBindings, createVar, Var} from 'codedegen';
+import {Binding, Code, CodeBindings, Var} from 'codedegen';
+import {createVar} from '../utils';
 import {never} from './never';
 import {none} from './none';
 import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode, NO_MATCH} from './reader-utils';
+import {createCodeBindings, createReaderCallCode} from './reader-utils';
 
 /**
  * Creates a reader that applies readers one after another.
@@ -11,9 +12,9 @@ import {createCodeBindings, createReaderCallCode, NO_MATCH} from './reader-utils
  *
  * @template Context The context passed by tokenizer.
  */
-export function seq<Context = any, Error = never>(...readers: Reader<Context, Error>[]): Reader<Context, Error> {
+export function seq<Context = any>(...readers: Reader<Context>[]): Reader<Context> {
 
-  const children: Reader<Context, Error>[] = [];
+  const children: Reader<Context>[] = [];
 
   for (const reader of readers) {
     if (reader instanceof SeqReader) {
@@ -37,36 +38,37 @@ export function seq<Context = any, Error = never>(...readers: Reader<Context, Er
   return new SeqReader(children);
 }
 
-export class SeqReader<Context, Error> implements ReaderCodegen {
+export class SeqReader<Context> implements ReaderCodegen {
 
-  constructor(public readers: Reader<Context, Error>[]) {
+  constructor(public readers: Reader<Context>[]) {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const {readers} = this;
 
+    const indexVar = createVar();
+    const readerResultVar = createVar();
+
     const readersLength = readers.length;
-    const code: Code[] = [];
     const bindings: Binding[] = [];
+    const code: Code[] = [
+      resultVar, '=-1;',
 
-    for (let i = 0; i < readersLength - 1; ++i) {
-      const reader = readers[i];
-      const readerResultVar = createVar();
+      'var ',
+      indexVar, '=', offsetVar, ',',
+      readerResultVar, ';',
+    ];
 
+    for (let i = 0; i < readersLength; ++i) {
       code.push(
-          'var ', readerResultVar, ';',
-          createReaderCallCode(reader, inputVar, offsetVar, contextVar, readerResultVar, bindings),
-          'if(typeof ', readerResultVar, '!=="number")', resultVar, '=', readerResultVar, ';else ',
-          'if(', readerResultVar, '<', offsetVar, ')', resultVar, '=', NO_MATCH, ';else{'
+          createReaderCallCode(readers[i], inputVar, indexVar, contextVar, readerResultVar, bindings),
+          'if(', readerResultVar, '>=', indexVar, '){',
+          i < readersLength - 1 ? indexVar : resultVar, '=', readerResultVar, ';',
       );
-
-      offsetVar = readerResultVar;
     }
 
-    code.push(
-        createReaderCallCode(readers[readersLength - 1], inputVar, offsetVar, contextVar, resultVar, bindings),
-        '}'.repeat(readersLength - 1),
-    );
+    code.push('}'.repeat(readersLength));
+
     return createCodeBindings(code, bindings);
   }
 }

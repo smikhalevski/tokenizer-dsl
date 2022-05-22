@@ -1,9 +1,9 @@
-import {Code, CodeBindings, createVar, Var} from 'codedegen';
-import {die} from '../utils';
+import {Code, CodeBindings, Var} from 'codedegen';
+import {createVar, die} from '../utils';
 import {CharCodeRangeReader} from './char';
 import {none} from './none';
 import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, NO_MATCH, toCharCodes} from './reader-utils';
+import {createCodeBindings, toCharCodes} from './reader-utils';
 
 export interface TextOptions {
 
@@ -23,7 +23,7 @@ export interface TextOptions {
  *
  * @see {@link char}
  */
-export function text(str: string, options: TextOptions = {}): Reader<any, any> {
+export function text(str: string, options: TextOptions = {}): Reader<any> {
 
   const {caseInsensitive} = options;
 
@@ -60,7 +60,7 @@ export class CaseSensitiveTextReader implements ReaderCodegen {
         [
           resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
           toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, '+', i, ')===', charCode]),
-          '?', offsetVar, '+', str.length, ':', NO_MATCH, ';',
+          '?', offsetVar, '+', str.length, ':-1;',
         ],
         [[strVar, str]],
     );
@@ -103,7 +103,7 @@ export class CaseInsensitiveTextReader implements ReaderCodegen {
         );
       }
     }
-    code.push('?', offsetVar, '+', charCount, ':', NO_MATCH, ';');
+    code.push('?', offsetVar, '+', charCount, ':-1;');
 
     return createCodeBindings(code);
   }

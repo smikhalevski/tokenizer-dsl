@@ -1,4 +1,4 @@
-import {NO_MATCH, none, or, OrReader, Reader, text, toReaderFunction} from '../../main/readers';
+import {none, or, OrReader, Reader, text, toReaderFunction} from '../../main/readers';
 
 describe('or', () => {
 
@@ -7,7 +7,7 @@ describe('or', () => {
   });
 
   test('returns single reader', () => {
-    const readerMock: Reader<any, any> = () => 0;
+    const readerMock: Reader<any> = () => 0;
     expect(or(readerMock)).toBe(readerMock);
   });
 
@@ -21,7 +21,7 @@ describe('OrReader', () => {
 
   test('returns after the first match', () => {
     const readerMock = jest.fn();
-    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(-1);
     readerMock.mockReturnValueOnce(2);
     readerMock.mockReturnValueOnce(4);
 
@@ -29,31 +29,21 @@ describe('OrReader', () => {
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
-  test('returns NO_MATCH', () => {
+  test('returns -1', () => {
     const readerMock = jest.fn();
-    readerMock.mockReturnValue(NO_MATCH);
+    readerMock.mockReturnValue(-1);
 
-    expect(toReaderFunction(new OrReader([readerMock, readerMock]))('aabbcc', 2)).toBe(NO_MATCH);
+    expect(toReaderFunction(new OrReader([readerMock, readerMock]))('aabbcc', 2)).toBe(-1);
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
-  test('returns negative integer as an error result', () => {
+  test('returns last non matched offset', () => {
     const readerMock = jest.fn();
-    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(-1);
     readerMock.mockReturnValueOnce(-2);
     readerMock.mockReturnValueOnce(4);
 
     expect(toReaderFunction(new OrReader([readerMock, readerMock]))('aabbcc', 2)).toBe(-2);
-    expect(readerMock).toHaveBeenCalledTimes(2);
-  });
-
-  test('returns non number value as an error result', () => {
-    const readerMock = jest.fn();
-    readerMock.mockReturnValueOnce(NO_MATCH);
-    readerMock.mockReturnValueOnce('Error');
-    readerMock.mockReturnValueOnce(4);
-
-    expect(toReaderFunction(new OrReader([readerMock, readerMock]))('aabbcc', 2)).toBe('Error');
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 

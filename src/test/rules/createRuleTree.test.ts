@@ -7,16 +7,15 @@ describe('createRuleTree', () => {
     const reader1 = () => 0;
     const reader2 = () => 0;
 
-    const rule: Rule = {type: 'Type', reader: seq(reader1, reader2)};
+    const rule: Rule = {reader: seq(reader1, reader2)};
 
-    const ruleIterationPlan: RuleTree<any, any, any, any> = {
+    const ruleIterationPlan: RuleTree<any, any, any> = {
       stages: [],
-      branchesByStageIndex: [],
+      branchesOnStage: [],
       branches: [
         {
           readers: [reader1, reader2],
           rule,
-          ruleIndex: 0,
         },
       ],
     };
@@ -28,15 +27,14 @@ describe('createRuleTree', () => {
     const reader1 = () => 0;
     const reader2 = () => 0;
 
-    const rule: Rule<unknown, string> = {type: 'Type', reader: seq(reader1, reader2), on: ['A']};
+    const rule: Rule<unknown, string> = {reader: seq(reader1, reader2), on: ['STAGE_A']};
 
-    const ruleIterationPlan: RuleTree<any, any, any, any> = {
-      stages: ['A'],
-      branchesByStageIndex: [
+    const ruleIterationPlan: RuleTree<any, any, any> = {
+      stages: ['STAGE_A'],
+      branchesOnStage: [
         [{
           readers: [reader1, reader2],
           rule,
-          ruleIndex: 0,
         }],
       ],
       branches: [],
@@ -50,24 +48,22 @@ describe('createRuleTree', () => {
     const reader12 = () => 0;
     const reader22 = () => 0;
 
-    const rule1: Rule<unknown, string> = {type: 'Type1', reader: seq(reader1, reader12), on: ['A']};
-    const rule2: Rule<unknown, string> = {type: 'Type2', reader: seq(reader1, reader22), on: ['A']};
+    const rule1: Rule<unknown, string> = {reader: seq(reader1, reader12), on: ['STAGE_A']};
+    const rule2: Rule<unknown, string> = {reader: seq(reader1, reader22), on: ['STAGE_A']};
 
-    const ruleIterationPlan: RuleTree<any, any, any, any> = {
-      stages: ['A'],
-      branchesByStageIndex: [
+    const ruleIterationPlan: RuleTree<any, any, any> = {
+      stages: ['STAGE_A'],
+      branchesOnStage: [
         [{
           readers: [reader1],
           children: [
             {
               readers: [reader12],
               rule: rule1,
-              ruleIndex: 0,
             },
             {
               readers: [reader22],
               rule: rule2,
-              ruleIndex: 1,
             },
           ],
         }],
@@ -83,23 +79,21 @@ describe('createRuleTree', () => {
     const reader12 = () => 0;
     const reader22 = () => 0;
 
-    const rule1: Rule<unknown, string> = {type: 'Type', reader: seq(reader1, reader12), on: ['A']};
-    const rule2: Rule<unknown, string> = {type: 'Type', reader: seq(reader1, reader22), on: ['B']};
+    const rule1: Rule<unknown, string> = {reader: seq(reader1, reader12), on: ['STAGE_A']};
+    const rule2: Rule<unknown, string> = {reader: seq(reader1, reader22), on: ['STAGE_B']};
 
-    const ruleIterationPlan: RuleTree<any, any, any, any> = {
-      stages: ['A', 'B'],
-      branchesByStageIndex: [
-        // A
+    const ruleIterationPlan: RuleTree<any, any, any> = {
+      stages: ['STAGE_A', 'STAGE_B'],
+      branchesOnStage: [
+        // STAGE_A
         [{
           readers: [reader1, reader12],
           rule: rule1,
-          ruleIndex: 0,
         }],
-        // B
+        // STAGE_B
         [{
           readers: [reader1, reader22],
           rule: rule2,
-          ruleIndex: 1,
         }],
       ],
       branches: [],
@@ -113,24 +107,22 @@ describe('createRuleTree', () => {
     const reader12 = () => 0;
     const reader22 = () => 0;
 
-    const rule1: Rule<unknown, string> = {type: 'Type1', reader: seq(reader1, reader12), on: ['A']};
-    const rule2: Rule<unknown, string> = {type: 'Type2', reader: seq(reader1, reader22)};
+    const rule1: Rule<unknown, string> = {reader: seq(reader1, reader12), on: ['STAGE_A']};
+    const rule2: Rule<unknown, string> = {reader: seq(reader1, reader22)};
 
-    const ruleIterationPlan: RuleTree<any, any, any, any> = {
-      stages: ['A'],
-      branchesByStageIndex: [
+    const ruleIterationPlan: RuleTree<any, any, any> = {
+      stages: ['STAGE_A'],
+      branchesOnStage: [
         [{
           readers: [reader1],
           children: [
             {
               readers: [reader12],
               rule: rule1,
-              ruleIndex: 0,
             },
             {
               readers: [reader22],
               rule: rule2,
-              ruleIndex: 1,
             },
           ],
         }],
@@ -138,7 +130,6 @@ describe('createRuleTree', () => {
       branches: [{
         readers: [reader1, reader22],
         rule: rule2,
-        ruleIndex: 1,
       }],
     };
 
@@ -152,17 +143,16 @@ describe('appendRule', () => {
     const reader1 = () => 0;
     const reader2 = () => 0;
 
-    const rule: Rule = {type: 'Type', reader: seq(reader1, reader2)};
+    const rule: Rule = {reader: seq(reader1, reader2)};
 
-    const branches: RuleBranch<any, any, any, any>[] = [
+    const branches: RuleBranch<any, any, any>[] = [
       {
         readers: [reader1, reader2],
         rule,
-        ruleIndex: 777,
       },
     ];
 
-    expect(appendRule([], rule, 777)).toEqual(branches);
+    expect(appendRule([], rule)).toEqual(branches);
   });
 
   test('appends a rule without a common prefix', () => {
@@ -170,23 +160,21 @@ describe('appendRule', () => {
     const reader12 = () => 0;
     const reader21 = () => 0;
 
-    const rule1: Rule = {type: 'Type1', reader: seq(reader11, reader12)};
-    const rule2: Rule = {type: 'Type2', reader: reader21};
+    const rule1: Rule = {reader: seq(reader11, reader12)};
+    const rule2: Rule = {reader: reader21};
 
-    const branches: RuleBranch<any, any, any, any>[] = [
+    const branches: RuleBranch<any, any, any>[] = [
       {
         readers: [reader11, reader12],
         rule: rule1,
-        ruleIndex: 777,
       },
       {
         readers: [reader21],
         rule: rule2,
-        ruleIndex: 888,
       },
     ];
 
-    expect(appendRule(appendRule([], rule1, 777), rule2, 888)).toEqual(branches);
+    expect(appendRule(appendRule([], rule1), rule2)).toEqual(branches);
   });
 
   test('appends a rule with a common prefix', () => {
@@ -194,70 +182,65 @@ describe('appendRule', () => {
     const reader12 = () => 0;
     const reader21 = () => 0;
 
-    const rule1: Rule = {type: 'Type1', reader: seq(reader1, reader12)};
-    const rule2: Rule = {type: 'Type2', reader: seq(reader1, reader21)};
+    const rule1: Rule = {reader: seq(reader1, reader12)};
+    const rule2: Rule = {reader: seq(reader1, reader21)};
 
-    const branches: RuleBranch<any, any, any, any>[] = [
+    const branches: RuleBranch<any, any, any>[] = [
       {
         readers: [reader1],
         children: [
           {
             readers: [reader12],
             rule: rule1,
-            ruleIndex: 777,
           },
           {
             readers: [reader21],
             rule: rule2,
-            ruleIndex: 888,
           },
         ]
       },
     ];
 
-    expect(appendRule(appendRule([], rule1, 777), rule2, 888)).toEqual(branches);
+    expect(appendRule(appendRule([], rule1), rule2)).toEqual(branches);
   });
 
   test('appends termination rule', () => {
     const reader1 = () => 0;
     const reader12 = () => 0;
 
-    const rule1: Rule = {type: 'Type1', reader: seq(reader1, reader12)};
-    const rule2: Rule = {type: 'Type2', reader: reader1};
+    const rule1: Rule = {reader: seq(reader1, reader12)};
+    const rule2: Rule = {reader: reader1};
 
-    const branches: RuleBranch<any, any, any, any>[] = [
+    const branches: RuleBranch<any, any, any>[] = [
       {
         readers: [reader1],
         children: [
           {
             readers: [reader12],
             rule: rule1,
-            ruleIndex: 777,
           },
         ],
         rule: rule2,
-        ruleIndex: 888,
       },
     ];
 
-    expect(appendRule(appendRule([], rule1, 777), rule2, 888)).toEqual(branches);
+    expect(appendRule(appendRule([], rule1), rule2)).toEqual(branches);
   });
 
   test('ignores absorbed rules', () => {
     const reader1 = () => 0;
     const reader22 = () => 0;
 
-    const rule1: Rule = {type: 'Type1', reader: reader1};
-    const rule2: Rule = {type: 'Type2', reader: seq(reader1, reader22)};
+    const rule1: Rule = {reader: reader1};
+    const rule2: Rule = {reader: seq(reader1, reader22)};
 
-    const branches: RuleBranch<any, any, any, any>[] = [
+    const branches: RuleBranch<any, any, any>[] = [
       {
         readers: [reader1],
         rule: rule1,
-        ruleIndex: 777,
       },
     ];
 
-    expect(appendRule(appendRule([], rule1, 777), rule2, 888)).toEqual(branches);
+    expect(appendRule(appendRule([], rule1), rule2)).toEqual(branches);
   });
 });

@@ -1,4 +1,4 @@
-import {never, NO_MATCH, none, Reader, seq, SeqReader, text, toReaderFunction} from '../../main/readers';
+import {never, none, Reader, seq, SeqReader, text, toReaderFunction} from '../../main/readers';
 
 describe('seq', () => {
 
@@ -12,7 +12,7 @@ describe('seq', () => {
   });
 
   test('returns reader', () => {
-    const readerMock: Reader<any, any> = () => 0;
+    const readerMock: Reader<any> = () => 0;
     expect(seq(readerMock)).toBe(readerMock);
   });
 
@@ -26,35 +26,15 @@ describe('SeqReader', () => {
   test('fails if any of readers fail', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(4);
-    readerMock.mockReturnValueOnce(NO_MATCH);
+    readerMock.mockReturnValueOnce(-1);
     readerMock.mockReturnValueOnce(5);
 
-    expect(toReaderFunction(new SeqReader([readerMock, readerMock, readerMock]))('aabbcc', 2)).toBe(NO_MATCH);
+    expect(toReaderFunction(new SeqReader([readerMock, readerMock, readerMock]))('aabbcc', 2)).toBe(-1);
     expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
   test('allows readers to return the same offset', () => {
     expect(toReaderFunction(new SeqReader([() => 2, () => 4]))('aabbcc', 2)).toBe(4);
-  });
-
-  test('returns negative integer as an error result', () => {
-    const readerMock = jest.fn();
-    readerMock.mockReturnValueOnce(4);
-    readerMock.mockReturnValueOnce('Error');
-    readerMock.mockReturnValueOnce(5);
-
-    expect(toReaderFunction(new SeqReader([readerMock, readerMock, readerMock]))('aabbcc', 2)).toBe('Error');
-    expect(readerMock).toHaveBeenCalledTimes(2);
-  });
-
-  test('returns non number value as an error result', () => {
-    const readerMock = jest.fn();
-    readerMock.mockReturnValueOnce(4);
-    readerMock.mockReturnValueOnce('123');
-    readerMock.mockReturnValueOnce(5);
-
-    expect(toReaderFunction(new SeqReader([readerMock, readerMock, readerMock]))('aabbcc', 2)).toBe('123');
-    expect(readerMock).toHaveBeenCalledTimes(2);
   });
 
   test('can use inline readers', () => {
