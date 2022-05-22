@@ -15,19 +15,19 @@ export interface Tokenizer<Type = unknown, Stage = void, Context = void> {
    * @param input The input string to tokenize.
    * @param handler The callbacks that are invoked when tokens are read from the string.
    * @param context The context that should be passed to readers and stage providers.
+   * @param state The mutable state used by the tokenizer.
    * @returns The result state of the tokenizer.
    */
-  (input: string, handler: TokenHandler<Type, Context>, context: Context): TokenizerState<Stage>;
+  (input: string, handler: TokenHandler<Type, Context>, context: Context, state?: TokenizerState<Stage>): TokenizerState<Stage>;
 
   /**
    * Reads tokens from the chunk in a streaming fashion. During streaming, {@link TokenHandler} is triggered only with
    * confirmed tokens. Token is confirmed if the consequent token was successfully read.
    *
    * ```ts
-   * let state;
-   * state = tokenizer.write('foo', handler);
-   * state = tokenizer.write('bar', handler, state);
-   * state = tokenizer.end(handler, state);
+   * let state = tokenizer.write('foo', handler);
+   * tokenizer.write('bar', handler, state);
+   * tokenizer.end(handler, state);
    * ```
    *
    * @param chunk The input chunk to tokenize.
