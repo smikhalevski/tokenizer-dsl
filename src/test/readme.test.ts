@@ -71,10 +71,10 @@ describe('Readme', () => {
         'value'
     );
 
-    const state = tokenizer.write('123', handler);
-    tokenizer.write('.456; +', handler, state);
-    tokenizer.write('777; 42', handler, state);
-    tokenizer.end(handler, state);
+    const state = tokenizer.write('123', undefined, handler);
+    tokenizer.write('.456; +', state, handler);
+    tokenizer.write('777; 42', state, handler);
+    tokenizer(state, handler);
 
     expect(handlerMock).toHaveBeenCalledTimes(3);
     expect(handlerMock).toHaveBeenNthCalledWith(1, 'NUMBER', 0, 7, undefined);

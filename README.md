@@ -681,17 +681,17 @@ If the input string comes in chunks we can use a streaming API of the tokenizer:
 ```ts
 import {TokenizerState} from 'tokeinzer-dsl';
 
-const state = tokenizer.write('123.456', handler);
-tokenizer.write('; aaa; +77', handler, state);
-tokenizer.write('7; bbb; -42', handler, state);
-tokenizer.end(handler, state);
+const state = tokenizer.write('123.456', undefined, handler);
+tokenizer.write('; aaa; +77', state, handler);
+tokenizer.write('7; bbb; -42', state, handler);
+tokenizer(state, handler);
 ```
 
 `tokenizer.write` accepts a mutable state object that is updated as tokenization progresses. You can inspect state to
 know the stage and offset at which the tokenizer finished reading tokens.
 
 Streaming tokenizer emits tokens that are _confirmed_. The token is confirmed after the consequent token is
-successfully read or after the `tokenizer.end` is called.
+successfully read or after the `tokenizer(state, handler)` is called.
 
 # Context
 
