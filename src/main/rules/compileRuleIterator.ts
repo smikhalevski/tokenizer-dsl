@@ -1,6 +1,6 @@
 import {Binding, Code, compileFunction, Var} from 'codedegen';
 import {createReaderCallCode, seq} from '../readers';
-import {createVar} from '../utils';
+import {createVar, isFunction} from '../utils';
 import {RuleBranch, RuleTree} from './createRuleTree';
 import {TokenHandler, TokenizerState} from './rule-types';
 
@@ -14,7 +14,7 @@ export type RuleIterator<Type, Stage, Context> = (state: TokenizerState<Stage>, 
  */
 export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, Stage, Context>): RuleIterator<Type, Stage, Context> {
 
-  const {stages, branchesOnStage, branches} = tree;
+  const {branchesOnStage, branches} = tree;
 
   const stateVar = createVar();
   const handlerVar = createVar();
@@ -30,12 +30,15 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
   const nextOffsetVar = createVar();
   const chunkLengthVar = createVar();
 
-  const stagesVar = createVar();
+  const stagesEnabled = tree.stages.length !== 0;
+  const stageVars: Var[] = [];
+  const bindings: Binding[] = [];
 
-  const stagesEnabled = stages.length !== 0;
-  const stagesInlined = stages.every(Number.isInteger);
-
-  const bindings: Binding[] = [[stagesVar, stages]];
+  for (const stage of tree.stages) {
+    const stageVar = createVar();
+    stageVars.push(stageVar);
+    bindings.push([stageVar, stage]);
+  }
 
   const createRuleIteratorBranchesCode = (branches: RuleBranch<Type, Stage, Context>[], branchOffsetVar: Var): Code => {
 
@@ -63,15 +66,12 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
         continue;
       }
 
-      const tokenType = rule.type;
-      const ruleTo = rule.to;
-
       const tokenTypeVar = createVar();
-      const ruleToVar = createVar();
+      const nextStageVar = createVar();
 
       bindings.push(
-          [tokenTypeVar, tokenType],
-          [ruleToVar, ruleTo],
+          [tokenTypeVar, rule.type],
+          [nextStageVar, rule.to],
       );
 
       const valueProviderArgsCode: Code = ['(', chunkVar, ',', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, ',', stateVar, ')'];
@@ -83,18 +83,15 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
         handlerVar, '(', pendingTokenTypeVar, ',', chunkVar, ',', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
         tokenPendingVar, '=false}',
 
-        // If stagesEnabled then stageIndex is never -1 so no out-of-bounds check isn't required
-        stagesEnabled ? [stateVar, '.stage=', stagesInlined ? stageVar : [stagesVar, '[', stageVar, ']'], ';'] : '',
+        stagesEnabled ? [stateVar, '.stage=', stageVar, ';'] : '',
         stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
         rule.silent ? '' : [
           tokenPendingVar, '=true;',
-          pendingTokenTypeVar, '=', tokenTypeVar, typeof tokenType === 'function' ? valueProviderArgsCode : '', ';',
+          pendingTokenTypeVar, '=', tokenTypeVar, isFunction(rule.type) ? valueProviderArgsCode : '', ';',
         ],
 
-        ruleTo === undefined ? '' : typeof ruleTo === 'function'
-            ? [stageVar, '=', stagesInlined ? '(' : [stagesVar, '.indexOf('], ruleToVar, valueProviderArgsCode, ');']
-            : [stageVar, '=', stagesInlined ? ruleTo as unknown as number : stages.indexOf(ruleTo), ';'],
+        rule.to === undefined ? '' : [stageVar, '=', nextStageVar, isFunction(rule.to) ? valueProviderArgsCode : '', ';'],
 
         nextOffsetVar, '=', branchResultVar, ';',
 
@@ -109,7 +106,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
 
   const code: Code = [
     'var ',
-    stagesEnabled ? [stageVar, '=', stagesInlined ? '(' : [stagesVar, '.indexOf('], stateVar, '.stage),'] : '',
+    stagesEnabled ? [stageVar, '=', stateVar, '.stage,'] : '',
     chunkVar, '=', stateVar, '.chunk,',
     offsetVar, '=', stateVar, '.offset,',
 
@@ -124,8 +121,8 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     stagesEnabled
         ? [
           'switch(', stageVar, '){',
-          branchesOnStage.map((branches, stageIndex) => [
-            'case ', stagesInlined ? stages[stageIndex] as unknown as number : stageIndex, ':',
+          branchesOnStage.map((branches, i) => [
+            'case ', stageVars[i], ':',
             createRuleIteratorBranchesCode(branches, nextOffsetVar),
             'break;'
           ]),
@@ -143,7 +140,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     '}',
 
     // Update unconfirmed stage and offset
-    stagesEnabled ? [stateVar, '.stage=', stagesInlined ? stageVar : [stagesVar, '[', stageVar, ']'], ';'] : '',
+    stagesEnabled ? [stateVar, '.stage=', stageVar, ';'] : '',
     stateVar, '.offset=', nextOffsetVar, ';',
   ];
 
