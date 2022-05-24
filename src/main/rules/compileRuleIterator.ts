@@ -7,7 +7,7 @@ import {TokenHandler, TokenizerState} from './rule-types';
 /**
  * The callback that reads tokens from the input defined by iterator state.
  */
-export type RuleIterator<Type, Stage, Context> = (state: TokenizerState<Stage>, handler: TokenHandler<Type, Context>, context: Context, streaming?: boolean) => void;
+export type RuleIterator<Type, Stage, Context> = (state: TokenizerState<Stage>, handler: TokenHandler<Type, Stage, Context>, context: Context, streaming?: boolean) => void;
 
 /**
  * Compiles rules into a function that applies them one after another in a loop.
@@ -35,7 +35,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
   const stagesEnabled = stages.length !== 0;
   const stagesInlined = stages.every(Number.isInteger);
 
-  const bindings: Binding[] = stagesInlined ? [] : [[stagesVar, stages]];
+  const bindings: Binding[] = [[stagesVar, stages]];
 
   const createRuleIteratorBranchesCode = (branches: RuleBranch<Type, Stage, Context>[], branchOffsetVar: Var): Code => {
 
@@ -63,20 +63,18 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
         continue;
       }
 
-      const {type, to} = rule;
+      const tokenType = rule.type;
+      const ruleTo = rule.to;
 
-      const typeVar = createVar();
-      const toCallbackVar = createVar();
+      const tokenTypeVar = createVar();
+      const ruleToVar = createVar();
 
-      const typeInlined = Number.isInteger(type);
-      const toCallable = typeof to === 'function';
+      bindings.push(
+          [tokenTypeVar, tokenType],
+          [ruleToVar, ruleTo],
+      );
 
-      if (!typeInlined) {
-        bindings.push([typeVar, type]);
-      }
-      if (toCallable) {
-        bindings.push([toCallbackVar, to]);
-      }
+      const valueProviderArgsCode: Code = ['(', chunkVar, ',', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, ',', stateVar, ')'];
 
       code.push([
 
@@ -85,18 +83,18 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
         handlerVar, '(', pendingTokenTypeVar, ',', chunkVar, ',', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
         tokenPendingVar, '=false}',
 
-        // If stagesEnabled then stageIndex is never -1 so no out-of-bounds check is required
+        // If stagesEnabled then stageIndex is never -1 so no out-of-bounds check isn't required
         stagesEnabled ? [stateVar, '.stage=', stagesInlined ? stageVar : [stagesVar, '[', stageVar, ']'], ';'] : '',
         stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
         rule.silent ? '' : [
           tokenPendingVar, '=true;',
-          pendingTokenTypeVar, '=', typeInlined ? type as unknown as number : typeVar, ';',
+          pendingTokenTypeVar, '=', tokenTypeVar, typeof tokenType === 'function' ? valueProviderArgsCode : '', ';',
         ],
 
-        to === undefined ? '' : toCallable
-            ? [stageVar, '=', stagesInlined ? '(' : [stagesVar, '.indexOf('], toCallbackVar, '(', chunkVar, ',', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, ',', stateVar, '));']
-            : [stageVar, '=', stagesInlined ? to as unknown as number : stages.indexOf(to), ';'],
+        ruleTo === undefined ? '' : typeof ruleTo === 'function'
+            ? [stageVar, '=', stagesInlined ? '(' : [stagesVar, '.indexOf('], ruleToVar, valueProviderArgsCode, ');']
+            : [stageVar, '=', stagesInlined ? ruleTo as unknown as number : stages.indexOf(ruleTo), ';'],
 
         nextOffsetVar, '=', branchResultVar, ';',
 

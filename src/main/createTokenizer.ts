@@ -18,7 +18,7 @@ export interface Tokenizer<Type = unknown, Stage = void, Context = void> {
    * @param state The mutable state used by the tokenizer.
    * @returns The result state of the tokenizer.
    */
-  (input: string, handler: TokenHandler<Type, Context>, context: Context, state?: TokenizerState<Stage>): TokenizerState<Stage>;
+  (input: string, handler: TokenHandler<Type, Stage, Context>, context: Context, state?: TokenizerState<Stage>): TokenizerState<Stage>;
 
   /**
    * Reads tokens from the chunk in a streaming fashion. During streaming, {@link TokenHandler} is triggered only with
@@ -36,7 +36,7 @@ export interface Tokenizer<Type = unknown, Stage = void, Context = void> {
    * @param context The context that should be passed to readers and stage providers.
    * @returns The result state of the tokenizer.
    */
-  write(chunk: string, handler: TokenHandler<Type, Context>, state: TokenizerState<Stage> | void, context: Context): TokenizerState<Stage>;
+  write(chunk: string, handler: TokenHandler<Type, Stage, Context>, state: TokenizerState<Stage> | void, context: Context): TokenizerState<Stage>;
 
   /**
    * Reads remaining tokens from the {@link TokenizerState.chunk}.
@@ -46,7 +46,7 @@ export interface Tokenizer<Type = unknown, Stage = void, Context = void> {
    * @param context The context that should be passed to readers and stage providers.
    * @returns The result state of the tokenizer.
    */
-  end(handler: TokenHandler<Type, Context>, state: TokenizerState<Stage>, context: Context): TokenizerState<Stage>;
+  end(handler: TokenHandler<Type, Stage, Context>, state: TokenizerState<Stage>, context: Context): TokenizerState<Stage>;
 }
 
 /**
