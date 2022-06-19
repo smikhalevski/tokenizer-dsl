@@ -6,6 +6,7 @@ The API for building streaming tokenizers and lexers.
 - [3 kB gzipped](https://bundlephobia.com/result?p=tokenizer-dsl) including dependencies;
 - Supports streaming out of the box;
 - No heap allocations during tokenization;
+- Tokenizer is compiled to a single highly-optimized function.
 
 ```shell
 npm install --save-prod tokenizer-dsl
@@ -25,8 +26,10 @@ npm install --save-prod tokenizer-dsl
 
 # Usage
 
+🔥&ensp;[**Try this example live on CodeSandbox**](https://codesandbox.io/s/tokenizer-dsl-s945yv)
+
 Let's consider the input string that contains lowercase-alpha strings and floating-point numbers, separated by a
-semicolon and an arbitrary number of space characters:
+semicolon and an arbitrary number of space chars:
 
 ```ts
 '123.456; aaa; +777; bbb; -42'
@@ -37,12 +40,15 @@ To tokenize this string we first need to describe readers that would read chars 
 The reader for semicolons is pretty straightforward:
 
 ```ts
-import {all, char, text} from 'tokenizer-dsl';
+import {text} from 'tokenizer-dsl';
 
 const semicolonReader = text(';');
 ```
 
-To read a sequence of whitespaces or lowercase-alpha string we would use the combination of `all` and `char` readers:
+The regular expression equivalent for `semicolonReader` is `/;/y`.
+
+To read a sequence of whitespaces or lowercase-alpha chars we would use the combination of [`all`](#all) and
+[`char`](#char) readers:
 
 ```ts
 import {all, char} from 'tokenizer-dsl';
@@ -52,7 +58,7 @@ const whitespaceReader = all(char([' \t\n\r']));
 const alphaReader = all(char([['a', 'z']]), {minimumCount: 1});
 ```
 
-The `RegExp` equivalent for `whitespaceReader` if `/[ \t\n\r]*/y`, and for `alphaReader` it is `/[a-z]+/y`.
+The regular expression equivalent for `whitespaceReader` is `/[ \t\n\r]*/y`, and for `alphaReader` it is `/[a-z]+/y`.
 
 To read a signed floating-point number we need a combination of multiple readers:
 
@@ -92,9 +98,9 @@ const numberReader = seq(
 );
 ```
 
-This reader works the same way as `/[-+]?(?:0|[1-9]\d*)(?:\.\d*)?/y`.
+The `numberReader` works the same way as `/[-+]?(?:0|[1-9]\d*)(?:\.\d*)?/y`.
 
-Now, after we defined all required readers, we can declare [tokenization rules](#rules):
+Now, after we defined all required readers, we can define a set of [tokenization rules](#rules):
 
 ```ts
 import {Rule} from 'tokenizer-dsl';
@@ -104,9 +110,9 @@ const semicolonRule: Rule = {
   reader: semicolonReader,
 };
 
-const whitespaceReader: Rule = {
+const whitespaceRule: Rule = {
   type: 'WHITESPACE',
-  reader: semicolonReader,
+  reader: whitespaceReader,
 };
 
 const alphaRule: Rule = {
@@ -120,14 +126,15 @@ const numberRule: Rule = {
 };
 ```
 
-`type` is the arbitrary name of the token that the rule would read from the input string. `type` can be a string,
-a number, an object, or any other data type.
-
-`reader` is the reader that actually reads the chars from the string.
+- `type` is the arbitrary name of the token that the rule would read from the input string. It can be a string, a number,
+an object, or any other data type. The type would be passed to token handler.
+- `reader` is that would read chars from the string.
 
 The next step is to create a tokenizer that uses our rules:
 
 ```ts
+import {createTokenizer} from 'tokenizer-dsl';
+
 const tokenize = createTokenizer([
   semicolonRule,
   whitespaceRule,
@@ -144,7 +151,7 @@ As the last step, we should call a tokenizer and provide it an input and a token
 import {TokenHandler} from 'tokenizer-dsl';
 
 const handler: TokenHandler = (type, input, offset, length, context, state) => {
-  console.log(type, input.substr(offset, length));
+  console.log(type, '"' + input.substr(offset, length) + '"');
 };
 
 tokenize('123.456; aaa; +777; bbb; -42', handler);
@@ -153,23 +160,23 @@ tokenize('123.456; aaa; +777; bbb; -42', handler);
 The console output would be:
 
 ```
-NUMBER 123.456
-SEMICOLON ;
-WHITESPACE  
-ALPHA aaa
-SEMICOLON ;
-WHITESPACE  
-NUMBER +777
-SEMICOLON ;
-WHITESPACE  
-NUMBER -42
+NUMBER "123.456"
+SEMICOLON ";"
+WHITESPACE " "
+ALPHA "aaa"
+SEMICOLON ";"
+WHITESPACE " "
+NUMBER "+777"
+SEMICOLON ";"
+WHITESPACE " "
+NUMBER "-42"
 ```
 
 # Built-in readers
 
-### `text(string, options?)`<a name="text"></a>
+### `text(substring, options?)`<a name="text"></a>
 
-Reads the case-sensitive substring from the input:
+Reads the case-sensitive `substring` from the input:
 
 ```ts
 // Reads 'foo'
@@ -192,7 +199,7 @@ Reads a single char from the string. You should provide an array of strings, cha
 char(['a', 98, 99]);
 ```
 
-You can specify a set of characters as a string with multiple characters:
+You can specify a set of chars as a string with multiple chars:
 
 ```ts
 // Reads ' ', '\t', '\r', or '\n'
@@ -297,6 +304,7 @@ or(
 Skips all chars until the end of the input. You can optionally provide the offset from the input end.
 
 ```ts
+// Reads everything up to the last char
 end(-1);
 ```
 
@@ -338,7 +346,7 @@ The singleton reader that always returns the current offset.
 A reader can be defined as a function that takes an `input` string, an `offset` at which it should start reading, and a
 `context`. Learn more about the context in the [Context](#context) section.
 
-A reader should return the new offset that is greater or equal to `offset` if the reader has successfully read from
+A reader should return the new offset that is greater or equal to the `offset` if the reader has successfully read from
 the `input`, or an integer less than `offset` to indicate that nothing was read.
 
 Let's create a custom reader:
@@ -397,12 +405,13 @@ template:
 The `factory` function should return an object containing a `code` property that holds the code template and an optional
 `bindings` property that holds the variable bindings.
 
-To demonstrate how to use bindings, let's enhance our reader to support arbitrary strings:
+To demonstrate how to use bindings, let's write a reader factory that would allow us to read arbitrary strings, just
+like [`text`](#text) reader does:
 
 ```ts
 import {Reader} from 'tokenizer-dsl';
 
-function substring(str: string): Reader {
+function createStrReader(str: string): Reader {
   return {
 
     factory(inputVar, offsetVar, contextVar, resultVar) {
@@ -424,13 +433,13 @@ function substring(str: string): Reader {
 }
 ```
 
-We can combine `substring` with any built-in reader. For example, to read all sequential substrings in the input:
+We can combine `createStrReader` with any built-in reader. For example, to read all sequential substrings in the input:
 
 ```ts
 import {all} from 'tokenizer-dsl';
 
 // Reads consequent 'foo' substrings
-all(substring('foo'));
+all(createStrReader('foo'));
 ```
 
 You can introduce custom variables inside a code template. Here is an example of a reader that reads zero-or-more lower
@@ -590,7 +599,7 @@ const tokenize = createTokenizer(
 This tokenizer would successfully process `'foobarfoobar'` but would stop on `'foofoo'`.
 
 Rules that don't have `on` option specified are applied on all stages. To showcase this behavior, let's modify our rules
-to allow `'foo'` and `'bar'` to be separated with arbitrary number of space characters.
+to allow `'foo'` and `'bar'` to be separated with arbitrary number of space chars.
 
 ```ts
 type MyTokenType = 'FOO' | 'BAR' | 'SPACE';
@@ -743,7 +752,7 @@ Results are in millions of operations per second. The higher number is better.
 
 Tokenizer performance comes from following implementation aspects:
 
-- Reader combination optimizations. For example `until(text('abc'))` would read case-sensitive characters from the sting
+- Reader combination optimizations. For example `until(text('abc'))` would read case-sensitive chars from the sting
   until substring `'abc'` is met. An analog of this is `/(?=abc)/`. Tokenizer uses `input.indexOf('abc')` for the
   substring search, which is 2× faster than using a regular expression.
 
