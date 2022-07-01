@@ -11,3 +11,7 @@ export function toInteger(value: number | undefined, defaultValue?: number, mini
 export function createVar(): Var {
   return Symbol();
 }
+
+export function isFunction(value: unknown): value is Function {
+  return typeof value === 'function';
+}

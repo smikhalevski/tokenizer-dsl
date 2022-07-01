@@ -5,7 +5,7 @@ describe('compileRuleIterator', () => {
 
   const handlerMock = jest.fn();
 
-  const handler: TokenHandler<any, any> = (type, chunk, offset, length, context, state) => {
+  const handler: TokenHandler = (type, chunk, offset, length, context, state) => {
     handlerMock(type, state.chunkOffset + offset, length, context);
   };
 
@@ -313,6 +313,42 @@ describe('compileRuleIterator', () => {
       offset: 3,
       chunkOffset: 0,
       stage: 'STAGE_A',
+    });
+  });
+
+  test('reads computed token types', () => {
+
+    const typeMock = jest.fn();
+
+    const ruleIterator = compileRuleIterator(createRuleTree([
+      {reader: text('a'), type: 'TYPE_A'},
+      {reader: text('b'), type: typeMock},
+    ]));
+
+    typeMock.mockImplementationOnce(() => 'TYPE_B1');
+    typeMock.mockImplementationOnce(() => 'TYPE_B2');
+
+    const state: TokenizerState = {
+      chunk: 'ababa',
+      offset: 0,
+      chunkOffset: 0,
+      stage: undefined,
+    };
+
+    ruleIterator(state, handler, undefined);
+
+    expect(handlerMock).toHaveBeenCalledTimes(5);
+    expect(handlerMock).toHaveBeenNthCalledWith(1, 'TYPE_A', 0, 1, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(2, 'TYPE_B1', 1, 1, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(3, 'TYPE_A', 2, 1, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(4, 'TYPE_B2', 3, 1, undefined);
+    expect(handlerMock).toHaveBeenNthCalledWith(5, 'TYPE_A', 4, 1, undefined);
+
+    expect(state).toEqual({
+      chunk: 'ababa',
+      offset: 5,
+      chunkOffset: 0,
+      stage: undefined,
     });
   });
 });
