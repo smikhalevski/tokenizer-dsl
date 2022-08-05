@@ -1,5 +1,5 @@
-import {all, Reader, seq, text} from '../../main';
-import {compileRuleIterator, createRuleTree, TokenHandler, TokenizerState} from '../../main/rules';
+import { all, Reader, seq, text } from '../../main';
+import { compileRuleIterator, createRuleTree, TokenHandler, TokenizerState } from '../../main/rules';
 
 describe('compileRuleIterator', () => {
 
@@ -16,8 +16,8 @@ describe('compileRuleIterator', () => {
   test('emits tokens', () => {
 
     const ruleIterator = compileRuleIterator(createRuleTree([
-      {type: 'TYPE_A', reader: all(text('a'))},
-      {type: 'TYPE_B', reader: all(text('b'))},
+      { type: 'TYPE_A', reader: all(text('a')) },
+      { type: 'TYPE_B', reader: all(text('b')) },
     ]));
 
     const state: TokenizerState = {
@@ -46,7 +46,7 @@ describe('compileRuleIterator', () => {
   test('reads a non-empty token from the string at chunk start in streaming mode', () => {
 
     const ruleIterator = compileRuleIterator(createRuleTree([
-      {type: 'TYPE_A', reader: text('a')},
+      { type: 'TYPE_A', reader: text('a') },
     ]));
 
     const state: TokenizerState = {
@@ -73,7 +73,7 @@ describe('compileRuleIterator', () => {
   test('reads a non-empty token from the string at chunk start in non-streaming mode', () => {
 
     const ruleIterator = compileRuleIterator(createRuleTree([
-      {type: 'TYPE_A', reader: text('a')},
+      { type: 'TYPE_A', reader: text('a') },
     ]));
 
     const state: TokenizerState = {
@@ -101,7 +101,7 @@ describe('compileRuleIterator', () => {
   test('reads a non-empty token from the string with offset in streaming mode', () => {
 
     const ruleIterator = compileRuleIterator(createRuleTree([
-      {type: 'TYPE_A', reader: text('a')},
+      { type: 'TYPE_A', reader: text('a') },
     ]));
 
     const state: TokenizerState = {
@@ -129,8 +129,8 @@ describe('compileRuleIterator', () => {
   test('respects literal stages', () => {
 
     const ruleIterator = compileRuleIterator(createRuleTree([
-      {type: 'TYPE_A', reader: text('a'), on: ['STAGE_A'], to: 'STAGE_B'},
-      {type: 'TYPE_B', reader: text('b'), on: ['STAGE_B'], to: 'STAGE_A'},
+      { type: 'TYPE_A', reader: text('a'), on: ['STAGE_A'], to: 'STAGE_B' },
+      { type: 'TYPE_B', reader: text('b'), on: ['STAGE_B'], to: 'STAGE_A' },
     ]));
 
     const state: TokenizerState = {
@@ -160,8 +160,8 @@ describe('compileRuleIterator', () => {
     const ruleBToMock = jest.fn(() => 'STAGE_A');
 
     const ruleIterator = compileRuleIterator(createRuleTree([
-      {type: 'TYPE_A', reader: text('a'), on: ['STAGE_A'], to: ruleAToMock},
-      {type: 'TYPE_B', reader: text('b'), on: ['STAGE_B'], to: ruleBToMock},
+      { type: 'TYPE_A', reader: text('a'), on: ['STAGE_A'], to: ruleAToMock },
+      { type: 'TYPE_B', reader: text('b'), on: ['STAGE_B'], to: ruleBToMock },
     ]));
 
     const state: TokenizerState = {
@@ -201,8 +201,8 @@ describe('compileRuleIterator', () => {
     const readerMock: Reader<any> = jest.fn((input, offset) => offset + 1);
 
     const ruleIterator = compileRuleIterator(createRuleTree([
-      {type: 'TYPE_A', reader: seq(readerMock, text('a'))},
-      {type: 'TYPE_B', reader: seq(readerMock, text('b'))},
+      { type: 'TYPE_A', reader: seq(readerMock, text('a')) },
+      { type: 'TYPE_B', reader: seq(readerMock, text('b')) },
     ]));
 
     const state: TokenizerState = {
@@ -228,8 +228,8 @@ describe('compileRuleIterator', () => {
   test('does not emit tokens for silent rules', () => {
 
     const ruleIterator = compileRuleIterator(createRuleTree([
-      {type: 'TYPE_A', reader: text('a')},
-      {type: 'TYPE_B', reader: text('b'), silent: true},
+      { type: 'TYPE_A', reader: text('a') },
+      { type: 'TYPE_B', reader: text('b'), silent: true },
     ]));
 
     const state: TokenizerState = {
@@ -257,8 +257,8 @@ describe('compileRuleIterator', () => {
   test('state is uncorrupted when an error is thrown in a token handler', () => {
 
     const ruleIterator = compileRuleIterator(createRuleTree([
-      {reader: text('a'), on: ['STAGE_B'], to: 'STAGE_A'},
-      {reader: text('b'), on: ['STAGE_A'], to: 'STAGE_B'},
+      { reader: text('a'), on: ['STAGE_B'], to: 'STAGE_A' },
+      { reader: text('b'), on: ['STAGE_A'], to: 'STAGE_B' },
     ]));
 
     const state: TokenizerState = {
@@ -290,8 +290,8 @@ describe('compileRuleIterator', () => {
     const toMock = jest.fn(() => 'STAGE_B');
 
     const ruleIterator = compileRuleIterator(createRuleTree([
-      {reader: text('a'), on: ['STAGE_B'], to: 'STAGE_A'},
-      {reader: text('b'), on: ['STAGE_A'], to: toMock},
+      { reader: text('a'), on: ['STAGE_B'], to: 'STAGE_A' },
+      { reader: text('b'), on: ['STAGE_A'], to: toMock },
     ]));
 
     toMock.mockImplementationOnce(() => 'STAGE_B');
@@ -321,8 +321,8 @@ describe('compileRuleIterator', () => {
     const typeMock = jest.fn();
 
     const ruleIterator = compileRuleIterator(createRuleTree([
-      {reader: text('a'), type: 'TYPE_A'},
-      {reader: text('b'), type: typeMock},
+      { reader: text('a'), type: 'TYPE_A' },
+      { reader: text('b'), type: typeMock },
     ]));
 
     typeMock.mockImplementationOnce(() => 'TYPE_B1');

@@ -1,9 +1,9 @@
-import {Binding, Code, CodeBindings, Var} from 'codedegen';
-import {createVar, die, toInteger} from '../utils';
-import {never} from './never';
-import {none} from './none';
-import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode} from './reader-utils';
+import { Binding, Code, CodeBindings, Var } from 'codedegen';
+import { createVar, die, toInteger } from '../utils';
+import { never } from './never';
+import { none } from './none';
+import { Reader, ReaderCodegen } from './reader-types';
+import { createCodeBindings, createReaderCallCode } from './reader-utils';
 
 export interface AllOptions {
 
@@ -55,7 +55,7 @@ export class AllReader<Context> implements ReaderCodegen {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-    const {reader, minimumCount, maximumCount} = this;
+    const { reader, minimumCount, maximumCount } = this;
 
     const indexVar = createVar();
     const readerResultVar = createVar();
@@ -74,18 +74,18 @@ export class AllReader<Context> implements ReaderCodegen {
       const nextOffsetVar = i < minimumCount - 1 ? indexVar : resultVar;
 
       code.push(
-          createReaderCallCode(reader, inputVar, i === 0 ? offsetVar : nextOffsetVar, contextVar, readerResultVar, bindings),
-          'if(', readerResultVar, '>', i === 0 ? offsetVar : nextOffsetVar, '){',
-          maximumCount === 0 && i === count - 1 ? '' : [nextOffsetVar, '=', readerResultVar, ';'],
+        createReaderCallCode(reader, inputVar, i === 0 ? offsetVar : nextOffsetVar, contextVar, readerResultVar, bindings),
+        'if(', readerResultVar, '>', i === 0 ? offsetVar : nextOffsetVar, '){',
+        maximumCount === 0 && i === count - 1 ? '' : [nextOffsetVar, '=', readerResultVar, ';'],
       );
     }
 
     if (maximumCount === 0) {
       code.push(
-          'do{',
-          resultVar, '=', readerResultVar, ';',
-          createReaderCallCode(reader, inputVar, resultVar, contextVar, readerResultVar, bindings),
-          '}while(', readerResultVar, '>', resultVar, ')',
+        'do{',
+        resultVar, '=', readerResultVar, ';',
+        createReaderCallCode(reader, inputVar, resultVar, contextVar, readerResultVar, bindings),
+        '}while(', readerResultVar, '>', resultVar, ')',
       );
     }
 

@@ -1,4 +1,4 @@
-import {Reader} from '../readers';
+import { Reader } from '../readers';
 
 /**
  * Returns the value depending on the current tokenizer state.

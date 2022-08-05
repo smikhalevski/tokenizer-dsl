@@ -1,4 +1,4 @@
-import {CodeBindings, Var} from 'codedegen';
+import { CodeBindings, Var } from 'codedegen';
 
 /**
  * The reader definition that can be compiled into a function that reads chars from the input string.

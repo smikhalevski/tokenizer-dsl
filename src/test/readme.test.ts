@@ -1,4 +1,4 @@
-import {all, char, createTokenizer, maybe, or, Rule, seq, text, TokenHandler} from '../main';
+import { all, char, createTokenizer, maybe, or, Rule, seq, text, TokenHandler } from '../main';
 
 describe('Readme', () => {
 
@@ -24,25 +24,25 @@ describe('Readme', () => {
     const signReader = char(['+-']);
 
     const numberReader = seq(
-        // sign
-        maybe(signReader),
+      // sign
+      maybe(signReader),
 
-        // integer
-        or(
-            zeroReader,
-            seq(
-                leadingDigitReader,
-                digitsReader,
-            ),
+      // integer
+      or(
+        zeroReader,
+        seq(
+          leadingDigitReader,
+          digitsReader,
         ),
+      ),
 
-        // fraction
-        maybe(
-            seq(
-                dotReader,
-                maybe(digitsReader),
-            ),
+      // fraction
+      maybe(
+        seq(
+          dotReader,
+          maybe(digitsReader),
         ),
+      ),
     );
 
     const semicolonReader = text(';');
@@ -50,25 +50,25 @@ describe('Readme', () => {
     const whitespaceReader = all(char([' \t\r\n']));
 
     const tokenizer = createTokenizer<'NUMBER', 'value' | 'separator'>(
-        [
-          {
-            on: ['value'],
-            type: 'NUMBER',
-            reader: numberReader,
-            to: 'separator'
-          },
-          {
-            on: ['separator'],
-            reader: semicolonReader,
-            silent: true,
-            to: 'value'
-          },
-          {
-            reader: whitespaceReader,
-            silent: true
-          }
-        ],
-        'value'
+      [
+        {
+          on: ['value'],
+          type: 'NUMBER',
+          reader: numberReader,
+          to: 'separator'
+        },
+        {
+          on: ['separator'],
+          reader: semicolonReader,
+          silent: true,
+          to: 'value'
+        },
+        {
+          reader: whitespaceReader,
+          silent: true
+        }
+      ],
+      'value'
     );
 
     const state = tokenizer.write('123', undefined, handler);
@@ -84,14 +84,14 @@ describe('Readme', () => {
 
   test('Usage', () => {
 
-    const alphaReader = all(char([['a', 'z']]), {minimumCount: 1});
+    const alphaReader = all(char([['a', 'z']]), { minimumCount: 1 });
 
     const integerReader = or(
-        text('0'),
-        seq(
-            char([['1', '9']]),
-            all(char([['0', '9']]))
-        ),
+      text('0'),
+      seq(
+        char([['1', '9']]),
+        all(char([['0', '9']]))
+      ),
     );
 
     const semicolonReader = text(';');
@@ -156,11 +156,11 @@ describe('Readme', () => {
     };
 
     const tokenize = createTokenizer(
-        [
-          fooRule,
-          barRule
-        ],
-        'start'
+      [
+        fooRule,
+        barRule
+      ],
+      'start'
     );
 
     tokenize('foobarfoobar', handler);
@@ -204,12 +204,12 @@ describe('Readme', () => {
     };
 
     const tokenize = createTokenizer(
-        [
-          fooRule,
-          barRule,
-          spaceReader
-        ],
-        'start'
+      [
+        fooRule,
+        barRule,
+        spaceReader
+      ],
+      'start'
     );
 
     tokenize('foo  bar  foo  bar', handler);

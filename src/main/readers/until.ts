@@ -1,11 +1,11 @@
-import {Binding, CodeBindings, Var} from 'codedegen';
-import {createVar} from '../utils';
-import {CharCodeRange, CharCodeRangeReader, createCharPredicateCode} from './char';
-import {never} from './never';
-import {none} from './none';
-import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode} from './reader-utils';
-import {CaseSensitiveTextReader} from './text';
+import { Binding, CodeBindings, Var } from 'codedegen';
+import { createVar } from '../utils';
+import { CharCodeRange, CharCodeRangeReader, createCharPredicateCode } from './char';
+import { never } from './never';
+import { none } from './none';
+import { Reader, ReaderCodegen } from './reader-types';
+import { createCodeBindings, createReaderCallCode } from './reader-utils';
+import { CaseSensitiveTextReader } from './text';
 
 export interface UntilOptions {
 
@@ -27,13 +27,13 @@ export interface UntilOptions {
  */
 export function until<Context = any>(reader: Reader<Context>, options: UntilOptions = {}): Reader<Context> {
 
-  const {inclusive = false} = options;
+  const { inclusive = false } = options;
 
   if (reader === never || reader === none) {
     return reader;
   }
   if (reader instanceof CharCodeRangeReader) {
-    const {charCodeRanges} = reader;
+    const { charCodeRanges } = reader;
 
     if (charCodeRanges.length === 1 && typeof charCodeRanges[0] === 'number') {
       return new UntilCaseSensitiveTextReader(String.fromCharCode(charCodeRanges[0]), inclusive);
@@ -81,17 +81,17 @@ export class UntilCaseSensitiveTextReader implements ReaderCodegen {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-    const {str} = this;
+    const { str } = this;
 
     const strVar = createVar();
     const indexVar = createVar();
 
     return createCodeBindings(
-        [
-          'var ', indexVar, '=', inputVar, '.indexOf(', strVar, ',', offsetVar, ');',
-          resultVar, '=', indexVar, this.inclusive ? ['===-1?-1:', indexVar, '+', str.length] : '', ';',
-        ],
-        [[strVar, str]],
+      [
+        'var ', indexVar, '=', inputVar, '.indexOf(', strVar, ',', offsetVar, ');',
+        resultVar, '=', indexVar, this.inclusive ? ['===-1?-1:', indexVar, '+', str.length] : '', ';',
+      ],
+      [[strVar, str]],
     );
   }
 }
@@ -108,20 +108,20 @@ export class UntilReader<Context> implements ReaderCodegen {
     const bindings: Binding[] = [];
 
     return createCodeBindings(
-        [
-          resultVar, '=-1;',
+      [
+        resultVar, '=-1;',
 
-          'var ',
-          indexVar, '=', offsetVar, ',',
-          readerResultVar, ';',
+        'var ',
+        indexVar, '=', offsetVar, ',',
+        readerResultVar, ';',
 
-          'do{',
-          createReaderCallCode(this.reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
-          'if(', readerResultVar, '>=', indexVar, '){', resultVar, '=', this.inclusive ? readerResultVar : indexVar, ';break}',
-          '++', indexVar, ';',
-          '}while(true)',
-        ],
-        bindings,
+        'do{',
+        createReaderCallCode(this.reader, inputVar, indexVar, contextVar, readerResultVar, bindings),
+        'if(', readerResultVar, '>=', indexVar, '){', resultVar, '=', this.inclusive ? readerResultVar : indexVar, ';break}',
+        '++', indexVar, ';',
+        '}while(true)',
+      ],
+      bindings,
     );
   }
 }

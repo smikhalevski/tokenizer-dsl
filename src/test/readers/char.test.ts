@@ -1,4 +1,4 @@
-import {char, CharCodeRangeReader, none, toReaderFunction} from '../../main/readers';
+import { char, CharCodeRangeReader, none, toReaderFunction } from '../../main/readers';
 
 const A = 'a'.charCodeAt(0);
 

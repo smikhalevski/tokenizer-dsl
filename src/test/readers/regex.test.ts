@@ -1,4 +1,4 @@
-import {regex, RegexReader, toReaderFunction} from '../../main/readers';
+import { regex, RegexReader, toReaderFunction } from '../../main/readers';
 
 describe('regex', () => {
 

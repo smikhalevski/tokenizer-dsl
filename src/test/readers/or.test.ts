@@ -1,4 +1,4 @@
-import {none, or, OrReader, Reader, text, toReaderFunction} from '../../main/readers';
+import { none, or, OrReader, Reader, text, toReaderFunction } from '../../main/readers';
 
 describe('or', () => {
 

@@ -1,4 +1,4 @@
-import {all, createTokenizer, Reader, text, TokenHandler} from '../main';
+import { all, createTokenizer, Reader, text, TokenHandler } from '../main';
 
 describe('createTokenizer', () => {
 
@@ -15,8 +15,8 @@ describe('createTokenizer', () => {
   test('reads tokens in non-streaming mode', () => {
 
     const tokenizer = createTokenizer<string, void>([
-      {type: 'TYPE_A', reader: text('a')},
-      {type: 'TYPE_B', reader: all(text('b', {caseInsensitive: true}))},
+      { type: 'TYPE_A', reader: text('a') },
+      { type: 'TYPE_B', reader: all(text('b', { caseInsensitive: true })) },
     ]);
 
     const state = tokenizer('aabbb', handler);
@@ -37,8 +37,8 @@ describe('createTokenizer', () => {
   test('reads tokens in streaming mode', () => {
 
     const tokenizer = createTokenizer<string, void>([
-      {type: 'TYPE_A', reader: text('a')},
-      {type: 'TYPE_B', reader: all(text('b', {caseInsensitive: true}))},
+      { type: 'TYPE_A', reader: text('a') },
+      { type: 'TYPE_B', reader: all(text('b', { caseInsensitive: true })) },
     ]);
 
     const state = tokenizer.write('aabbb', undefined, handler);
@@ -66,7 +66,7 @@ describe('createTokenizer', () => {
     const readerMock: Reader = jest.fn((input, offset) => offset < input.length ? offset + 1 : -1);
 
     const tokenizer = createTokenizer([
-      {reader: readerMock},
+      { reader: readerMock },
     ]);
 
     tokenizer('abc', handler);

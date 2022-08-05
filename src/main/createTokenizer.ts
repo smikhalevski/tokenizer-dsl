@@ -1,4 +1,4 @@
-import {compileRuleIterator, createRuleTree, Rule, TokenHandler, TokenizerState} from './rules';
+import { compileRuleIterator, createRuleTree, Rule, TokenHandler, TokenizerState } from './rules';
 
 /**
  * The pure tokenization function compiled from a set of rules.
@@ -64,7 +64,12 @@ export function createTokenizer(rules: Rule[], initialStage?: any) {
   const ruleIterator = compileRuleIterator(createRuleTree(rules));
 
   const tokenizer: Tokenizer = (input, handler, context) => {
-    const state: TokenizerState = typeof input === 'string' ? {stage: initialStage, chunk: input, chunkOffset: 0, offset: 0} : input;
+    const state: TokenizerState = typeof input === 'string' ? {
+      stage: initialStage,
+      chunk: input,
+      chunkOffset: 0,
+      offset: 0
+    } : input;
     ruleIterator(state, handler, context, false);
     return state;
   };
@@ -75,7 +80,7 @@ export function createTokenizer(rules: Rule[], initialStage?: any) {
       state.chunkOffset += state.offset;
       state.offset = 0;
     } else {
-      state = {stage: initialStage, chunk, chunkOffset: 0, offset: 0};
+      state = { stage: initialStage, chunk, chunkOffset: 0, offset: 0 };
     }
     ruleIterator(state, handler, context, true);
     return state;

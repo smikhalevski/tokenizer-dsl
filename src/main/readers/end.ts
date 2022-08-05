@@ -1,6 +1,6 @@
-import {CodeBindings, Var} from 'codedegen';
-import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings} from './reader-utils';
+import { CodeBindings, Var } from 'codedegen';
+import { Reader, ReaderCodegen } from './reader-types';
+import { createCodeBindings } from './reader-utils';
 
 /**
  * Creates a reader that returns the input length plus the offset.
@@ -19,7 +19,7 @@ export class EndReader implements ReaderCodegen {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-    const {offset} = this;
+    const { offset } = this;
 
     return createCodeBindings([
       resultVar, '=', inputVar, '.length', offset === 0 ? '' : '+' + offset, ';',

@@ -1,5 +1,5 @@
-import {Reader} from './reader-types';
-import {createCodeBindings} from './reader-utils';
+import { Reader } from './reader-types';
+import { createCodeBindings } from './reader-utils';
 
 /**
  * The singleton reader that always returns -1.
