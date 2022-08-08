@@ -11,14 +11,14 @@ import { createCodeBindings, createReaderCallCode } from './reader-utils';
  *
  * @template Context The context passed by tokenizer.
  */
-export function maybe<Context = any>(reader: Reader<Context>): Reader<Context> {
+export function optional<Context = any>(reader: Reader<Context>): Reader<Context> {
   if (reader === none || reader === never) {
     return none;
   }
-  return new MaybeReader(reader);
+  return new OptionalReader(reader);
 }
 
-export class MaybeReader<Context> implements ReaderCodegen {
+export class OptionalReader<Context> implements ReaderCodegen {
 
   constructor(public reader: Reader<Context>) {
   }

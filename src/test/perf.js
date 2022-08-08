@@ -87,7 +87,7 @@ describe('Tokenizer', () => {
 
             const numberReader = next.seq(
                 // sign
-                next.maybe(signReader),
+                next.optional(signReader),
 
                 // integer
                 next.or(
@@ -99,7 +99,7 @@ describe('Tokenizer', () => {
                 ),
 
                 // fraction
-                next.maybe(
+                next.optional(
                     next.seq(
                         dotReader,
                         digitsReader,
@@ -216,7 +216,7 @@ describe('Tokenizer', () => {
 
             const numberReader = next.seq(
                 // sign
-                next.maybe(signReader),
+                next.optional(signReader),
 
                 // integer
                 next.or(
@@ -228,7 +228,7 @@ describe('Tokenizer', () => {
                 ),
 
                 // fraction
-                next.maybe(
+                next.optional(
                     next.seq(
                         dotReader,
                         digitsReader,

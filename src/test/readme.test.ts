@@ -1,4 +1,4 @@
-import { all, char, createTokenizer, maybe, or, Rule, seq, text, TokenHandler } from '../main';
+import { all, char, createTokenizer, optional, or, Rule, seq, text, TokenHandler } from '../main';
 
 describe('Readme', () => {
 
@@ -25,7 +25,7 @@ describe('Readme', () => {
 
     const numberReader = seq(
       // sign
-      maybe(signReader),
+      optional(signReader),
 
       // integer
       or(
@@ -37,10 +37,10 @@ describe('Readme', () => {
       ),
 
       // fraction
-      maybe(
+      optional(
         seq(
           dotReader,
-          maybe(digitsReader),
+          optional(digitsReader),
         ),
       ),
     );

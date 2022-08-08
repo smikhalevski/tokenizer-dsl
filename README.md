@@ -16,7 +16,7 @@ npm install --save-prod tokenizer-dsl
 
 - [Usage](#usage)
 - [Built-in readers](#built-in-readers)<br>
-  [`text`](#text) [`char`](#char) [`regex`](#regex) [`all`](#all) [`seq`](#seq) [`or`](#or) [`skip`](#skip) [`until`](#until) [`end`](#end) [`lookahead`](#lookahead) [`maybe`](#maybe) [`never`](#never) [`none`](#none)
+  [`text`](#text) [`char`](#char) [`regex`](#regex) [`all`](#all) [`seq`](#seq) [`or`](#or) [`skip`](#skip) [`until`](#until) [`end`](#end) [`lookahead`](#lookahead) [`optional`](#optional) [`never`](#never) [`none`](#none)
 - [Functional readers](#functional-readers)
     - [Recursive readers](#recursive-readers)
 - [Code-generated readers](#code-generated-readers)
@@ -66,7 +66,7 @@ The regular expression equivalent for `whitespaceReader` is `/[ \t\n\r]*/y`, and
 To read a signed floating-point number we need a combination of multiple readers:
 
 ```ts
-import { all, char, maybe, or, seq, text } from 'tokenizer-dsl';
+import { all, char, optional, or, seq, text } from 'tokenizer-dsl';
 
 const zeroReader = text('0');
 
@@ -80,7 +80,7 @@ const signReader = char(['+-']);
 
 const numberReader = seq(
   // sign
-  maybe(signReader),
+  optional(signReader),
 
   // integer
   or(
@@ -92,7 +92,7 @@ const numberReader = seq(
   ),
 
   // fraction
-  maybe(
+  optional(
     seq(
       dotReader,
       digitsReader
@@ -324,14 +324,14 @@ seq(
 );
 ```
 
-### `maybe(reader)`<a name="maybe"></a>
+### `optional(reader)`<a name="optional"></a>
 
 Returns the current offset if the `reader` failed to read chars:
 
 ```ts
 // Reads 'foo-bar' and 'bar'
 seq(
-  maybe(text('foo-')),
+  optional(text('foo-')),
   text('bar')
 );
 ```
@@ -383,7 +383,7 @@ import { toReaderFunction } from 'tokenizer-dsl';
 
 const fooReader = toReaderFunction(seq(
   text('-'),
-  maybe((input, offset) => fooReader(input, offset))
+  optional((input, offset) => fooReader(input, offset))
 ));
 ```
 
