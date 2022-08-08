@@ -69,10 +69,14 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
       const tokenTypeVar = createVar();
       const nextStageVar = createVar();
 
-      bindings.push(
-        [tokenTypeVar, rule.type],
-        [nextStageVar, rule.to],
-      );
+      const { type: tokenType, to: nextStage, silent } = rule;
+
+      if (!silent) {
+        bindings.push([tokenTypeVar, tokenType]);
+      }
+      if (nextStage !== undefined) {
+        bindings.push([nextStageVar, nextStage]);
+      }
 
       const valueProviderArgsCode: Code = ['(', chunkVar, ',', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, ',', stateVar, ')'];
 
@@ -86,12 +90,12 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
         stagesEnabled ? [stateVar, '.stage=', stageVar, ';'] : '',
         stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
-        rule.silent ? '' : [
+        silent ? '' : [
           tokenPendingVar, '=true;',
-          pendingTokenTypeVar, '=', tokenTypeVar, isFunction(rule.type) ? valueProviderArgsCode : '', ';',
+          pendingTokenTypeVar, '=', tokenTypeVar, isFunction(tokenType) ? valueProviderArgsCode : '', ';',
         ],
 
-        rule.to === undefined ? '' : [stageVar, '=', nextStageVar, isFunction(rule.to) ? valueProviderArgsCode : '', ';'],
+        nextStage === undefined ? '' : [stageVar, '=', nextStageVar, isFunction(nextStage) ? valueProviderArgsCode : '', ';'],
 
         nextOffsetVar, '=', branchResultVar, ';',
 
