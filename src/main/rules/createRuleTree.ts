@@ -1,5 +1,5 @@
-import {Reader, SeqReader} from '../readers';
-import {Rule} from './rule-types';
+import { Reader, SeqReader } from '../readers';
+import { Rule } from './rule-types';
 
 export interface RuleTree<Type, Stage, Context> {
 
@@ -94,7 +94,7 @@ export function createRuleTree<Type, Stage, Context>(rules: Rule<Type, Stage, Co
  * @returns The updated list of branches.
  */
 export function appendRule<Type, Stage, Context>(branches: RuleBranch<Type, Stage, Context>[], rule: Rule<Type, Stage, Context>): RuleBranch<Type, Stage, Context>[] {
-  const {reader} = rule;
+  const { reader } = rule;
 
   distributeRule(branches, reader instanceof SeqReader ? reader.readers : [reader], rule);
 

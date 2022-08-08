@@ -1,9 +1,9 @@
-import {Code, CodeBindings, Var} from 'codedegen';
-import {createVar, die} from '../utils';
-import {CharCodeRangeReader} from './char';
-import {none} from './none';
-import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, toCharCodes} from './reader-utils';
+import { Code, CodeBindings, Var } from 'codedegen';
+import { createVar, die } from '../utils';
+import { CharCodeRangeReader } from './char';
+import { none } from './none';
+import { Reader, ReaderCodegen } from './reader-types';
+import { createCodeBindings, toCharCodes } from './reader-utils';
 
 export interface TextOptions {
 
@@ -25,7 +25,7 @@ export interface TextOptions {
  */
 export function text(str: string, options: TextOptions = {}): Reader<any> {
 
-  const {caseInsensitive} = options;
+  const { caseInsensitive } = options;
 
   if (str.length === 0) {
     return none;
@@ -52,17 +52,17 @@ export class CaseSensitiveTextReader implements ReaderCodegen {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-    const {str} = this;
+    const { str } = this;
 
     const strVar = createVar();
 
     return createCodeBindings(
-        [
-          resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
-          toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, '+', i, ')===', charCode]),
-          '?', offsetVar, '+', str.length, ':-1;',
-        ],
-        [[strVar, str]],
+      [
+        resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
+        toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, '+', i, ')===', charCode]),
+        '?', offsetVar, '+', str.length, ':-1;',
+      ],
+      [[strVar, str]],
     );
   }
 }
@@ -73,7 +73,7 @@ export class CaseInsensitiveTextReader implements ReaderCodegen {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-    const {str} = this;
+    const { str } = this;
 
     const charCodeVar = createVar();
 
@@ -96,10 +96,10 @@ export class CaseInsensitiveTextReader implements ReaderCodegen {
         code.push('&&', inputVar, '.charCodeAt(', offsetVar, '+', i, ')===', lowerCharCode);
       } else {
         code.push(
-            '&&(',
-            charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '+', i, '),',
-            charCodeVar, '===', lowerCharCode, '||', charCodeVar, '===', upperCharCode,
-            ')',
+          '&&(',
+          charCodeVar, '=', inputVar, '.charCodeAt(', offsetVar, '+', i, '),',
+          charCodeVar, '===', lowerCharCode, '||', charCodeVar, '===', upperCharCode,
+          ')',
         );
       }
     }

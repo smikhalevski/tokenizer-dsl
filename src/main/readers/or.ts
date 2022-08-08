@@ -1,8 +1,8 @@
-import {Binding, Code, CodeBindings, Var} from 'codedegen';
-import {never} from './never';
-import {none} from './none';
-import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode} from './reader-utils';
+import { Binding, Code, CodeBindings, Var } from 'codedegen';
+import { never } from './never';
+import { none } from './none';
+import { Reader, ReaderCodegen } from './reader-types';
+import { createCodeBindings, createReaderCallCode } from './reader-utils';
 
 /**
  * Creates a reader that returns the result of the first matched reader.
@@ -43,7 +43,7 @@ export class OrReader<Context> implements ReaderCodegen {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-    const {readers} = this;
+    const { readers } = this;
 
     const readersLength = readers.length;
     const bindings: Binding[] = [];

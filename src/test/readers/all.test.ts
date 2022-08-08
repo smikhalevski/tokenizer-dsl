@@ -1,14 +1,14 @@
-import {all, AllReader, never, none, text, toReaderFunction} from '../../main/readers';
+import { all, AllReader, never, none, text, toReaderFunction } from '../../main/readers';
 
 describe('all', () => {
 
   test('returns never', () => {
     expect(all(never)).toBe(never);
-    expect(all(never, {minimumCount: Infinity})).toBe(never);
+    expect(all(never, { minimumCount: Infinity })).toBe(never);
   });
 
   test('throws if minimum is greater than maximum', () => {
-    expect(() => all(never, {minimumCount: 2, maximumCount: 1})).toThrow();
+    expect(() => all(never, { minimumCount: 2, maximumCount: 1 })).toThrow();
   });
 
   test('returns none', () => {
@@ -16,13 +16,13 @@ describe('all', () => {
   });
 
   test('returns unlimited reader', () => {
-    expect(all(() => 0, {maximumCount: -1})).toBeInstanceOf(AllReader);
-    expect(all(() => 0, {maximumCount: 0})).toBeInstanceOf(AllReader);
+    expect(all(() => 0, { maximumCount: -1 })).toBeInstanceOf(AllReader);
+    expect(all(() => 0, { maximumCount: 0 })).toBeInstanceOf(AllReader);
   });
 
   test('returns reader', () => {
     const baseReaderMock = () => 0;
-    expect(all(baseReaderMock, {minimumCount: 1, maximumCount: 1})).toBe(baseReaderMock);
+    expect(all(baseReaderMock, { minimumCount: 1, maximumCount: 1 })).toBe(baseReaderMock);
   });
 
   test('returns AllReader', () => {

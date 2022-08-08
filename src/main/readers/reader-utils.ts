@@ -1,6 +1,6 @@
-import {Binding, Code, CodeBindings, compileFunction, Var} from 'codedegen';
-import {createVar} from '../utils';
-import {Reader, ReaderFunction} from './reader-types';
+import { Binding, Code, CodeBindings, compileFunction, Var } from 'codedegen';
+import { createVar, isFunction } from '../utils';
+import { Reader, ReaderFunction } from './reader-types';
 
 export function toCharCodes(str: string): number[] {
   const charCodes: number[] = [];
@@ -13,7 +13,7 @@ export function toCharCodes(str: string): number[] {
 
 export function createReaderCallCode<Context>(reader: Reader<Context>, inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var, bindings: Binding[]): Code {
 
-  if (typeof reader === 'function') {
+  if (isFunction(reader)) {
     const readerVar = createVar();
     bindings.push([readerVar, reader]);
 
@@ -29,7 +29,7 @@ export function createReaderCallCode<Context>(reader: Reader<Context>, inputVar:
 }
 
 export function createCodeBindings(code: Code, bindings?: Binding[]): CodeBindings {
-  return {code, bindings};
+  return { code, bindings };
 }
 
 /**
@@ -41,7 +41,7 @@ export function createCodeBindings(code: Code, bindings?: Binding[]): CodeBindin
  */
 export function toReaderFunction<Context = void>(reader: Reader<Context>): ReaderFunction<Context> {
 
-  if (typeof reader === 'function') {
+  if (isFunction(reader)) {
     return reader;
   }
 

@@ -1,8 +1,8 @@
-import {Binding, CodeBindings, Var} from 'codedegen';
-import {never} from './never';
-import {none} from './none';
-import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode} from './reader-utils';
+import { Binding, CodeBindings, Var } from 'codedegen';
+import { never } from './never';
+import { none } from './none';
+import { Reader, ReaderCodegen } from './reader-types';
+import { createCodeBindings, createReaderCallCode } from './reader-utils';
 
 /**
  * Creates a reader that returns `reader` result or current offset if reader returned didn't match.
@@ -28,11 +28,11 @@ export class MaybeReader<Context> implements ReaderCodegen {
     const bindings: Binding[] = [];
 
     return createCodeBindings(
-        [
-          createReaderCallCode(this.reader, inputVar, offsetVar, contextVar, resultVar, bindings),
-          'if(', resultVar, '<', offsetVar, ')', resultVar, '=', offsetVar, ';',
-        ],
-        bindings,
+      [
+        createReaderCallCode(this.reader, inputVar, offsetVar, contextVar, resultVar, bindings),
+        'if(', resultVar, '<', offsetVar, ')', resultVar, '=', offsetVar, ';',
+      ],
+      bindings,
     );
   }
 }

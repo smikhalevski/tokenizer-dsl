@@ -1,5 +1,5 @@
-import {seq} from '../../main';
-import {appendRule, createRuleTree, Rule, RuleBranch, RuleTree} from '../../main/rules';
+import { seq } from '../../main';
+import { appendRule, createRuleTree, Rule, RuleBranch, RuleTree } from '../../main/rules';
 
 describe('createRuleTree', () => {
 
@@ -7,7 +7,7 @@ describe('createRuleTree', () => {
     const reader1 = () => 0;
     const reader2 = () => 0;
 
-    const rule: Rule = {reader: seq(reader1, reader2)};
+    const rule: Rule = { reader: seq(reader1, reader2) };
 
     const ruleIterationPlan: RuleTree<any, any, any> = {
       stages: [],
@@ -27,7 +27,7 @@ describe('createRuleTree', () => {
     const reader1 = () => 0;
     const reader2 = () => 0;
 
-    const rule: Rule<unknown, string> = {reader: seq(reader1, reader2), on: ['STAGE_A']};
+    const rule: Rule<unknown, string> = { reader: seq(reader1, reader2), on: ['STAGE_A'] };
 
     const ruleIterationPlan: RuleTree<any, any, any> = {
       stages: ['STAGE_A'],
@@ -48,8 +48,8 @@ describe('createRuleTree', () => {
     const reader12 = () => 0;
     const reader22 = () => 0;
 
-    const rule1: Rule<unknown, string> = {reader: seq(reader1, reader12), on: ['STAGE_A']};
-    const rule2: Rule<unknown, string> = {reader: seq(reader1, reader22), on: ['STAGE_A']};
+    const rule1: Rule<unknown, string> = { reader: seq(reader1, reader12), on: ['STAGE_A'] };
+    const rule2: Rule<unknown, string> = { reader: seq(reader1, reader22), on: ['STAGE_A'] };
 
     const ruleIterationPlan: RuleTree<any, any, any> = {
       stages: ['STAGE_A'],
@@ -79,8 +79,8 @@ describe('createRuleTree', () => {
     const reader12 = () => 0;
     const reader22 = () => 0;
 
-    const rule1: Rule<unknown, string> = {reader: seq(reader1, reader12), on: ['STAGE_A']};
-    const rule2: Rule<unknown, string> = {reader: seq(reader1, reader22), on: ['STAGE_B']};
+    const rule1: Rule<unknown, string> = { reader: seq(reader1, reader12), on: ['STAGE_A'] };
+    const rule2: Rule<unknown, string> = { reader: seq(reader1, reader22), on: ['STAGE_B'] };
 
     const ruleIterationPlan: RuleTree<any, any, any> = {
       stages: ['STAGE_A', 'STAGE_B'],
@@ -107,8 +107,8 @@ describe('createRuleTree', () => {
     const reader12 = () => 0;
     const reader22 = () => 0;
 
-    const rule1: Rule<unknown, string> = {reader: seq(reader1, reader12), on: ['STAGE_A']};
-    const rule2: Rule<unknown, string> = {reader: seq(reader1, reader22)};
+    const rule1: Rule<unknown, string> = { reader: seq(reader1, reader12), on: ['STAGE_A'] };
+    const rule2: Rule<unknown, string> = { reader: seq(reader1, reader22) };
 
     const ruleIterationPlan: RuleTree<any, any, any> = {
       stages: ['STAGE_A'],
@@ -143,7 +143,7 @@ describe('appendRule', () => {
     const reader1 = () => 0;
     const reader2 = () => 0;
 
-    const rule: Rule = {reader: seq(reader1, reader2)};
+    const rule: Rule = { reader: seq(reader1, reader2) };
 
     const branches: RuleBranch<any, any, any>[] = [
       {
@@ -160,8 +160,8 @@ describe('appendRule', () => {
     const reader12 = () => 0;
     const reader21 = () => 0;
 
-    const rule1: Rule = {reader: seq(reader11, reader12)};
-    const rule2: Rule = {reader: reader21};
+    const rule1: Rule = { reader: seq(reader11, reader12) };
+    const rule2: Rule = { reader: reader21 };
 
     const branches: RuleBranch<any, any, any>[] = [
       {
@@ -182,8 +182,8 @@ describe('appendRule', () => {
     const reader12 = () => 0;
     const reader21 = () => 0;
 
-    const rule1: Rule = {reader: seq(reader1, reader12)};
-    const rule2: Rule = {reader: seq(reader1, reader21)};
+    const rule1: Rule = { reader: seq(reader1, reader12) };
+    const rule2: Rule = { reader: seq(reader1, reader21) };
 
     const branches: RuleBranch<any, any, any>[] = [
       {
@@ -208,8 +208,8 @@ describe('appendRule', () => {
     const reader1 = () => 0;
     const reader12 = () => 0;
 
-    const rule1: Rule = {reader: seq(reader1, reader12)};
-    const rule2: Rule = {reader: reader1};
+    const rule1: Rule = { reader: seq(reader1, reader12) };
+    const rule2: Rule = { reader: reader1 };
 
     const branches: RuleBranch<any, any, any>[] = [
       {
@@ -231,8 +231,8 @@ describe('appendRule', () => {
     const reader1 = () => 0;
     const reader22 = () => 0;
 
-    const rule1: Rule = {reader: reader1};
-    const rule2: Rule = {reader: seq(reader1, reader22)};
+    const rule1: Rule = { reader: reader1 };
+    const rule2: Rule = { reader: seq(reader1, reader22) };
 
     const branches: RuleBranch<any, any, any>[] = [
       {

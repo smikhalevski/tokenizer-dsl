@@ -1,8 +1,8 @@
-import {Code, CodeBindings, Var} from 'codedegen';
-import {createVar, die} from '../utils';
-import {none} from './none';
-import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, toCharCodes} from './reader-utils';
+import { Code, CodeBindings, Var } from 'codedegen';
+import { createVar, die } from '../utils';
+import { none } from './none';
+import { Reader, ReaderCodegen } from './reader-types';
+import { createCodeBindings, toCharCodes } from './reader-utils';
 
 export type CharRange = string | number | [number | string, number | string];
 

@@ -1,4 +1,4 @@
-import {maybe, MaybeReader, never, none, text, toReaderFunction} from '../../main/readers';
+import { maybe, MaybeReader, never, none, text, toReaderFunction } from '../../main/readers';
 
 describe('maybe', () => {
 

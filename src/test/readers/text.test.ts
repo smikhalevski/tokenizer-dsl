@@ -1,4 +1,4 @@
-import {CaseInsensitiveTextReader, CaseSensitiveTextReader, none, text, toReaderFunction} from '../../main/readers';
+import { CaseInsensitiveTextReader, CaseSensitiveTextReader, none, text, toReaderFunction } from '../../main/readers';
 
 describe('text', () => {
 
@@ -8,15 +8,15 @@ describe('text', () => {
 
   test('returns CaseSensitiveTextReader', () => {
     expect(text('aaa')).toBeInstanceOf(CaseSensitiveTextReader);
-    expect(text('123', {caseInsensitive: true})).toBeInstanceOf(CaseSensitiveTextReader);
+    expect(text('123', { caseInsensitive: true })).toBeInstanceOf(CaseSensitiveTextReader);
   });
 
   test('returns CaseInsensitiveTextReader', () => {
-    expect(text('aaa', {caseInsensitive: true})).toBeInstanceOf(CaseInsensitiveTextReader);
+    expect(text('aaa', { caseInsensitive: true })).toBeInstanceOf(CaseInsensitiveTextReader);
   });
 
   test('throws if text length is ambiguous', () => {
-    expect(() => text('ßß', {caseInsensitive: true})).toThrow();
+    expect(() => text('ßß', { caseInsensitive: true })).toThrow();
   });
 });
 

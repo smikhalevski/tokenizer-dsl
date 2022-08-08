@@ -1,9 +1,9 @@
-import {Binding, Code, CodeBindings, Var} from 'codedegen';
-import {createVar} from '../utils';
-import {never} from './never';
-import {none} from './none';
-import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings, createReaderCallCode} from './reader-utils';
+import { Binding, Code, CodeBindings, Var } from 'codedegen';
+import { createVar } from '../utils';
+import { never } from './never';
+import { none } from './none';
+import { Reader, ReaderCodegen } from './reader-types';
+import { createCodeBindings, createReaderCallCode } from './reader-utils';
 
 /**
  * Creates a reader that applies readers one after another.
@@ -44,7 +44,7 @@ export class SeqReader<Context> implements ReaderCodegen {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-    const {readers} = this;
+    const { readers } = this;
 
     const indexVar = createVar();
     const readerResultVar = createVar();
@@ -61,9 +61,9 @@ export class SeqReader<Context> implements ReaderCodegen {
 
     for (let i = 0; i < readersLength; ++i) {
       code.push(
-          createReaderCallCode(readers[i], inputVar, indexVar, contextVar, readerResultVar, bindings),
-          'if(', readerResultVar, '>=', indexVar, '){',
-          i < readersLength - 1 ? indexVar : resultVar, '=', readerResultVar, ';',
+        createReaderCallCode(readers[i], inputVar, indexVar, contextVar, readerResultVar, bindings),
+        'if(', readerResultVar, '>=', indexVar, '){',
+        i < readersLength - 1 ? indexVar : resultVar, '=', readerResultVar, ';',
       );
     }
 

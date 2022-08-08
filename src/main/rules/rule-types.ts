@@ -1,7 +1,7 @@
-import {Reader} from '../readers';
+import { Reader } from '../readers';
 
 /**
- * Returns the stage to which the tokenizer should transition.
+ * Returns the value depending on the current tokenizer state.
  *
  * @param chunk The input chunk from which the current token was read.
  * @param offset The chunk-relative offset where the current token was read.
@@ -12,8 +12,9 @@ import {Reader} from '../readers';
  *
  * @template Stage The tokenizer stage type.
  * @template Context The context passed by tokenizer.
+ * @template Value The value that the provider must return.
  */
-export type StageProvider<Stage, Context> = (chunk: string, offset: number, length: number, context: Context, state: TokenizerState) => Stage;
+export type ValueProvider<Stage, Context, Value> = (chunk: string, offset: number, length: number, context: Context, state: TokenizerState<Stage>) => Value;
 
 /**
  * Defines how the token is read from the input string and how {@link Tokenizer} transitions between stages.
@@ -30,14 +31,6 @@ export interface Rule<Type = unknown, Stage = void, Context = void> {
   reader: Reader<Context>;
 
   /**
-   * The type of the token that is passed to {@link TokenHandler} when the rule successfully reads chars from the input
-   * string. Type isn't required to be unique, so multiple rules may share the same type if needed.
-   *
-   * @default undefined
-   */
-  type?: Type;
-
-  /**
    * The list of stages at which the rule can be used. If `undefined` then the rule is used on all stages. If an empty
    * array then the rule is never used.
    *
@@ -46,13 +39,20 @@ export interface Rule<Type = unknown, Stage = void, Context = void> {
   on?: Stage[] | undefined;
 
   /**
-   * Provides the stage to which tokenizer transitions if this rule successfully reads a token.
+   * The type of the token that is passed to {@link TokenHandler} when the rule successfully reads chars from the input
+   * string. Type isn't required to be unique, so multiple rules may share the same type if needed. If `type` is omitted
+   * and the rule isn't {@link silent} then the handler is called with `undefined` token type.
+   */
+  type?: ValueProvider<Stage, Context, Type> | Type;
+
+  /**
+   * The stage to which tokenizer transitions if this rule successfully reads a token.
    *
    * If `undefined` then the stage is left unchanged.
    *
    * @default undefined
    */
-  to?: StageProvider<Stage, Context> | Stage | undefined;
+  to?: ValueProvider<Stage, Context, Stage> | Stage | undefined;
 
   /**
    * If set to `true` then tokens read by this reader are not emitted.
@@ -115,4 +115,4 @@ export interface TokenizerState<Stage = any> {
  * @template Type The type of tokens emitted by rules.
  * @template Context The context passed by tokenizer.
  */
-export type TokenHandler<Type = unknown, Context = void> = (type: Type, chunk: string, offset: number, length: number, context: Context, state: TokenizerState) => void;
+export type TokenHandler<Type = unknown, Stage = any, Context = any> = (type: Type, chunk: string, offset: number, length: number, context: Context, state: TokenizerState<Stage>) => void;

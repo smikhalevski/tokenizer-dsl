@@ -1,7 +1,7 @@
-import {CodeBindings, Var} from 'codedegen';
-import {createVar} from '../utils';
-import {Reader, ReaderCodegen} from './reader-types';
-import {createCodeBindings} from './reader-utils';
+import { CodeBindings, Var } from 'codedegen';
+import { createVar } from '../utils';
+import { Reader, ReaderCodegen } from './reader-types';
+import { createCodeBindings } from './reader-utils';
 
 /**
  * Creates a reader that matches a substring.
@@ -25,11 +25,11 @@ export class RegexReader implements ReaderCodegen {
     const reVar = createVar();
 
     return createCodeBindings(
-        [
-          reVar, '.lastIndex=', offsetVar, ';',
-          resultVar, '=', reVar, '.test(', inputVar, ')?', reVar, '.lastIndex:-1;',
-        ],
-        [[reVar, this.re]],
+      [
+        reVar, '.lastIndex=', offsetVar, ';',
+        resultVar, '=', reVar, '.test(', inputVar, ')?', reVar, '.lastIndex:-1;',
+      ],
+      [[reVar, this.re]],
     );
   }
 }
