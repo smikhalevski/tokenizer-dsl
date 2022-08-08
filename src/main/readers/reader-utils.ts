@@ -1,5 +1,5 @@
 import { Binding, Code, CodeBindings, compileFunction, Var } from 'codedegen';
-import { createVar, isFunction } from '../utils';
+import { createVar, die, isFunction, isImportedValue } from '../utils';
 import { Reader, ReaderFunction } from './reader-types';
 
 export function toCharCodes(str: string): number[] {
@@ -13,7 +13,7 @@ export function toCharCodes(str: string): number[] {
 
 export function createReaderCallCode<Context>(reader: Reader<Context>, inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var, bindings: Binding[]): Code {
 
-  if (isFunction(reader)) {
+  if (isFunction(reader) || isImportedValue(reader)) {
     const readerVar = createVar();
     bindings.push([readerVar, reader]);
 
@@ -40,6 +40,10 @@ export function createCodeBindings(code: Code, bindings?: Binding[]): CodeBindin
  * @template Context The context passed by tokenizer.
  */
 export function toReaderFunction<Context = void>(reader: Reader<Context>): ReaderFunction<Context> {
+
+  if (isImportedValue(reader)) {
+    die('Cannot use imported value at runtime');
+  }
 
   if (isFunction(reader)) {
     return reader;

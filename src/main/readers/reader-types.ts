@@ -1,11 +1,12 @@
 import { CodeBindings, Var } from 'codedegen';
+import { ImportedValue } from '../imported';
 
 /**
  * The reader definition that can be compiled into a function that reads chars from the input string.
  *
  * @template Context The context passed by tokenizer.
  */
-export type Reader<Context = void> = ReaderFunction<Context> | ReaderCodegen;
+export type Reader<Context = void> = ReaderFunction<Context> | ReaderCodegen | ImportedValue;
 
 /**
  * Takes the string `input` and the offset in this string `offset` and returns the next offset that is greater or equal

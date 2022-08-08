@@ -1,4 +1,4 @@
-import { compileRuleIterator, createRuleTree, Rule, TokenHandler, TokenizerState } from './rules';
+import { compileRuleIterator, createRuleTree, Rule, RuleIterator, TokenHandler, TokenizerState } from './rules';
 
 /**
  * The pure tokenization function compiled from a set of rules.
@@ -61,7 +61,10 @@ export function createTokenizer<Type, Context = void>(rules: Rule<Type, void, Co
 export function createTokenizer<Type, Stage, Context = void>(rules: Rule<Type, Stage, Context>[], initialStage: Stage): Tokenizer<Type, Stage, Context>;
 
 export function createTokenizer(rules: Rule[], initialStage?: any) {
-  const ruleIterator = compileRuleIterator(createRuleTree(rules));
+  return createTokenizerForRuleIterator(compileRuleIterator(createRuleTree(rules)), initialStage);
+}
+
+export function createTokenizerForRuleIterator(ruleIterator: RuleIterator, initialStage?: any) {
 
   const tokenizer: Tokenizer = (input, handler, context) => {
     const state: TokenizerState = typeof input === 'string' ? {

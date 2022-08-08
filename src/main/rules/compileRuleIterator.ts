@@ -1,25 +1,36 @@
-import { Binding, Code, compileFunction, Var } from 'codedegen';
-import { createReaderCallCode, seq } from '../readers';
-import { createVar, isFunction } from '../utils';
+import { Binding, Code, CodeBindings, compileFunction, Var } from 'codedegen';
+import { createCodeBindings, createReaderCallCode, seq } from '../readers';
+import { createVar, die, isFunction, isImportedValue } from '../utils';
 import { RuleBranch, RuleTree } from './createRuleTree';
 import { TokenHandler, TokenizerState } from './rule-types';
 
 /**
  * The callback that reads tokens from the input defined by iterator state.
  */
-export type RuleIterator<Type, Stage, Context> = (state: TokenizerState<Stage>, handler: TokenHandler<Type, Stage, Context>, context: Context, streaming?: boolean) => void;
+export type RuleIterator<Type = any, Stage = any, Context = any> = (state: TokenizerState<Stage>, handler: TokenHandler<Type, Stage, Context>, context: Context, streaming?: boolean) => void;
 
 /**
  * Compiles rules into a function that applies them one after another in a loop.
  */
 export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, Stage, Context>): RuleIterator<Type, Stage, Context> {
 
-  const { branchesOnStage, branches } = tree;
-
   const stateVar = createVar();
   const handlerVar = createVar();
   const contextVar = createVar();
   const streamingVar = createVar();
+
+  const { code, bindings } = compileRuleIteratorCodeBindings(tree, stateVar, handlerVar, contextVar, streamingVar);
+
+  if (bindings && bindings.some(([, value]) => isImportedValue(value))) {
+    die('Cannot use imported value at runtime');
+  }
+
+  return compileFunction<RuleIterator<Type, Stage, Context>>([stateVar, handlerVar, contextVar, streamingVar], code, bindings);
+}
+
+export function compileRuleIteratorCodeBindings(tree: RuleTree<any, any, any>, stateVar: Var, handlerVar: Var, contextVar: Var, streamingVar: Var): CodeBindings {
+
+  const { branchesOnStage, branches } = tree;
 
   const stageVar = createVar();
   const chunkVar = createVar();
@@ -40,7 +51,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     bindings.push([stageVar, stage]);
   }
 
-  const createRuleIteratorBranchesCode = (branches: RuleBranch<Type, Stage, Context>[], branchOffsetVar: Var): Code => {
+  const createRuleIteratorBranchesCode = (branches: RuleBranch<any, any, any>[], branchOffsetVar: Var): Code => {
 
     const branchResultVar = createVar();
 
@@ -92,10 +103,10 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
 
         silent ? '' : [
           tokenPendingVar, '=true;',
-          pendingTokenTypeVar, '=', tokenTypeVar, isFunction(tokenType) ? valueProviderArgsCode : '', ';',
+          pendingTokenTypeVar, '=', tokenTypeVar, isFunction(tokenType) || isImportedValue(tokenType) ? valueProviderArgsCode : '', ';',
         ],
 
-        nextStage === undefined ? '' : [stageVar, '=', nextStageVar, isFunction(nextStage) ? valueProviderArgsCode : '', ';'],
+        nextStage === undefined ? '' : [stageVar, '=', nextStageVar, isFunction(nextStage) || isImportedValue(nextStage) ? valueProviderArgsCode : '', ';'],
 
         nextOffsetVar, '=', branchResultVar, ';',
 
@@ -148,5 +159,5 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     stateVar, '.offset=', nextOffsetVar, ';',
   ];
 
-  return compileFunction<RuleIterator<Type, Stage, Context>>([stateVar, handlerVar, contextVar, streamingVar], code, bindings);
+  return createCodeBindings(code, bindings);
 }
