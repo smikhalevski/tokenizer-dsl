@@ -15,5 +15,7 @@ export { toReaderFunction } from './readers/reader-utils';
 export * from './readers/reader-types';
 export * from './rules/rule-types';
 export * from './compileTokenizerModule';
+export * from './createTokenizerForRuleIterator';
 export * from './createTokenizer';
 export * from './imported';
+export * from './tokenizer-types';
