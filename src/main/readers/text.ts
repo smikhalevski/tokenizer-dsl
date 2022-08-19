@@ -54,16 +54,11 @@ export class CaseSensitiveTextReader implements ReaderCodegen {
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const { str } = this;
 
-    const strVar = createVar();
-
-    return createCodeBindings(
-      [
-        resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
-        toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, '+', i, ')===', charCode]),
-        '?', offsetVar, '+', str.length, ':-1;',
-      ],
-      [[strVar, str]],
-    );
+    return createCodeBindings([
+      resultVar, '=', offsetVar, '+', str.length, '<=', inputVar, '.length',
+      toCharCodes(str).map((charCode, i) => ['&&', inputVar, '.charCodeAt(', offsetVar, '+', i, ')===', charCode]),
+      '?', offsetVar, '+', str.length, ':-1;',
+    ]);
   }
 }
 
