@@ -14,7 +14,7 @@ import { compileRuleIteratorCodeBindings } from './compileRuleIterator';
  * @template Stage The type of stages at which rules are applied.
  * @template Context The context that rules may consume.
  */
-export function compileRuleIteratorModule(rules: Rule[]): string {
+export function compileRuleIteratorModule<Type, Stage, Context = void>(rules: Rule<Type, Stage, Context>[]): string {
 
   const stateVar = createVar();
   const handlerVar = createVar();
