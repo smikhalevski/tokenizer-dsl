@@ -4,17 +4,29 @@ import { createRuleTree } from './createRuleTree';
 import { Rule } from './rule-types';
 import { compileRuleIteratorCodeBindings } from './compileRuleIterator';
 
+export interface RuleIteratorModuleOptions {
+  /**
+   * If `true` then a TypeScript typings are output, so .ts file extension can be safely used.
+   *
+   * @default false
+   */
+  typingsEnabled?: boolean;
+}
+
 /**
  * Creates a code of the ES6 module that exports a pure tokenizer function.
  *
  * @param rules The list of rules that tokenizer uses to read tokens from the input chunks.
+ * @param options Compilation options.
  * @returns The module source code.
  *
  * @template Type The type of tokens emitted by the tokenizer.
  * @template Stage The type of stages at which rules are applied.
  * @template Context The context that rules may consume.
  */
-export function compileRuleIteratorModule<Type, Stage, Context = void>(rules: Rule<Type, Stage, Context>[]): string {
+export function compileRuleIteratorModule<Type, Stage, Context = void>(rules: Rule<Type, Stage, Context>[], options: RuleIteratorModuleOptions = {}): string {
+
+  const { typingsEnabled } = options;
 
   const stateVar = createVar();
   const handlerVar = createVar();
@@ -32,20 +44,25 @@ export function compileRuleIteratorModule<Type, Stage, Context = void>(rules: Ru
   // Dedupe bound vars
   const varMap = new Map(bindings);
 
-  if (varMap.size === 0) {
-    return assembleJs(['export default function(', argsSrc, '){return ', code, '};'], varRenamer);
-  }
+  // if (varMap.size === 0) {
+  //   return assembleJs(['export default function(', argsSrc, '){return ', code, '};'], varRenamer);
+  // }
 
   // Dedupe bound values
   const valueMap = inverseMap(varMap);
 
-  const moduleCode: Code[] = ['export default (function(){'];
+  const moduleCode: Code[] = [
+    typingsEnabled ? 'import type {RuleIterator} from "tokenizer-dsl";' : '',
+    'export default (function()',
+    typingsEnabled ? ':RuleIterator<any,any,any>' : '',
+    '{'
+  ];
 
   const importsMap = new Map<string, Map<string | undefined, Var>>();
 
   valueMap.forEach((valueVar, value) => {
     if (!isImportedValue(value)) {
-      moduleCode.push('var ', valueVar, '=', stringifyValue(value), ';');
+      moduleCode.push('const ', valueVar, '=', stringifyValue(value), ';');
       return;
     }
 
