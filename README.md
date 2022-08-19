@@ -178,7 +178,7 @@ NUMBER "-42"
 
 # Built-in readers
 
-### `text(substring, options?)`<a name="text"></a>
+## `text(substring, options?)`<a name="text"></a>
 
 Reads the case-sensitive `substring` from the input:
 
@@ -194,7 +194,7 @@ You can optionally specify that text must be case-insensitive:
 text('bar', { caseInsensitive: true });
 ```
 
-### `char(chars)`<a name="char"></a>
+## `char(chars)`<a name="char"></a>
 
 Reads a single char from the string. You should provide an array of strings, char codes or char ranges.
 
@@ -217,7 +217,7 @@ You can specify a pair of char codes or strings that denote a char range:
 char([['a', 'z'], [65, 90]]);
 ```
 
-### `regex(pattern)`<a name="regex"></a>
+## `regex(pattern)`<a name="regex"></a>
 
 Reads substring using the `RegExp` pattern:
 
@@ -228,7 +228,7 @@ regex(/0|[1-9]\d*/y);
 
 If you don't specify `g` or `y` flags on the `RegExp`, then `y` is implicitly added.
 
-### `all(reader, options?)`<a name="all"></a>
+## `all(reader, options?)`<a name="all"></a>
 
 Applies `reader` until it can read from the input:
 
@@ -244,7 +244,7 @@ You can optionally specify the number of entries the `reader` must read to consi
 all(char([['0', '9']]), { minimumCount: 1, maximumCount: 10 });
 ```
 
-### `seq(...readers)`<a name="seq"></a>
+## `seq(...readers)`<a name="seq"></a>
 
 Applies readers one after another sequentially:
 
@@ -256,7 +256,7 @@ seq(
 );
 ```
 
-### `or(...readers)`<a name="or"></a>
+## `or(...readers)`<a name="or"></a>
 
 Returns the offset returned by the first successfully applied reader:
 
@@ -268,7 +268,7 @@ or(
 );
 ```
 
-### `skip(count)`<a name="skip"></a>
+## `skip(count)`<a name="skip"></a>
 
 Skips the given number of chars without reading:
 
@@ -277,7 +277,7 @@ Skips the given number of chars without reading:
 skip(5);
 ```
 
-### `until(reader, options?)`<a name="until"></a>
+## `until(reader, options?)`<a name="until"></a>
 
 Repeatedly applies `reader` until it successfully reads chars from the string. If `reader` failed to read chars then
 returns -1.
@@ -303,7 +303,7 @@ or(
 );
 ````
 
-### `end(offset?)`<a name="end"></a>
+## `end(offset?)`<a name="end"></a>
 
 Skips all chars until the end of the input. You can optionally provide the offset from the input end.
 
@@ -312,7 +312,7 @@ Skips all chars until the end of the input. You can optionally provide the offse
 end(-1);
 ```
 
-### `lookahead(reader)`<a name="lookahead"></a>
+## `lookahead(reader)`<a name="lookahead"></a>
 
 This is the same as [lookahead from the regular expressions](https://www.regular-expressions.info/lookaround.html). It
 returns the current offset if `reader` successfully reads chars from the input at current offset.
@@ -325,7 +325,7 @@ seq(
 );
 ```
 
-### `optional(reader)`<a name="optional"></a>
+## `optional(reader)`<a name="optional"></a>
 
 Returns the current offset if the `reader` failed to read chars:
 
@@ -337,11 +337,11 @@ seq(
 );
 ```
 
-### `never`
+## `never`
 
 The singleton reader that always returns -1.
 
-### `none`
+## `none`
 
 The singleton reader that always returns the current offset.
 
