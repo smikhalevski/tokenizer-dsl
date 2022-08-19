@@ -1,5 +1,6 @@
-import { Reader, SeqReader } from '../readers';
+import { Reader } from '../readers';
 import { Rule } from './rule-types';
+import { SeqReader } from '../readers/seq';
 
 export interface RuleTree<Type, Stage, Context> {
 

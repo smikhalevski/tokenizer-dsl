@@ -1,4 +1,5 @@
-import { never, none, optional, OptionalReader, text, toReaderFunction } from '../../main/readers';
+import { never, none, optional, text, toReaderFunction } from '../../main';
+import { OptionalReader } from '../../main/readers/optional';
 
 describe('optional', () => {
 

@@ -1,4 +1,5 @@
-import { CaseInsensitiveTextReader, CaseSensitiveTextReader, none, text, toReaderFunction } from '../../main/readers';
+import { CaseInsensitiveTextReader, CaseSensitiveTextReader, text } from '../../main/readers/text';
+import { none, toReaderFunction } from '../../main';
 
 describe('text', () => {
 

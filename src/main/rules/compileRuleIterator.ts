@@ -1,13 +1,9 @@
 import { Binding, Code, CodeBindings, compileFunction, Var } from 'codedegen';
-import { createCodeBindings, createReaderCallCode, seq } from '../readers';
 import { createVar, die, isFunction, isImportedValue } from '../utils';
 import { RuleBranch, RuleTree } from './createRuleTree';
-import { TokenHandler, TokenizerState } from './rule-types';
-
-/**
- * The callback that reads tokens from the input defined by iterator state.
- */
-export type RuleIterator<Type, Stage, Context> = (state: TokenizerState<Stage>, handler: TokenHandler<Type, Stage, Context>, context: Context, streaming?: boolean) => void;
+import { RuleIterator } from './rule-types';
+import { createCodeBindings, createReaderCallCode } from '../readers/reader-utils';
+import { seq } from '../readers';
 
 /**
  * Compiles rules into a function that applies them one after another in a loop.

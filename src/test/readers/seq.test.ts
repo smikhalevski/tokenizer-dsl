@@ -1,4 +1,5 @@
-import { never, none, Reader, seq, SeqReader, text, toReaderFunction } from '../../main/readers';
+import { never, none, Reader, seq, text, toReaderFunction } from '../../main';
+import { SeqReader } from '../../main/readers/seq';
 
 describe('seq', () => {
 

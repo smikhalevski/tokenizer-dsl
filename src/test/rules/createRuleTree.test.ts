@@ -1,5 +1,5 @@
-import { seq } from '../../main';
-import { appendRule, createRuleTree, Rule, RuleBranch, RuleTree } from '../../main/rules';
+import { Rule, seq } from '../../main';
+import { appendRule, createRuleTree, RuleBranch, RuleTree } from '../../main/rules/createRuleTree';
 
 describe('createRuleTree', () => {
 

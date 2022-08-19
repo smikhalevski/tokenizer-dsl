@@ -1,4 +1,5 @@
-import { all, AllReader, never, none, text, toReaderFunction } from '../../main/readers';
+import { all, never, none, text, toReaderFunction } from '../../main';
+import { AllReader } from '../../main/readers/all';
 
 describe('all', () => {
 

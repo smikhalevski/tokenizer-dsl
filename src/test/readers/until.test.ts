@@ -1,14 +1,5 @@
-import {
-  char,
-  never,
-  none,
-  text,
-  toReaderFunction,
-  until,
-  UntilCaseSensitiveTextReader,
-  UntilCharCodeRangeReader,
-  UntilReader
-} from '../../main/readers';
+import { char, never, none, text, toReaderFunction, until } from '../../main';
+import { UntilCaseSensitiveTextReader, UntilCharCodeRangeReader, UntilReader } from '../../main/readers/until';
 
 const B = 'b'.charCodeAt(0);
 

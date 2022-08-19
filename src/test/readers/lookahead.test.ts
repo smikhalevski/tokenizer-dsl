@@ -1,4 +1,5 @@
-import { lookahead, LookaheadReader, never, none, text, toReaderFunction } from '../../main/readers';
+import { lookahead, never, none, text, toReaderFunction } from '../../main';
+import { LookaheadReader } from '../../main/readers/lookahead';
 
 describe('lookahead', () => {
 

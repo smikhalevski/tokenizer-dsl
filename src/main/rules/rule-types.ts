@@ -2,6 +2,11 @@ import { Reader } from '../readers';
 import { ImportedValue } from '../imported';
 
 /**
+ * The callback that reads tokens from the input defined by iterator state.
+ */
+export type RuleIterator<Type, Stage, Context> = (state: TokenizerState<Stage>, handler: TokenHandler<Type, Stage, Context>, context: Context, streaming?: boolean) => void;
+
+/**
  * Returns the value depending on the current tokenizer state.
  *
  * @param chunk The input chunk from which the current token was read.

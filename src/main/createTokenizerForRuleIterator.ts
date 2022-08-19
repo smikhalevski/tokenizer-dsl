@@ -12,7 +12,7 @@ import { Tokenizer } from './tokenizer-types';
  * @template Stage The type of stages at which rules are applied.
  * @template Context The context that rules may consume.
  */
-export function createTokenizerForRuleIterator<Type, Stage, Context = any>(ruleIterator: RuleIterator<Type, Stage, Context>, initialStage?: Stage): Tokenizer<Type, Stage, Context> {
+export function createTokenizerForRuleIterator<Type, Stage, Context = void>(ruleIterator: RuleIterator<Type, Stage, Context>, initialStage?: Stage): Tokenizer<Type, Stage, Context> {
 
   const tokenizer: Tokenizer<Type, Stage, Context> = (input, handler, context) => {
     const state: TokenizerState<Stage> = typeof input === 'string' ? {

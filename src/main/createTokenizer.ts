@@ -1,6 +1,7 @@
-import { compileRuleIterator, createRuleTree, Rule } from './rules';
+import { compileRuleIterator, Rule } from './rules';
 import { createTokenizerForRuleIterator } from './createTokenizerForRuleIterator';
 import { Tokenizer } from './tokenizer-types';
+import { createRuleTree } from './rules/createRuleTree';
 
 /**
  * Creates a new pure tokenizer function.
