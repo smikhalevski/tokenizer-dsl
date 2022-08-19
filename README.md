@@ -752,7 +752,7 @@ const moduleSource = compileTokenizerModule([
   { reader: char(['a']) },
 ]);
 
-fs.writeFileSync('./tokenizer.ts', moduleSource);
+fs.writeFileSync('./tokenizer.js', moduleSource);
 ```
 
 If you need to use a custom reader in a generated tokenizer, use `imported` declaration that would be output as an
