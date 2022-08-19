@@ -12,7 +12,6 @@
   "scripts": {
     "build": "tsc && rollup --external codedegen --input ./lib/index.js --file ./lib/index-cjs.js --format cjs --plugin @rollup/plugin-node-resolve",
     "clean": "rimraf './lib' './docs' './coverage'",
-    "ppp": "prettier --write './src'",
     "test": "jest",
     "perf": "[ -d ./lib ] || npm run build && toofast ./src/test/perf.js",
     "docs:build": "typedoc 'src/main/index.ts'",

@@ -7,7 +7,7 @@ import { TokenHandler, TokenizerState } from './rule-types';
 /**
  * The callback that reads tokens from the input defined by iterator state.
  */
-export type RuleIterator<Type = any, Stage = any, Context = any> = (state: TokenizerState<Stage>, handler: TokenHandler<Type, Stage, Context>, context: Context, streaming?: boolean) => void;
+export type RuleIterator<Type, Stage, Context> = (state: TokenizerState<Stage>, handler: TokenHandler<Type, Stage, Context>, context: Context, streaming?: boolean) => void;
 
 /**
  * Compiles rules into a function that applies them one after another in a loop.

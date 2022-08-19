@@ -1,8 +1,19 @@
 import { compileRuleIteratorCodeBindings, createRuleTree, Rule } from './rules';
 import { createVar, isImportedValue } from './utils';
-import { assembleJs, Code, createVarRenamer, Var } from 'codedegen';
+import { assembleJs, Code, createVarRenamer, Var, VarRenamer } from 'codedegen';
 
-export function compileTokenizerModule<Type, Stage, Context>(rules: Rule<Type, Stage, Context>[]): string {
+/**
+ * Creates a code of the ES6/TS module that exports a pure tokenizer function.
+ *
+ * @param rules The list of rules that tokenizer uses to read tokens from the input chunks.
+ * @param initialStage The initial stage at which the tokenizer should start.
+ * @returns The module source code.
+ *
+ * @template Type The type of tokens emitted by the tokenizer.
+ * @template Stage The type of stages at which rules are applied.
+ * @template Context The context that rules may consume.
+ */
+export function compileTokenizerModule<Type, Stage, Context>(rules: Rule<Type, Stage, Context>[], initialStage?: Stage): string {
 
   const stateVar = createVar();
   const handlerVar = createVar();
@@ -16,6 +27,7 @@ export function compileTokenizerModule<Type, Stage, Context>(rules: Rule<Type, S
   const varRenamer = createVarRenamer();
 
   const argsSrc = [stateVar, handlerVar, contextVar, streamingVar].map(varRenamer).join(',');
+  const initialStageSrc = initialStage === undefined ? '' : ',' + stringifyValue(initialStage);
 
   // Dedupe bound vars
   const varMap = new Map(bindings);
@@ -24,7 +36,7 @@ export function compileTokenizerModule<Type, Stage, Context>(rules: Rule<Type, S
     return assembleJs(
       [
         'import{createTokenizerForRuleIterator}from"tokenizer-dsl";',
-        'export default createTokenizerForRuleIterator(function(', argsSrc, '){return ', code, '};'
+        'export default createTokenizerForRuleIterator(function(', argsSrc, '){return ', code, '}', initialStageSrc, ');'
       ],
       varRenamer
     );
@@ -59,7 +71,7 @@ export function compileTokenizerModule<Type, Stage, Context>(rules: Rule<Type, S
 
   moduleCode.push(
     'return function(', argsSrc, '){', code, '}',
-    '}());'
+    '}()', initialStageSrc, ');'
   );
 
   importsMap.forEach((exportsMap, modulePath) => {
@@ -75,7 +87,7 @@ export function compileTokenizerModule<Type, Stage, Context>(rules: Rule<Type, S
 
   moduleCode.unshift('import{createTokenizerForRuleIterator}from"tokenizer-dsl";');
 
-  const moduleVarRenamer = (valueVar: Var) => varRenamer(varMap.has(valueVar) ? valueMap.get(varMap.get(valueVar))! : valueVar);
+  const moduleVarRenamer: VarRenamer = (valueVar) => varRenamer(varMap.has(valueVar) ? valueMap.get(varMap.get(valueVar))! : valueVar);
 
   return assembleJs(moduleCode, moduleVarRenamer);
 }
@@ -88,8 +100,12 @@ function stringifyValue(value: any): string {
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' || value === null) {
     return JSON.stringify(value);
   }
+  if (value === undefined) {
+    return 'undefined';
+  }
   if (value instanceof RegExp) {
     return value.toString();
   }
-  throw new Error('Value cannot be serialized');
+
+  throw new Error('Cannot serialize ' + String(value));
 }

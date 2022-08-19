@@ -9,6 +9,14 @@ describe('compileTokenizerModule', () => {
     expect(src).toBe('import{createTokenizerForRuleIterator}from"tokenizer-dsl";export default createTokenizerForRuleIterator(function(){var _4="TYPE_A";return function(_0,_1,_2,_3){var _5=_0.chunk,_6=_0.offset,_7=false,_8,_9=_6,_10=_5.length;while(_9<_10){var _11;var _12;_11=_9<_5.length&&(_12=_5.charCodeAt(_9),_12===97)?_9+1:-1;if(_11>_9){if(_7){_1(_8,_5,_6,_9-_6,_2,_0);_7=false}_0.offset=_6=_9;_7=true;_8=_4;_9=_11;continue}break}if(_3)return;if(_7){_1(_8,_5,_6,_9-_6,_2,_0);}_0.offset=_9;}}());');
   });
 
+  test('compiles tokenizer with the initial state', () => {
+    const src = compileTokenizerModule([
+      { type: 'TYPE_A', reader: char(['a']), on: ['foo'] },
+    ], 'foo');
+
+    expect(src).toBe('import{createTokenizerForRuleIterator}from"tokenizer-dsl";export default createTokenizerForRuleIterator(function(){var _4="foo";var _5="TYPE_A";return function(_0,_1,_2,_3){var _6=_0.stage,_7=_0.chunk,_8=_0.offset,_9=false,_10,_11=_8,_12=_7.length;while(_11<_12){switch(_6){case _4:var _13;var _14;_13=_11<_7.length&&(_14=_7.charCodeAt(_11),_14===97)?_11+1:-1;if(_13>_11){if(_9){_1(_10,_7,_8,_11-_8,_2,_0);_9=false}_0.stage=_6;_0.offset=_8=_11;_9=true;_10=_5;_11=_13;continue}break;}break}if(_3)return;if(_9){_1(_10,_7,_8,_11-_8,_2,_0);}_0.stage=_6;_0.offset=_11;}}(),"foo");');
+  });
+
   test('compiles imported reader that is a default export', () => {
     const src = compileTokenizerModule([
       { type: 'TYPE_A', reader: imported('./foo') },

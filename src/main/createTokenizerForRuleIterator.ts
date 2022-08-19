@@ -1,13 +1,22 @@
 import { RuleIterator, TokenizerState } from './rules';
 import { Tokenizer } from './tokenizer-types';
 
-export function createTokenizerForRuleIterator<Type, Stage, Context>(ruleIterator: RuleIterator<Type, Stage, Context>, initialStage?: Stage): Tokenizer<Type, Stage, Context>;
+/**
+ * Creates a tokenizer that uses the given rule iterator to read tokens from the input.
+ *
+ * @param ruleIterator The rule iterator to use.
+ * @param initialStage The initial stage at which the tokenizer should start.
+ * @returns The tokenizer instance.
+ *
+ * @template Type The type of tokens emitted by the tokenizer.
+ * @template Stage The type of stages at which rules are applied.
+ * @template Context The context that rules may consume.
+ */
+export function createTokenizerForRuleIterator<Type, Stage, Context = any>(ruleIterator: RuleIterator<Type, Stage, Context>, initialStage?: Stage): Tokenizer<Type, Stage, Context> {
 
-export function createTokenizerForRuleIterator(ruleIterator: RuleIterator, initialStage?: any): Tokenizer {
-
-  const tokenizer: Tokenizer = (input, handler, context) => {
-    const state: TokenizerState = typeof input === 'string' ? {
-      stage: initialStage,
+  const tokenizer: Tokenizer<Type, Stage, Context> = (input, handler, context) => {
+    const state: TokenizerState<Stage> = typeof input === 'string' ? {
+      stage: initialStage!,
       chunk: input,
       chunkOffset: 0,
       offset: 0
@@ -24,7 +33,7 @@ export function createTokenizerForRuleIterator(ruleIterator: RuleIterator, initi
       state.chunkOffset += state.offset;
       state.offset = 0;
     } else {
-      state = { stage: initialStage, chunk, chunkOffset: 0, offset: 0 };
+      state = { stage: initialStage!, chunk, chunkOffset: 0, offset: 0 };
     }
 
     ruleIterator(state, handler, context, true);
