@@ -3,7 +3,7 @@ import { createVar, isImportedValue } from './utils';
 import { assembleJs, Code, createVarRenamer, Var, VarRenamer } from 'codedegen';
 
 /**
- * Creates a code of the ES6/TS module that exports a pure tokenizer function.
+ * Creates a code of the ES6 module that exports a pure tokenizer function.
  *
  * @param rules The list of rules that tokenizer uses to read tokens from the input chunks.
  * @param initialStage The initial stage at which the tokenizer should start.

@@ -25,6 +25,7 @@ npm install --save-prod tokenizer-dsl
     - [Silent rules](#silent-rules)
 - [Streaming](#streaming)
 - [Context](#context)
+- [Standalone tokenizers](#standalone-tokenizers)
 - [Performance](#performance)
 
 # Usage
@@ -738,6 +739,70 @@ const tokenizer = createTokenizer([
 // Pass the context value
 tokenizer('foobar', handler, { bar: 123 });
 ```
+
+# Standalone tokenizers
+
+`eval` and `new Function()` can be prohibited in some environments. To use a tokenizer in such circumstances you can
+generate it beforehand and import as a module.
+
+```ts
+import fs from 'fs';
+
+const moduleSource = compileTokenizerModule([
+  { reader: char(['a']) },
+]);
+
+fs.writeFileSync('./tokenizer.ts', moduleSource);
+```
+
+If you need to use a custom reader in a generated tokenizer, use `imported` declaration that would be output as an
+`import` statement.
+
+```ts
+compileTokenizerModule([
+  { reader: imported('./custom-reader') },
+]);
+```
+
+<details>
+<summary><b>&ensp;👋&ensp;Preview of the generated module code</b></summary>
+<p>
+
+```ts
+import { createTokenizerForRuleIterator } from 'tokenizer-dsl';
+import _4 from './custom-reader';
+
+export default createTokenizerForRuleIterator(function () {
+  var _5 = undefined;
+  return function (_0, _1, _2, _3) {
+    var _6 = _0.chunk, _7 = _0.offset, _8 = false, _9, _10 = _7, _11 = _6.length;
+    while (_10 < _11) {
+      var _12;
+      _12 = _4(_6, _10, _2);
+      if (_12 > _10) {
+        if (_8) {
+          _1(_9, _6, _7, _10 - _7, _2, _0);
+          _8 = false;
+        }
+        _0.offset = _7 = _10;
+        _8 = true;
+        _9 = _5;
+        _10 = _12;
+        continue;
+      }
+      break;
+    }
+    if (_3) return;
+    if (_8) {
+      _1(_9, _6, _7, _10 - _7, _2, _0);
+    }
+    _0.offset = _10;
+  };
+}());
+```
+
+</p>
+</details>
 
 # Performance
 
