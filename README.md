@@ -5,7 +5,7 @@ The API for building streaming tokenizers and lexers.
 - [2× faster than `RegExp`-based alternatives](#performance);
 - [3 kB gzipped](https://bundlephobia.com/result?p=tokenizer-dsl) including dependencies;
 - Supports streaming out of the box;
-- No heap allocations during tokenization;
+- No memory allocations during tokenization;
 - Tokenizer is compiled to a single highly-optimized function.
 
 🔥&ensp;[**Try this example live on CodeSandbox**](https://codesandbox.io/s/tokenizer-dsl-s945yv)
