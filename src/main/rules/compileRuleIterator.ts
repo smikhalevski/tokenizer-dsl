@@ -1,5 +1,5 @@
 import { Binding, Code, CodeBindings, compileFunction, Var } from 'codedegen';
-import { createVar, die, isFunction, isExternalValue } from '../utils';
+import { createVar, die, isCallable, isExternalValue } from '../utils';
 import { RuleBranch, RuleTree } from './createRuleTree';
 import { RuleIterator } from './rule-types';
 import { createCodeBindings, createReaderCallCode } from '../readers/reader-utils';
@@ -73,19 +73,32 @@ export function compileRuleIteratorCodeBindings(tree: RuleTree<any, any, any>, s
         continue;
       }
 
-      const tokenTypeVar = createVar();
-      const nextStageVar = createVar();
-
       const { type: tokenType, to: nextStage, silent } = rule;
 
+      const valueProviderArgsCode: Code = ['(', chunkVar, ',', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, ',', stateVar, ')'];
+
+      let tokenTypeCode: Code = '';
+      let nextStageCode: Code = '';
+
       if (!silent) {
-        bindings.push([tokenTypeVar, tokenType]);
-      }
-      if (nextStage !== undefined) {
-        bindings.push([nextStageVar, nextStage]);
+        tokenTypeCode = [tokenPendingVar, '=true;'];
+
+        if (tokenType !== undefined) {
+          const tokenTypeVar = createVar();
+          bindings.push([tokenTypeVar, tokenType]);
+
+          tokenTypeCode.push(pendingTokenTypeVar, '=', tokenTypeVar, isCallable(tokenType) ? valueProviderArgsCode : '', ';');
+        } else {
+          tokenTypeCode.push(pendingTokenTypeVar, '=undefined;');
+        }
       }
 
-      const valueProviderArgsCode: Code = ['(', chunkVar, ',', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, ',', stateVar, ')'];
+      if (nextStage !== undefined) {
+        const nextStageVar = createVar();
+        bindings.push([nextStageVar, nextStage]);
+
+        nextStageCode = [stageVar, '=', nextStageVar, isCallable(nextStage) ? valueProviderArgsCode : '', ';'];
+      }
 
       code.push([
 
@@ -97,12 +110,8 @@ export function compileRuleIteratorCodeBindings(tree: RuleTree<any, any, any>, s
         stagesEnabled ? [stateVar, '.stage=', stageVar, ';'] : '',
         stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
-        silent ? '' : [
-          tokenPendingVar, '=true;',
-          pendingTokenTypeVar, '=', tokenTypeVar, isFunction(tokenType) || isExternalValue(tokenType) ? valueProviderArgsCode : '', ';',
-        ],
-
-        nextStage === undefined ? '' : [stageVar, '=', nextStageVar, isFunction(nextStage) || isExternalValue(nextStage) ? valueProviderArgsCode : '', ';'],
+        tokenTypeCode,
+        nextStageCode,
 
         nextOffsetVar, '=', branchResultVar, ';',
 

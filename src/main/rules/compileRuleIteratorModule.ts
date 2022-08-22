@@ -3,6 +3,7 @@ import { assembleJs, Code, createVarRenamer, Var, VarRenamer } from 'codedegen';
 import { createRuleTree } from './createRuleTree';
 import { Rule } from './rule-types';
 import { compileRuleIteratorCodeBindings } from './compileRuleIterator';
+import { inverseMap, stringifyBuiltinValue } from './rule-utils';
 
 export interface RuleIteratorModuleOptions {
   /**
@@ -11,6 +12,13 @@ export interface RuleIteratorModuleOptions {
    * @default false
    */
   typingsEnabled?: boolean;
+
+  /**
+   * Stringifies a bound value as a JS expression.
+   *
+   * @param value The value to stringify.
+   */
+  stringifyValue?: (value: unknown) => string;
 }
 
 /**
@@ -26,7 +34,7 @@ export interface RuleIteratorModuleOptions {
  */
 export function compileRuleIteratorModule<Type, Stage, Context = void>(rules: Rule<Type, Stage, Context>[], options: RuleIteratorModuleOptions = {}): string {
 
-  const { typingsEnabled } = options;
+  const { typingsEnabled, stringifyValue = stringifyBuiltinValue } = options;
 
   const stateVar = createVar();
   const handlerVar = createVar();
@@ -44,25 +52,16 @@ export function compileRuleIteratorModule<Type, Stage, Context = void>(rules: Ru
   // Dedupe bound vars
   const varMap = new Map(bindings);
 
-  // if (varMap.size === 0) {
-  //   return assembleJs(['export default function(', argsSrc, '){return ', code, '};'], varRenamer);
-  // }
-
   // Dedupe bound values
   const valueMap = inverseMap(varMap);
 
-  const moduleCode: Code[] = [
-    typingsEnabled ? 'import type {RuleIterator} from "tokenizer-dsl";' : '',
-    'export default (function()',
-    typingsEnabled ? ':RuleIterator<any,any,any>' : '',
-    '{'
-  ];
-
   const importsMap = new Map<string, Map<string | undefined, Var>>();
+
+  const boundValuesCode: Code[] = [];
 
   valueMap.forEach((valueVar, value) => {
     if (!isExternalValue(value)) {
-      moduleCode.push('const ', valueVar, '=', stringifyValue(value), ';');
+      boundValuesCode.push('const ', valueVar, '=', stringifyValue(value), ';');
       return;
     }
 
@@ -80,14 +79,11 @@ export function compileRuleIteratorModule<Type, Stage, Context = void>(rules: Ru
     valueMap.set(value, importVar);
   });
 
-  moduleCode.push(
-    'return function(', argsSrc, '){', code, '}',
-    '})();'
-  );
+  const moduleCode: Code[] = typingsEnabled ? ['import type {RuleIterator} from "tokenizer-dsl";'] : [];
 
   importsMap.forEach((exportsMap, modulePath) => {
     exportsMap.forEach((exportVar, exportName) => {
-      moduleCode.unshift([
+      moduleCode.push([
         'import ',
         exportName === undefined ? exportVar : ['{', exportName, ' as ', exportVar, '}'],
         ' from',
@@ -98,23 +94,29 @@ export function compileRuleIteratorModule<Type, Stage, Context = void>(rules: Ru
 
   const moduleVarRenamer: VarRenamer = (valueVar) => varRenamer(varMap.has(valueVar) ? valueMap.get(varMap.get(valueVar))! : valueVar);
 
+  if (boundValuesCode.length === 0) {
+    // All bound values are imported or there are no bindings
+    const ruleIteratorVar = createVar();
+
+    if (typingsEnabled) {
+      moduleCode.push(
+        'const ', ruleIteratorVar, ':RuleIterator<any,any,any>',
+        '=function(', argsSrc, '){', code, '};',
+        'export default ', ruleIteratorVar, ';'
+      );
+    } else {
+      moduleCode.push('export default function(', argsSrc, '){', code, '};');
+    }
+  } else {
+    moduleCode.push(
+      'export default (function()',
+      typingsEnabled ? ':RuleIterator<any,any,any>' : '',
+      '{',
+      boundValuesCode,
+      'return function(', argsSrc, '){', code, '}',
+      '})();'
+    );
+  }
+
   return assembleJs(moduleCode, moduleVarRenamer);
-}
-
-function inverseMap<K, V>(map: Map<K, V>): Map<V, K> {
-  return new Map(Array.from(map).map(([k, v]) => [v, k]));
-}
-
-function stringifyValue(value: any): string {
-  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' || value === null) {
-    return JSON.stringify(value);
-  }
-  if (value === undefined) {
-    return 'undefined';
-  }
-  if (value instanceof RegExp) {
-    return value.toString();
-  }
-
-  throw new Error('Cannot serialize ' + String(value));
 }

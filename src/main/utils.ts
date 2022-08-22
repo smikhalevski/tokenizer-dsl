@@ -20,3 +20,7 @@ export function isFunction(value: unknown): value is Function {
 export function isExternalValue(value: unknown): value is ExternalValue {
   return value instanceof ExternalValue;
 }
+
+export function isCallable(value: unknown): value is Function | ExternalValue {
+  return isFunction(value) || isExternalValue(value);
+}

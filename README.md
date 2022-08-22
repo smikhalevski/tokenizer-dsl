@@ -768,49 +768,55 @@ import ruleIterator from './ruleIterator';
 const tokenizer = createTokenizerForRuleIterator(ruleIterator);
 ```
 
-If you need to use a custom reader in a generated tokenizer, use `externalValue` declaration that would be output as an
-`import` statement.
+If you need to use [a functional reader](#functional-readers) in a generated tokenizer, use `externalValue` declaration
+that would be output as an `import` statement.
 
 ```ts
-compileTokenizerModule([
-  { reader: externalValue('./super-reader') },
-]);
+compileTokenizerModule(
+  [
+    { reader: externalValue('./super-reader') },
+  ],
+  { typingsEnabled: true }
+);
 ```
 
 <details>
 <summary><b> ⚙️ Preview of the generated module code</b></summary>
 <p>
 
+Code is formatted manually, for readability purposes.
+
 ```ts
+import type { RuleIterator } from 'tokenizer-dsl';
 import _4 from './super-reader';
 
-export default (function () {
-  var _5 = undefined;
-  return function (_0, _1, _2, _3) {
-    var _6 = _0.chunk, _7 = _0.offset, _8 = false, _9, _10 = _7, _11 = _6.length;
-    while (_10 < _11) {
-      var _12;
-      _12 = _4(_6, _10, _2);
-      if (_12 > _10) {
-        if (_8) {
-          _1(_9, _6, _7, _10 - _7, _2, _0);
-          _8 = false;
-        }
-        _0.offset = _7 = _10;
-        _8 = true;
-        _9 = _5;
-        _10 = _12;
-        continue;
+const _5: RuleIterator<any, any, any> = function (_0, _1, _2, _3) {
+  var _6 = _0.chunk, _7 = _0.offset, _8 = false, _9, _10 = _7, _11 = _6.length;
+  while (_10 < _11) {
+    var _12;
+    _12 = _4(_6, _10, _2);
+
+    if (_12 > _10) {
+      if (_8) {
+        _1(_9, _6, _7, _10 - _7, _2, _0);
+        _8 = false;
       }
-      break;
+      _0.offset = _7 = _10;
+      _8 = true;
+      _9 = undefined;
+      _10 = _12;
+      continue;
     }
-    if (_3) return;
-    if (_8) {
-      _1(_9, _6, _7, _10 - _7, _2, _0);
-    }
-    _0.offset = _10;
-  };
-})();
+    break;
+  }
+  if (_3) return;
+  if (_8) {
+    _1(_9, _6, _7, _10 - _7, _2, _0);
+  }
+  _0.offset = _10;
+};
+
+export default _5;
 ```
 
 </p>

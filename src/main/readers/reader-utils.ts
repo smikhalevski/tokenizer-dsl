@@ -1,5 +1,5 @@
 import { Binding, Code, CodeBindings, compileFunction, Var } from 'codedegen';
-import { createVar, die, isFunction, isExternalValue } from '../utils';
+import { createVar, die, isCallable, isExternalValue, isFunction } from '../utils';
 import { Reader, ReaderFunction } from './reader-types';
 
 export function toCharCodes(str: string): number[] {
@@ -13,7 +13,7 @@ export function toCharCodes(str: string): number[] {
 
 export function createReaderCallCode<Context>(reader: Reader<Context>, inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var, bindings: Binding[]): Code {
 
-  if (isFunction(reader) || isExternalValue(reader)) {
+  if (isCallable(reader)) {
     const readerVar = createVar();
     bindings.push([readerVar, reader]);
 
