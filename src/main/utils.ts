@@ -1,5 +1,5 @@
 import { Var } from 'codedegen';
-import { ImportedValue } from './imported';
+import { ExternalValue } from './externalValue';
 
 export function die(message?: string): never {
   throw new Error(message);
@@ -17,6 +17,6 @@ export function isFunction(value: unknown): value is Function {
   return typeof value === 'function';
 }
 
-export function isImportedValue(value: unknown): value is ImportedValue {
-  return value instanceof ImportedValue;
+export function isExternalValue(value: unknown): value is ExternalValue {
+  return value instanceof ExternalValue;
 }

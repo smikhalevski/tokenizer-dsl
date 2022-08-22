@@ -1,4 +1,4 @@
-import { createVar, isImportedValue } from '../utils';
+import { createVar, isExternalValue } from '../utils';
 import { assembleJs, Code, createVarRenamer, Var, VarRenamer } from 'codedegen';
 import { createRuleTree } from './createRuleTree';
 import { Rule } from './rule-types';
@@ -61,7 +61,7 @@ export function compileRuleIteratorModule<Type, Stage, Context = void>(rules: Ru
   const importsMap = new Map<string, Map<string | undefined, Var>>();
 
   valueMap.forEach((valueVar, value) => {
-    if (!isImportedValue(value)) {
+    if (!isExternalValue(value)) {
       moduleCode.push('const ', valueVar, '=', stringifyValue(value), ';');
       return;
     }
@@ -82,7 +82,7 @@ export function compileRuleIteratorModule<Type, Stage, Context = void>(rules: Ru
 
   moduleCode.push(
     'return function(', argsSrc, '){', code, '}',
-    '}());'
+    '})();'
   );
 
   importsMap.forEach((exportsMap, modulePath) => {

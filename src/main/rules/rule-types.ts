@@ -1,5 +1,5 @@
 import { Reader } from '../readers';
-import { ImportedValue } from '../imported';
+import { ExternalValue } from '../externalValue';
 
 /**
  * The callback that reads tokens from the input defined by iterator state.
@@ -49,7 +49,7 @@ export interface Rule<Type = unknown, Stage = void, Context = void> {
    * string. Type isn't required to be unique, so multiple rules may share the same type if needed. If `type` is omitted
    * and the rule isn't {@link silent} then the handler is called with `undefined` token type.
    */
-  type?: ValueProvider<Stage, Context, Type> | Type | ImportedValue;
+  type?: ValueProvider<Stage, Context, Type> | Type | ExternalValue;
 
   /**
    * The stage to which tokenizer transitions if this rule successfully reads a token.
@@ -58,7 +58,7 @@ export interface Rule<Type = unknown, Stage = void, Context = void> {
    *
    * @default undefined
    */
-  to?: ValueProvider<Stage, Context, Stage> | Stage | ImportedValue | undefined;
+  to?: ValueProvider<Stage, Context, Stage> | Stage | ExternalValue | undefined;
 
   /**
    * If set to `true` then tokens read by this reader are not emitted.

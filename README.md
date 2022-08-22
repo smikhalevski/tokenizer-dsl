@@ -743,36 +743,48 @@ tokenizer('foobar', handler, { bar: 123 });
 # Standalone tokenizers
 
 `eval` and `new Function()` can be prohibited in some environments. To use a tokenizer in such circumstances you can
-generate it beforehand and import as a module.
+generate a pre-compiled rule iterator:
 
 ```ts
 import fs from 'fs';
+import { compileRuleIteratorModule } from 'tokenizer-dsl';
 
-const moduleSource = compileTokenizerModule([
-  { reader: char(['a']) },
-]);
+const moduleSource = compileRuleIteratorModule(
+  [
+    { reader: char(['a']) },
+  ],
+  { typingsEnabled: true }
+);
 
-fs.writeFileSync('./tokenizer.js', moduleSource);
+fs.writeFileSync('./ruleIterator.ts', moduleSource);
 ```
 
-If you need to use a custom reader in a generated tokenizer, use `imported` declaration that would be output as an
+Then, at runtime, you can import it and create a tokenizer:
+
+```ts
+import { createTokenizerForRuleIterator } from 'tokenizer-dsl';
+import ruleIterator from './ruleIterator';
+
+const tokenizer = createTokenizerForRuleIterator(ruleIterator);
+```
+
+If you need to use a custom reader in a generated tokenizer, use `externalValue` declaration that would be output as an
 `import` statement.
 
 ```ts
 compileTokenizerModule([
-  { reader: imported('./custom-reader') },
+  { reader: externalValue('./super-reader') },
 ]);
 ```
 
 <details>
-<summary><b>&ensp;👋&ensp;Preview of the generated module code</b></summary>
+<summary><b> ⚙️ Preview of the generated module code</b></summary>
 <p>
 
 ```ts
-import { createTokenizerForRuleIterator } from 'tokenizer-dsl';
-import _4 from './custom-reader';
+import _4 from './super-reader';
 
-export default createTokenizerForRuleIterator(function () {
+export default (function () {
   var _5 = undefined;
   return function (_0, _1, _2, _3) {
     var _6 = _0.chunk, _7 = _0.offset, _8 = false, _9, _10 = _7, _11 = _6.length;
@@ -798,7 +810,7 @@ export default createTokenizerForRuleIterator(function () {
     }
     _0.offset = _10;
   };
-}());
+})();
 ```
 
 </p>

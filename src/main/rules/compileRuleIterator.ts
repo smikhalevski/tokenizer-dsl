@@ -1,5 +1,5 @@
 import { Binding, Code, CodeBindings, compileFunction, Var } from 'codedegen';
-import { createVar, die, isFunction, isImportedValue } from '../utils';
+import { createVar, die, isFunction, isExternalValue } from '../utils';
 import { RuleBranch, RuleTree } from './createRuleTree';
 import { RuleIterator } from './rule-types';
 import { createCodeBindings, createReaderCallCode } from '../readers/reader-utils';
@@ -17,8 +17,8 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
 
   const { code, bindings } = compileRuleIteratorCodeBindings(tree, stateVar, handlerVar, contextVar, streamingVar);
 
-  if (bindings && bindings.some(([, value]) => isImportedValue(value))) {
-    die('Cannot use imported value at runtime');
+  if (bindings && bindings.some(([, value]) => isExternalValue(value))) {
+    die('Cannot use external value at runtime');
   }
 
   return compileFunction<RuleIterator<Type, Stage, Context>>([stateVar, handlerVar, contextVar, streamingVar], code, bindings);
@@ -99,10 +99,10 @@ export function compileRuleIteratorCodeBindings(tree: RuleTree<any, any, any>, s
 
         silent ? '' : [
           tokenPendingVar, '=true;',
-          pendingTokenTypeVar, '=', tokenTypeVar, isFunction(tokenType) || isImportedValue(tokenType) ? valueProviderArgsCode : '', ';',
+          pendingTokenTypeVar, '=', tokenTypeVar, isFunction(tokenType) || isExternalValue(tokenType) ? valueProviderArgsCode : '', ';',
         ],
 
-        nextStage === undefined ? '' : [stageVar, '=', nextStageVar, isFunction(nextStage) || isImportedValue(nextStage) ? valueProviderArgsCode : '', ';'],
+        nextStage === undefined ? '' : [stageVar, '=', nextStageVar, isFunction(nextStage) || isExternalValue(nextStage) ? valueProviderArgsCode : '', ';'],
 
         nextOffsetVar, '=', branchResultVar, ';',
 
