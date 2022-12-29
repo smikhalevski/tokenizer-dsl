@@ -1,6 +1,6 @@
-import { Binding, Code, CodeBindings, compileFunction, Var } from 'codedegen';
+import { Binding, Code, compileFunction, Var } from 'codedegen';
 import { createVar, die, isCallable, isExternalValue, isFunction } from '../utils';
-import { Reader, ReaderFunction } from './reader-types';
+import { CodeBindings, Reader, ReaderFunction } from './reader-types';
 
 export function toCharCodes(str: string): number[] {
   const charCodes: number[] = [];
@@ -11,10 +11,16 @@ export function toCharCodes(str: string): number[] {
   return charCodes;
 }
 
-export function createReaderCallCode<Context>(reader: Reader<Context>, inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var, bindings: Binding[]): Code {
-
+export function createReaderCallCode<Context>(
+  reader: Reader<Context>,
+  inputVar: Var,
+  offsetVar: Var,
+  contextVar: Var,
+  resultVar: Var,
+  bindings: Binding[]
+): Code {
   if (isCallable(reader)) {
-    const readerVar = createVar();
+    const readerVar = createVar('reader');
     bindings.push([readerVar, reader]);
 
     return [resultVar, '=', readerVar, '(', inputVar, ',', offsetVar, ',', contextVar, ');'];
@@ -33,14 +39,12 @@ export function createCodeBindings(code: Code, bindings?: Binding[]): CodeBindin
 }
 
 /**
- * Converts the {@link Reader} instance to a function.
+ * Converts the {@linkcode Reader} instance to a function.
  *
  * @param reader The reader to convert to a function.
- *
  * @template Context The context passed by tokenizer.
  */
 export function toReaderFunction<Context = void>(reader: Reader<Context>): ReaderFunction<Context> {
-
   if (isExternalValue(reader)) {
     die('Cannot use external value at runtime');
   }
@@ -50,11 +54,12 @@ export function toReaderFunction<Context = void>(reader: Reader<Context>): Reade
   }
 
   const bindings: Binding[] = [];
-  const inputVar = createVar();
-  const offsetVar = createVar();
-  const contextVar = createVar();
-  const resultVar = createVar();
+  const inputVar = createVar('input');
+  const offsetVar = createVar('offset');
+  const contextVar = createVar('context');
+  const resultVar = createVar('result');
 
+  // prettier-ignore
   const code: Code = [
     'var ', resultVar, ';',
     createReaderCallCode(reader, inputVar, offsetVar, contextVar, resultVar, bindings),

@@ -1,7 +1,6 @@
 import { all, createTokenizer, Reader, text, TokenHandler } from '../main';
 
 describe('createTokenizer', () => {
-
   const handlerMock = jest.fn();
 
   const handler: TokenHandler = (type, chunk, offset, length, context, state) => {
@@ -13,7 +12,6 @@ describe('createTokenizer', () => {
   });
 
   test('reads tokens in non-streaming mode', () => {
-
     const tokenizer = createTokenizer<string, void>([
       { type: 'TYPE_A', reader: text('a') },
       { type: 'TYPE_B', reader: all(text('b', { caseInsensitive: true })) },
@@ -25,7 +23,7 @@ describe('createTokenizer', () => {
       stage: undefined,
       chunk: 'aabbb',
       chunkOffset: 0,
-      offset: 5
+      offset: 5,
     });
 
     expect(handlerMock).toHaveBeenCalledTimes(3);
@@ -35,7 +33,6 @@ describe('createTokenizer', () => {
   });
 
   test('reads tokens in streaming mode', () => {
-
     const tokenizer = createTokenizer<string, void>([
       { type: 'TYPE_A', reader: text('a') },
       { type: 'TYPE_B', reader: all(text('b', { caseInsensitive: true })) },
@@ -63,11 +60,9 @@ describe('createTokenizer', () => {
   });
 
   test('reads tokens with reader function', () => {
-    const readerMock: Reader = jest.fn((input, offset) => offset < input.length ? offset + 1 : -1);
+    const readerMock: Reader = jest.fn((input, offset) => (offset < input.length ? offset + 1 : -1));
 
-    const tokenizer = createTokenizer([
-      { reader: readerMock },
-    ]);
+    const tokenizer = createTokenizer([{ reader: readerMock }]);
 
     tokenizer('abc', handler);
 

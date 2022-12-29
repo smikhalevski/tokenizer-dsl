@@ -3,7 +3,7 @@ import { assembleJs, Code, createVarRenamer, Var, VarRenamer } from 'codedegen';
 import { createRuleTree } from './createRuleTree';
 import { Rule } from './rule-types';
 import { compileRuleIteratorCodeBindings } from './compileRuleIterator';
-import { inverseMap, stringifyBuiltinValue } from './rule-utils';
+import { inverseMap, stringifyValue } from './rule-utils';
 
 export interface RuleIteratorModuleOptions {
   /**
@@ -14,11 +14,11 @@ export interface RuleIteratorModuleOptions {
   typingsEnabled?: boolean;
 
   /**
-   * Stringifies a bound value as a JS expression.
+   * Serializes a bound value as a JS expression.
    *
    * @param value The value to stringify.
    */
-  stringifyValue?: (value: unknown) => string;
+  serializeValue?: (value: unknown) => string;
 }
 
 /**
@@ -32,14 +32,16 @@ export interface RuleIteratorModuleOptions {
  * @template Stage The type of stages at which rules are applied.
  * @template Context The context that rules may consume.
  */
-export function compileRuleIteratorModule<Type, Stage, Context = void>(rules: Rule<Type, Stage, Context>[], options: RuleIteratorModuleOptions = {}): string {
+export function compileRuleIteratorModule<Type, Stage, Context = void>(
+  rules: Rule<Type, Stage, Context>[],
+  options: RuleIteratorModuleOptions = {}
+): string {
+  const { typingsEnabled, serializeValue = stringifyValue } = options;
 
-  const { typingsEnabled, stringifyValue = stringifyBuiltinValue } = options;
-
-  const stateVar = createVar();
-  const handlerVar = createVar();
-  const contextVar = createVar();
-  const streamingVar = createVar();
+  const stateVar = createVar('state');
+  const handlerVar = createVar('handler');
+  const contextVar = createVar('context');
+  const streamingVar = createVar('streaming');
 
   const tree = createRuleTree(rules);
 
@@ -61,7 +63,7 @@ export function compileRuleIteratorModule<Type, Stage, Context = void>(rules: Ru
 
   valueMap.forEach((valueVar, value) => {
     if (!isExternalValue(value)) {
-      boundValuesCode.push('const ', valueVar, '=', stringifyValue(value), ';');
+      boundValuesCode.push('const ', valueVar, '=', serializeValue(value), ';');
       return;
     }
 
@@ -87,18 +89,21 @@ export function compileRuleIteratorModule<Type, Stage, Context = void>(rules: Ru
         'import ',
         exportName === undefined ? exportVar : ['{', exportName, ' as ', exportVar, '}'],
         ' from',
-        JSON.stringify(modulePath), ';'
+        JSON.stringify(modulePath),
+        ';',
       ]);
     });
   });
 
-  const moduleVarRenamer: VarRenamer = (valueVar) => varRenamer(varMap.has(valueVar) ? valueMap.get(varMap.get(valueVar))! : valueVar);
+  const moduleVarRenamer: VarRenamer = valueVar =>
+    varRenamer(varMap.has(valueVar) ? valueMap.get(varMap.get(valueVar))! : valueVar);
 
   if (boundValuesCode.length === 0) {
     // All bound values are imported or there are no bindings
-    const ruleIteratorVar = createVar();
+    const ruleIteratorVar = createVar('ruleIterator');
 
     if (typingsEnabled) {
+      // prettier-ignore
       moduleCode.push(
         'const ', ruleIteratorVar, ':RuleIterator<any,any,any>',
         '=function(', argsSrc, '){', code, '};',
@@ -108,6 +113,7 @@ export function compileRuleIteratorModule<Type, Stage, Context = void>(rules: Ru
       moduleCode.push('export default function(', argsSrc, '){', code, '};');
     }
   } else {
+    // prettier-ignore
     moduleCode.push(
       'export default (function()',
       typingsEnabled ? ':RuleIterator<any,any,any>' : '',

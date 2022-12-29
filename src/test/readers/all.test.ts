@@ -2,7 +2,6 @@ import { all, never, none, text, toReaderFunction } from '../../main';
 import { AllReader } from '../../main/readers/all';
 
 describe('all', () => {
-
   test('returns never', () => {
     expect(all(never)).toBe(never);
     expect(all(never, { minimumCount: Infinity })).toBe(never);
@@ -32,7 +31,6 @@ describe('all', () => {
 });
 
 describe('AllReader', () => {
-
   test('reads until reader returns -1', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(3);

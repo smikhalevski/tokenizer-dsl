@@ -12,7 +12,9 @@ import { createRuleTree } from './rules/createRuleTree';
  * @template Type The type of tokens emitted by the tokenizer.
  * @template Context The context that rules may consume.
  */
-export function createTokenizer<Type, Context = void>(rules: Rule<Type, void, Context>[]): Tokenizer<Type, void, Context>;
+export function createTokenizer<Type, Context = void>(
+  rules: Rule<Type, void, Context>[]
+): Tokenizer<Type, void, Context>;
 
 /**
  * Creates a new pure tokenizer function.
@@ -25,7 +27,10 @@ export function createTokenizer<Type, Context = void>(rules: Rule<Type, void, Co
  * @template Stage The type of stages at which rules are applied.
  * @template Context The context that rules may consume.
  */
-export function createTokenizer<Type, Stage, Context = void>(rules: Rule<Type, Stage, Context>[], initialStage: Stage): Tokenizer<Type, Stage, Context>;
+export function createTokenizer<Type, Stage, Context = void>(
+  rules: Rule<Type, Stage, Context>[],
+  initialStage: Stage
+): Tokenizer<Type, Stage, Context>;
 
 export function createTokenizer(rules: Rule[], initialStage?: any) {
   return createTokenizerForRuleIterator(compileRuleIterator(createRuleTree(rules)), initialStage);

@@ -1,4 +1,6 @@
-export function stringifyBuiltinValue(value: any): string {
+import { die } from '../utils';
+
+export function stringifyValue(value: unknown): string {
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' || value === null) {
     return JSON.stringify(value);
   }
@@ -9,7 +11,7 @@ export function stringifyBuiltinValue(value: any): string {
     return value.toString();
   }
 
-  throw new Error('Cannot stringify value as an expression: ' + String(value));
+  die('Cannot stringify value as an expression: ' + String(value));
 }
 
 export function inverseMap<K, V>(map: Map<K, V>): Map<V, K> {

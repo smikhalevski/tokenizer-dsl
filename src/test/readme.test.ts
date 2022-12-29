@@ -1,7 +1,6 @@
 import { all, char, createTokenizer, optional, or, Rule, seq, text, TokenHandler } from '../main';
 
 describe('Readme', () => {
-
   const handlerMock = jest.fn();
 
   const handler: TokenHandler = (type, chunk, offset, length, context, state) => {
@@ -28,21 +27,10 @@ describe('Readme', () => {
       optional(signReader),
 
       // integer
-      or(
-        zeroReader,
-        seq(
-          leadingDigitReader,
-          digitsReader,
-        ),
-      ),
+      or(zeroReader, seq(leadingDigitReader, digitsReader)),
 
       // fraction
-      optional(
-        seq(
-          dotReader,
-          optional(digitsReader),
-        ),
-      ),
+      optional(seq(dotReader, optional(digitsReader)))
     );
 
     const semicolonReader = text(';');
@@ -55,18 +43,18 @@ describe('Readme', () => {
           on: ['value'],
           type: 'NUMBER',
           reader: numberReader,
-          to: 'separator'
+          to: 'separator',
         },
         {
           on: ['separator'],
           reader: semicolonReader,
           silent: true,
-          to: 'value'
+          to: 'value',
         },
         {
           reader: whitespaceReader,
-          silent: true
-        }
+          silent: true,
+        },
       ],
       'value'
     );
@@ -83,16 +71,9 @@ describe('Readme', () => {
   });
 
   test('Usage', () => {
-
     const alphaReader = all(char([['a', 'z']]), { minimumCount: 1 });
 
-    const integerReader = or(
-      text('0'),
-      seq(
-        char([['1', '9']]),
-        all(char([['0', '9']]))
-      ),
-    );
+    const integerReader = or(text('0'), seq(char([['1', '9']]), all(char([['0', '9']]))));
 
     const semicolonReader = text(';');
 
@@ -111,11 +92,7 @@ describe('Readme', () => {
       reader: semicolonReader,
     };
 
-    const tokenize = createTokenizer([
-      alphaRule,
-      integerRule,
-      semicolonRule,
-    ]);
+    const tokenize = createTokenizer([alphaRule, integerRule, semicolonRule]);
 
     tokenize('foo;123;bar;456', handler);
 
@@ -145,23 +122,17 @@ describe('Readme', () => {
       on: ['start', 'bar'],
       type: 'FOO',
       reader: text('foo'),
-      to: 'foo'
+      to: 'foo',
     };
 
     const barRule: Rule<MyTokenType, MyStage> = {
       on: ['start', 'foo'],
       type: 'BAR',
       reader: text('bar'),
-      to: 'bar'
+      to: 'bar',
     };
 
-    const tokenize = createTokenizer(
-      [
-        fooRule,
-        barRule
-      ],
-      'start'
-    );
+    const tokenize = createTokenizer([fooRule, barRule], 'start');
 
     tokenize('foobarfoobar', handler);
 
@@ -188,14 +159,14 @@ describe('Readme', () => {
       on: ['start', 'bar'],
       type: 'FOO',
       reader: text('foo'),
-      to: 'foo'
+      to: 'foo',
     };
 
     const barRule: Rule<MyTokenType, MyStage> = {
       on: ['start', 'foo'],
       type: 'BAR',
       reader: text('bar'),
-      to: 'bar'
+      to: 'bar',
     };
 
     const spaceReader: Rule<MyTokenType, MyStage> = {
@@ -203,14 +174,7 @@ describe('Readme', () => {
       reader: all(char([' '])),
     };
 
-    const tokenize = createTokenizer(
-      [
-        fooRule,
-        barRule,
-        spaceReader
-      ],
-      'start'
-    );
+    const tokenize = createTokenizer([fooRule, barRule, spaceReader], 'start');
 
     tokenize('foo  bar  foo  bar', handler);
 

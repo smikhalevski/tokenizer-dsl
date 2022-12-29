@@ -2,7 +2,6 @@ import { never, none, optional, text, toReaderFunction } from '../../main';
 import { OptionalReader } from '../../main/readers/optional';
 
 describe('optional', () => {
-
   test('returns none', () => {
     expect(optional(never)).toBe(none);
     expect(optional(none)).toBe(none);
@@ -14,7 +13,6 @@ describe('optional', () => {
 });
 
 describe('OptionalReader', () => {
-
   test('returns result of reader', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(4);

@@ -4,7 +4,12 @@ import { ExternalValue } from '../externalValue';
 /**
  * The callback that reads tokens from the input defined by iterator state.
  */
-export type RuleIterator<Type, Stage, Context> = (state: TokenizerState<Stage>, handler: TokenHandler<Type, Stage, Context>, context: Context, streaming?: boolean) => void;
+export type RuleIterator<Type, Stage, Context> = (
+  state: TokenizerState<Stage>,
+  handler: TokenHandler<Type, Stage, Context>,
+  context: Context,
+  streaming?: boolean
+) => void;
 
 /**
  * Returns the value depending on the current tokenizer state.
@@ -20,17 +25,22 @@ export type RuleIterator<Type, Stage, Context> = (state: TokenizerState<Stage>, 
  * @template Context The context passed by tokenizer.
  * @template Value The value that the provider must return.
  */
-export type ValueProvider<Stage, Context, Value> = (chunk: string, offset: number, length: number, context: Context, state: TokenizerState<Stage>) => Value;
+export type ValueProvider<Stage, Context, Value> = (
+  chunk: string,
+  offset: number,
+  length: number,
+  context: Context,
+  state: TokenizerState<Stage>
+) => Value;
 
 /**
- * Defines how the token is read from the input string and how {@link Tokenizer} transitions between stages.
+ * Defines how the token is read from the input string and how {@linkcode Tokenizer} transitions between stages.
  *
  * @template Type The type of the token emitted by this rule.
  * @template Stage The tokenizer stage type.
  * @template Context The context passed by tokenizer.
  */
 export interface Rule<Type = unknown, Stage = void, Context = void> {
-
   /**
    * The reader that reads chars from the string.
    */
@@ -45,9 +55,9 @@ export interface Rule<Type = unknown, Stage = void, Context = void> {
   on?: Stage[] | undefined;
 
   /**
-   * The type of the token that is passed to {@link TokenHandler} when the rule successfully reads chars from the input
+   * The type of the token that is passed to {@linkcode TokenHandler} when the rule successfully reads chars from the input
    * string. Type isn't required to be unique, so multiple rules may share the same type if needed. If `type` is omitted
-   * and the rule isn't {@link silent} then the handler is called with `undefined` token type.
+   * and the rule isn't {@linkcode silent} then the handler is called with `undefined` token type.
    */
   type?: ValueProvider<Stage, Context, Type> | Type | ExternalValue;
 
@@ -69,12 +79,11 @@ export interface Rule<Type = unknown, Stage = void, Context = void> {
 }
 
 /**
- * The state that is used by the {@link Tokenizer} to track tokenization progress.
+ * The state that is used by the {@linkcode Tokenizer} to track tokenization progress.
  *
  * @template Stage The tokenizer stage type.
  */
 export interface TokenizerState<Stage = any> {
-
   /**
    * The current tokenizer stage.
    */
@@ -86,12 +95,12 @@ export interface TokenizerState<Stage = any> {
   chunk: string;
 
   /**
-   * The offset of the {@link chunk} in the input stream.
+   * The offset of the {@linkcode chunk} in the input stream.
    */
   chunkOffset: number;
 
   /**
-   * The offset in the {@link chunk} from which the tokenization should proceed.
+   * The offset in the {@linkcode chunk} from which the tokenization should proceed.
    */
   offset: number;
 }
@@ -105,7 +114,7 @@ export interface TokenizerState<Stage = any> {
  * const tokenValue = chunk.substr(offset, length);
  * ```
  *
- * The offset of this token from the start of the input stream (useful if you're using {@link Tokenizer.write}):
+ * The offset of this token from the start of the input stream (useful if you're using {@linkcode Tokenizer.write}):
  *
  * ```ts
  * const absoluteOffset = state.chunkOffset + offset;
@@ -121,4 +130,11 @@ export interface TokenizerState<Stage = any> {
  * @template Type The type of tokens emitted by rules.
  * @template Context The context passed by tokenizer.
  */
-export type TokenHandler<Type = unknown, Stage = any, Context = any> = (type: Type, chunk: string, offset: number, length: number, context: Context, state: TokenizerState<Stage>) => void;
+export type TokenHandler<Type = unknown, Stage = any, Context = any> = (
+  type: Type,
+  chunk: string,
+  offset: number,
+  length: number,
+  context: Context,
+  state: TokenizerState<Stage>
+) => void;

@@ -4,7 +4,6 @@ import { none, toReaderFunction } from '../../main';
 const A = 'a'.charCodeAt(0);
 
 describe('char', () => {
-
   test('returns none', () => {
     expect(char([])).toBe(none);
     expect(char([''])).toBe(none);
@@ -15,9 +14,7 @@ describe('char', () => {
   });
 });
 
-
 describe('CharCodeRangeReader', () => {
-
   test('reads exact char at offset', () => {
     expect(toReaderFunction(new CharCodeRangeReader([A]))('aaabbb', 2)).toBe(3);
   });

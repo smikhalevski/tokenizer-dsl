@@ -4,7 +4,6 @@ import { UntilCaseSensitiveTextReader, UntilCharCodeRangeReader, UntilReader } f
 const B = 'b'.charCodeAt(0);
 
 describe('until', () => {
-
   test('returns none', () => {
     expect(until(none)).toBe(none);
   });
@@ -28,7 +27,6 @@ describe('until', () => {
 });
 
 describe('UntilCharCodeRangeReader', () => {
-
   test('reads chars until char code is met', () => {
     expect(toReaderFunction(new UntilCharCodeRangeReader([[B, B]], false))('aaabbb', 0)).toBe(3);
   });
@@ -39,7 +37,6 @@ describe('UntilCharCodeRangeReader', () => {
 });
 
 describe('UntilCaseSensitiveTextReader', () => {
-
   test('reads chars until substr is met', () => {
     expect(toReaderFunction(new UntilCaseSensitiveTextReader('b', false))('aaabbb', 0)).toBe(3);
   });
@@ -50,7 +47,6 @@ describe('UntilCaseSensitiveTextReader', () => {
 });
 
 describe('UntilReader', () => {
-
   test('advances reader by one char on each iteration', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(-1);

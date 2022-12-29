@@ -1,4 +1,4 @@
-import { CodeBindings, Var } from 'codedegen';
+import { Binding, Code, Var } from 'codedegen';
 import { ExternalValue } from '../externalValue';
 
 /**
@@ -27,7 +27,6 @@ export type ReaderFunction<Context = void> = (input: string, offset: number, con
  * Factory that returns the reader code and values for variables that must be bound to the reader.
  */
 export interface ReaderCodegen {
-
   /**
    * The factory that returns the code of the reader function. The produced code assigns the reader result for
    * `inputVar` and `offsetVar` to `resultVar`. The produced code must be a semicolon-terminated statement.
@@ -49,4 +48,19 @@ export interface ReaderCodegen {
    * @returns The source code and required variable bindings.
    */
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings;
+}
+
+/**
+ * The code to compile and associated optional variable value bindings.
+ */
+export interface CodeBindings {
+  /**
+   * The code to compile.
+   */
+  code: Code;
+
+  /**
+   * The variable value bindings.
+   */
+  bindings?: Binding[];
 }

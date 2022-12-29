@@ -1,19 +1,20 @@
-import { Binding, Code, CodeBindings, compileFunction, Var } from 'codedegen';
+import { Binding, Code, compileFunction, Var } from 'codedegen';
 import { createVar, die, isCallable, isExternalValue } from '../utils';
 import { RuleBranch, RuleTree } from './createRuleTree';
 import { RuleIterator } from './rule-types';
 import { createCodeBindings, createReaderCallCode } from '../readers/reader-utils';
-import { seq } from '../readers';
+import { CodeBindings, seq } from '../readers';
 
 /**
  * Compiles rules into a function that applies them one after another in a loop.
  */
-export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, Stage, Context>): RuleIterator<Type, Stage, Context> {
-
-  const stateVar = createVar();
-  const handlerVar = createVar();
-  const contextVar = createVar();
-  const streamingVar = createVar();
+export function compileRuleIterator<Type, Stage, Context>(
+  tree: RuleTree<Type, Stage, Context>
+): RuleIterator<Type, Stage, Context> {
+  const stateVar = createVar('state');
+  const handlerVar = createVar('handler');
+  const contextVar = createVar('context');
+  const streamingVar = createVar('streaming');
 
   const { code, bindings } = compileRuleIteratorCodeBindings(tree, stateVar, handlerVar, contextVar, streamingVar);
 
@@ -21,35 +22,43 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     die('Cannot use external value at runtime');
   }
 
-  return compileFunction<RuleIterator<Type, Stage, Context>>([stateVar, handlerVar, contextVar, streamingVar], code, bindings);
+  return compileFunction<RuleIterator<Type, Stage, Context>>(
+    [stateVar, handlerVar, contextVar, streamingVar],
+    code,
+    bindings
+  );
 }
 
-export function compileRuleIteratorCodeBindings(tree: RuleTree<any, any, any>, stateVar: Var, handlerVar: Var, contextVar: Var, streamingVar: Var): CodeBindings {
-
+export function compileRuleIteratorCodeBindings(
+  tree: RuleTree<any, any, any>,
+  stateVar: Var,
+  handlerVar: Var,
+  contextVar: Var,
+  streamingVar: Var
+): CodeBindings {
   const { branchesOnStage, branches } = tree;
 
-  const stageVar = createVar();
-  const chunkVar = createVar();
-  const offsetVar = createVar();
+  const stageVar = createVar('stage');
+  const chunkVar = createVar('chunk');
+  const offsetVar = createVar('offset');
 
-  const tokenPendingVar = createVar();
-  const pendingTokenTypeVar = createVar();
-  const nextOffsetVar = createVar();
-  const chunkLengthVar = createVar();
+  const tokenPendingVar = createVar('tokenPending');
+  const pendingTokenTypeVar = createVar('pendingTokenType');
+  const nextOffsetVar = createVar('nextOffset');
+  const chunkLengthVar = createVar('chunkLength');
 
   const stagesEnabled = tree.stages.length !== 0;
   const stageVars: Var[] = [];
   const bindings: Binding[] = [];
 
   for (const stage of tree.stages) {
-    const stageVar = createVar();
+    const stageVar = createVar('stage');
     stageVars.push(stageVar);
     bindings.push([stageVar, stage]);
   }
 
   const createRuleIteratorBranchesCode = (branches: RuleBranch<any, any, any>[], branchOffsetVar: Var): Code => {
-
-    const branchResultVar = createVar();
+    const branchResultVar = createVar('branchResult');
 
     const code: Code[] = ['var ', branchResultVar, ';'];
 
@@ -57,6 +66,7 @@ export function compileRuleIteratorCodeBindings(tree: RuleTree<any, any, any>, s
       const { rule } = branch;
 
       // Read branch
+      // prettier-ignore
       code.push(
         createReaderCallCode(seq(...branch.readers), chunkVar, branchOffsetVar, contextVar, branchResultVar, bindings),
         'if(', branchResultVar, '>', branchOffsetVar, '){',
@@ -75,6 +85,7 @@ export function compileRuleIteratorCodeBindings(tree: RuleTree<any, any, any>, s
 
       const { type: tokenType, to: nextStage, silent } = rule;
 
+      // prettier-ignore
       const valueProviderArgsCode: Code = ['(', chunkVar, ',', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, ',', stateVar, ')'];
 
       let tokenTypeCode: Code = '';
@@ -84,9 +95,10 @@ export function compileRuleIteratorCodeBindings(tree: RuleTree<any, any, any>, s
         tokenTypeCode = [tokenPendingVar, '=true;'];
 
         if (tokenType !== undefined) {
-          const tokenTypeVar = createVar();
+          const tokenTypeVar = createVar('tokenType');
           bindings.push([tokenTypeVar, tokenType]);
 
+          // prettier-ignore
           tokenTypeCode.push(pendingTokenTypeVar, '=', tokenTypeVar, isCallable(tokenType) ? valueProviderArgsCode : '', ';');
         } else {
           tokenTypeCode.push(pendingTokenTypeVar, '=undefined;');
@@ -94,14 +106,14 @@ export function compileRuleIteratorCodeBindings(tree: RuleTree<any, any, any>, s
       }
 
       if (nextStage !== undefined) {
-        const nextStageVar = createVar();
+        const nextStageVar = createVar('nextStage');
         bindings.push([nextStageVar, nextStage]);
 
         nextStageCode = [stageVar, '=', nextStageVar, isCallable(nextStage) ? valueProviderArgsCode : '', ';'];
       }
 
+      // prettier-ignore
       code.push([
-
         // Emit confirmed token
         'if(', tokenPendingVar, '){',
         handlerVar, '(', pendingTokenTypeVar, ',', chunkVar, ',', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
@@ -118,12 +130,12 @@ export function compileRuleIteratorCodeBindings(tree: RuleTree<any, any, any>, s
         // Restart the looping over characters in the input chunk
         'continue}',
       ]);
-
     }
 
     return code;
   };
 
+  // prettier-ignore
   const code: Code = [
     'var ',
     stagesEnabled ? [stageVar, '=', stateVar, '.stage,'] : '',

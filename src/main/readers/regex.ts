@@ -1,6 +1,6 @@
-import { CodeBindings, Var } from 'codedegen';
+import { Var } from 'codedegen';
 import { createVar } from '../utils';
-import { Reader, ReaderCodegen } from './reader-types';
+import { CodeBindings, Reader, ReaderCodegen } from './reader-types';
 import { createCodeBindings } from './reader-utils';
 
 /**
@@ -13,7 +13,6 @@ export function regex(re: RegExp): Reader<any> {
 }
 
 export class RegexReader implements ReaderCodegen {
-
   re;
 
   constructor(re: RegExp) {
@@ -21,9 +20,9 @@ export class RegexReader implements ReaderCodegen {
   }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
+    const reVar = createVar('re');
 
-    const reVar = createVar();
-
+    // prettier-ignore
     return createCodeBindings(
       [
         reVar, '.lastIndex=', offsetVar, ';',
