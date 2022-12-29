@@ -788,35 +788,35 @@ Code is formatted manually, for readability purposes.
 
 ```ts
 import type { RuleIterator } from 'tokenizer-dsl';
-import _4 from './super-reader';
+import e from './super-reader';
 
-const _5: RuleIterator<any, any, any> = function (_0, _1, _2, _3) {
-  var _6 = _0.chunk, _7 = _0.offset, _8 = false, _9, _10 = _7, _11 = _6.length;
-  while (_10 < _11) {
-    var _12;
-    _12 = _4(_6, _10, _2);
+const f: RuleIterator<any, any, any> = function (a, b, c, d) {
+  var g = a.chunk, h = a.offset, i = false, j, k = h, l = g.length;
+  while (k < l) {
+    var m;
+    m = e(g, k, c);
 
-    if (_12 > _10) {
-      if (_8) {
-        _1(_9, _6, _7, _10 - _7, _2, _0);
-        _8 = false;
+    if (m > k) {
+      if (i) {
+        b(j, g, h, k - h, c, a);
+        i = false;
       }
-      _0.offset = _7 = _10;
-      _8 = true;
-      _9 = undefined;
-      _10 = _12;
+      a.offset = h = k;
+      i = true;
+      j = undefined;
+      k = m;
       continue;
     }
     break;
   }
-  if (_3) return;
-  if (_8) {
-    _1(_9, _6, _7, _10 - _7, _2, _0);
+  if (d) return;
+  if (i) {
+    b(j, g, h, k - h, c, a);
   }
-  _0.offset = _10;
+  a.offset = k;
 };
 
-export default _5;
+export default f;
 ```
 
 </p>
