@@ -5,7 +5,7 @@ describe('compileRuleIteratorModule', () => {
     const src = compileRuleIteratorModule([{ reader: char(['a']) }], { typingsEnabled: true });
 
     expect(src).toBe(
-      'import type {RuleIterator} from "tokenizer-dsl";const e:RuleIterator<any,any,any>=function(a,b,c,d){var f=a.chunk,g=a.offset,h=false,i,j=g,k=f.length;while(j<k){var l;var m;l=j<f.length&&(m=f.charCodeAt(j),m===97)?j+1:-1;if(l>j){if(h){b(i,f,g,j-g,c,a);h=false}a.offset=g=j;h=true;i=undefined;j=l;continue}break}if(d)return;if(h){b(i,f,g,j-g,c,a);}a.offset=j;};export default e;'
+      'import type {RuleIterator} from "tokenizer-dsl";const ruleIterator:RuleIterator<any,any,any>=function(state,handler,context,streaming){var chunk=state.chunk,offset=state.offset,tokenPending=false,pendingTokenType,nextOffset=offset,chunkLength=chunk.length;while(nextOffset<chunkLength){var branchResult;var charCode;branchResult=nextOffset<chunk.length&&(charCode=chunk.charCodeAt(nextOffset),charCode===97)?nextOffset+1:-1;if(branchResult>nextOffset){if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);tokenPending=false}state.offset=offset=nextOffset;tokenPending=true;pendingTokenType=undefined;nextOffset=branchResult;continue}break}if(streaming)return;if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);}state.offset=nextOffset;};export default ruleIterator;'
     );
   });
 
@@ -16,7 +16,7 @@ describe('compileRuleIteratorModule', () => {
     ]);
 
     expect(src).toBe(
-      'export default (function(){const e="TYPE_A";const f="TYPE_B";return function(a,b,c,d){var g=a.chunk,h=a.offset,i=false,j,k=h,l=g.length;while(k<l){var m;var n;m=k<g.length&&(n=g.charCodeAt(k),n===97)?k+1:-1;if(m>k){if(i){b(j,g,h,k-h,c,a);i=false}a.offset=h=k;i=true;j=e;k=m;continue}var o;m=k<g.length&&(o=g.charCodeAt(k),o===98)?k+1:-1;if(m>k){if(i){b(j,g,h,k-h,c,a);i=false}a.offset=h=k;i=true;j=f;k=m;continue}break}if(d)return;if(i){b(j,g,h,k-h,c,a);}a.offset=k;}})();'
+      'export default (function(){const tokenType="TYPE_A";const tokenType2="TYPE_B";return function(state,handler,context,streaming){var chunk=state.chunk,offset=state.offset,tokenPending=false,pendingTokenType,nextOffset=offset,chunkLength=chunk.length;while(nextOffset<chunkLength){var branchResult;var charCode;branchResult=nextOffset<chunk.length&&(charCode=chunk.charCodeAt(nextOffset),charCode===97)?nextOffset+1:-1;if(branchResult>nextOffset){if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);tokenPending=false}state.offset=offset=nextOffset;tokenPending=true;pendingTokenType=tokenType;nextOffset=branchResult;continue}var charCode2;branchResult=nextOffset<chunk.length&&(charCode2=chunk.charCodeAt(nextOffset),charCode2===98)?nextOffset+1:-1;if(branchResult>nextOffset){if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);tokenPending=false}state.offset=offset=nextOffset;tokenPending=true;pendingTokenType=tokenType2;nextOffset=branchResult;continue}break}if(streaming)return;if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);}state.offset=nextOffset;}})();'
     );
   });
 
@@ -24,7 +24,7 @@ describe('compileRuleIteratorModule', () => {
     const src = compileRuleIteratorModule([{ reader: char(['a']) }], { typingsEnabled: true });
 
     expect(src).toBe(
-      'import type {RuleIterator} from "tokenizer-dsl";const e:RuleIterator<any,any,any>=function(a,b,c,d){var f=a.chunk,g=a.offset,h=false,i,j=g,k=f.length;while(j<k){var l;var m;l=j<f.length&&(m=f.charCodeAt(j),m===97)?j+1:-1;if(l>j){if(h){b(i,f,g,j-g,c,a);h=false}a.offset=g=j;h=true;i=undefined;j=l;continue}break}if(d)return;if(h){b(i,f,g,j-g,c,a);}a.offset=j;};export default e;'
+      'import type {RuleIterator} from "tokenizer-dsl";const ruleIterator:RuleIterator<any,any,any>=function(state,handler,context,streaming){var chunk=state.chunk,offset=state.offset,tokenPending=false,pendingTokenType,nextOffset=offset,chunkLength=chunk.length;while(nextOffset<chunkLength){var branchResult;var charCode;branchResult=nextOffset<chunk.length&&(charCode=chunk.charCodeAt(nextOffset),charCode===97)?nextOffset+1:-1;if(branchResult>nextOffset){if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);tokenPending=false}state.offset=offset=nextOffset;tokenPending=true;pendingTokenType=undefined;nextOffset=branchResult;continue}break}if(streaming)return;if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);}state.offset=nextOffset;};export default ruleIterator;'
     );
   });
 
@@ -32,7 +32,7 @@ describe('compileRuleIteratorModule', () => {
     const src = compileRuleIteratorModule([{ reader: externalValue('./foo') }], { typingsEnabled: true });
 
     expect(src).toBe(
-      'import type {RuleIterator} from "tokenizer-dsl";import e from"./foo";const f:RuleIterator<any,any,any>=function(a,b,c,d){var g=a.chunk,h=a.offset,i=false,j,k=h,l=g.length;while(k<l){var m;m=e(g,k,c);if(m>k){if(i){b(j,g,h,k-h,c,a);i=false}a.offset=h=k;i=true;j=undefined;k=m;continue}break}if(d)return;if(i){b(j,g,h,k-h,c,a);}a.offset=k;};export default f;'
+      'import type {RuleIterator} from "tokenizer-dsl";import reader from"./foo";const ruleIterator:RuleIterator<any,any,any>=function(state,handler,context,streaming){var chunk=state.chunk,offset=state.offset,tokenPending=false,pendingTokenType,nextOffset=offset,chunkLength=chunk.length;while(nextOffset<chunkLength){var branchResult;branchResult=reader(chunk,nextOffset,context);if(branchResult>nextOffset){if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);tokenPending=false}state.offset=offset=nextOffset;tokenPending=true;pendingTokenType=undefined;nextOffset=branchResult;continue}break}if(streaming)return;if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);}state.offset=nextOffset;};export default ruleIterator;'
     );
   });
 
@@ -40,7 +40,7 @@ describe('compileRuleIteratorModule', () => {
     const src = compileRuleIteratorModule([{ reader: externalValue('./foo', 'Foo') }]);
 
     expect(src).toBe(
-      'import {Foo as e} from"./foo";export default function(a,b,c,d){var f=a.chunk,g=a.offset,h=false,i,j=g,k=f.length;while(j<k){var l;l=e(f,j,c);if(l>j){if(h){b(i,f,g,j-g,c,a);h=false}a.offset=g=j;h=true;i=undefined;j=l;continue}break}if(d)return;if(h){b(i,f,g,j-g,c,a);}a.offset=j;};'
+      'import {Foo as reader} from"./foo";export default function(state,handler,context,streaming){var chunk=state.chunk,offset=state.offset,tokenPending=false,pendingTokenType,nextOffset=offset,chunkLength=chunk.length;while(nextOffset<chunkLength){var branchResult;branchResult=reader(chunk,nextOffset,context);if(branchResult>nextOffset){if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);tokenPending=false}state.offset=offset=nextOffset;tokenPending=true;pendingTokenType=undefined;nextOffset=branchResult;continue}break}if(streaming)return;if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);}state.offset=nextOffset;};'
     );
   });
 
@@ -48,7 +48,7 @@ describe('compileRuleIteratorModule', () => {
     const src = compileRuleIteratorModule([{ reader: char(['a']), to: externalValue('./foo') }]);
 
     expect(src).toBe(
-      'import e from"./foo";export default function(a,b,c,d){var f=a.chunk,g=a.offset,h=false,i,j=g,k=f.length;while(j<k){var l;var m;l=j<f.length&&(m=f.charCodeAt(j),m===97)?j+1:-1;if(l>j){if(h){b(i,f,g,j-g,c,a);h=false}a.offset=g=j;h=true;i=undefined;n=e(f,j,l-j,c,a);j=l;continue}break}if(d)return;if(h){b(i,f,g,j-g,c,a);}a.offset=j;};'
+      'import nextStage from"./foo";export default function(state,handler,context,streaming){var chunk=state.chunk,offset=state.offset,tokenPending=false,pendingTokenType,nextOffset=offset,chunkLength=chunk.length;while(nextOffset<chunkLength){var branchResult;var charCode;branchResult=nextOffset<chunk.length&&(charCode=chunk.charCodeAt(nextOffset),charCode===97)?nextOffset+1:-1;if(branchResult>nextOffset){if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);tokenPending=false}state.offset=offset=nextOffset;tokenPending=true;pendingTokenType=undefined;stage=nextStage(chunk,nextOffset,branchResult-nextOffset,context,state);nextOffset=branchResult;continue}break}if(streaming)return;if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);}state.offset=nextOffset;};'
     );
   });
 
@@ -56,7 +56,7 @@ describe('compileRuleIteratorModule', () => {
     const src = compileRuleIteratorModule([{ type: externalValue('./foo'), reader: char(['a']) }]);
 
     expect(src).toBe(
-      'import e from"./foo";export default function(a,b,c,d){var f=a.chunk,g=a.offset,h=false,i,j=g,k=f.length;while(j<k){var l;var m;l=j<f.length&&(m=f.charCodeAt(j),m===97)?j+1:-1;if(l>j){if(h){b(i,f,g,j-g,c,a);h=false}a.offset=g=j;h=true;i=e(f,j,l-j,c,a);j=l;continue}break}if(d)return;if(h){b(i,f,g,j-g,c,a);}a.offset=j;};'
+      'import tokenType from"./foo";export default function(state,handler,context,streaming){var chunk=state.chunk,offset=state.offset,tokenPending=false,pendingTokenType,nextOffset=offset,chunkLength=chunk.length;while(nextOffset<chunkLength){var branchResult;var charCode;branchResult=nextOffset<chunk.length&&(charCode=chunk.charCodeAt(nextOffset),charCode===97)?nextOffset+1:-1;if(branchResult>nextOffset){if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);tokenPending=false}state.offset=offset=nextOffset;tokenPending=true;pendingTokenType=tokenType(chunk,nextOffset,branchResult-nextOffset,context,state);nextOffset=branchResult;continue}break}if(streaming)return;if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);}state.offset=nextOffset;};'
     );
   });
 
@@ -64,7 +64,7 @@ describe('compileRuleIteratorModule', () => {
     const src = compileRuleIteratorModule([{ reader: all(externalValue('./foo')) }]);
 
     expect(src).toBe(
-      'import e from"./foo";export default function(a,b,c,d){var f=a.chunk,g=a.offset,h=false,i,j=g,k=f.length;while(j<k){var l;l=j;var m=j;do{l=m;m=e(f,l,c);}while(m>l)if(l>j){if(h){b(i,f,g,j-g,c,a);h=false}a.offset=g=j;h=true;i=undefined;j=l;continue}break}if(d)return;if(h){b(i,f,g,j-g,c,a);}a.offset=j;};'
+      'import reader from"./foo";export default function(state,handler,context,streaming){var chunk=state.chunk,offset=state.offset,tokenPending=false,pendingTokenType,nextOffset=offset,chunkLength=chunk.length;while(nextOffset<chunkLength){var branchResult;branchResult=nextOffset;var readerResult=nextOffset;do{branchResult=readerResult;readerResult=reader(chunk,branchResult,context);}while(readerResult>branchResult)if(branchResult>nextOffset){if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);tokenPending=false}state.offset=offset=nextOffset;tokenPending=true;pendingTokenType=undefined;nextOffset=branchResult;continue}break}if(streaming)return;if(tokenPending){handler(pendingTokenType,chunk,offset,nextOffset-offset,context,state);}state.offset=nextOffset;};'
     );
   });
 });

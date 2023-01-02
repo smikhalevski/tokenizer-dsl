@@ -59,7 +59,11 @@ export class CaseSensitiveTextReader implements ReaderCodegen {
 }
 
 export class CaseInsensitiveTextReader implements ReaderCodegen {
-  constructor(public str: string) {}
+  constructor(public str: string) {
+    if (str.toLowerCase().length !== str.toUpperCase().length) {
+      die('Cannot use string for case-insensitive reading');
+    }
+  }
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const { str } = this;

@@ -456,7 +456,6 @@ const lowerAlphaReader: t.Reader = {
 
     return {
       code: [
-
         // Start reading from the offset
         'var ', indexVar, '=', offsetVar, ';',
 
@@ -538,7 +537,6 @@ const tokenize = t.createTokenizer([
 
 tokenize('foofoobarfoobar', (type, input, offset, length, context) => {
   switch (type) {
-
     case 'FOO':
       // Process the FOO token here
       break;
@@ -555,7 +553,7 @@ tokenize('foofoobarfoobar', (type, input, offset, length, context) => {
 You can put rules on different stages to control how they are applied.
 
 In the previous example we created a tokenizer that reads `'foo'` and `'bar'` in any order. Let's create a tokenizer
-that restricts an order in which `'foo'` and `'bar'` should be met.
+that restricts the order in which `'foo'` and `'bar'` should be met.
 
 ```ts
 import * as t from 'tokenizer-dsl';
@@ -565,21 +563,21 @@ type MyTokenType = 'FOO' | 'BAR';
 type MyStage = 'start' | 'foo' | 'bar';
 
 const fooRule: t.Rule<MyTokenType, MyStage> = {
-
-  // Rule would be applied on stages 'start' and 'bar'
-  on: ['start', 'bar'],
   type: 'FOO',
   reader: t.text('foo'),
 
-  // If rule is successfully applied then tokenizer would
+  // Rule would be applied on stages 'start' and 'bar'
+  on: ['start', 'bar'],
+
+  // If rule is successfully applied then the tokenizer would
   // transition to the 'foo' stage
   to: 'foo'
 };
 
 const barRule: t.Rule<MyTokenType, MyStage> = {
-  on: ['start', 'foo'],
   type: 'BAR',
   reader: t.text('bar'),
+  on: ['start', 'foo'],
   to: 'bar'
 };
 
@@ -605,16 +603,16 @@ type MyTokenType = 'FOO' | 'BAR' | 'SPACE';
 type MyStage = 'start' | 'foo' | 'bar';
 
 const fooRule: t.Rule<MyTokenType, MyStage> = {
-  on: ['start', 'bar'],
   type: 'FOO',
   reader: t.text('foo'),
+  on: ['start', 'bar'],
   to: 'foo'
 };
 
 const barRule: t.Rule<MyTokenType, MyStage> = {
-  on: ['start', 'foo'],
   type: 'BAR',
   reader: t.text('bar'),
+  on: ['start', 'foo'],
   to: 'bar'
 };
 
@@ -718,6 +716,7 @@ const fooReader: t.Reader<{ bar: number }> = (input, offset, context) => {
 
 // Compile a tokenizer
 const tokenizer = t.createTokenizer([
+  // A rule that uses a fooReader
   { reader: fooReader }
 ]);
 
@@ -727,8 +726,8 @@ tokenizer('foobar', handler, { bar: 123 });
 
 # Standalone tokenizers
 
-`eval` and `new Function()` can be prohibited in some environments. To use a tokenizer in such circumstances you can
-generate a pre-compiled rule iterator:
+`eval` and `Function` can be prohibited in some environments. To use a tokenizer in such circumstances you can generate
+a pre-compiled rule iterator:
 
 ```ts
 import fs from 'fs';
@@ -768,7 +767,7 @@ compileTokenizerModule(
 ```
 
 <details>
-<summary><b> ⚙️ Preview of the generated module code</b></summary>
+<summary><b>Preview of the generated module code</b></summary>
 <p>
 
 Code is formatted manually, for readability purposes.
