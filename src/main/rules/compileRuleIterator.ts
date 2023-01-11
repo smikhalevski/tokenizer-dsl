@@ -1,5 +1,5 @@
-import { Binding, Code, compileFunction, Var } from 'codedegen';
-import { createVar, die, isCallable, isExternalValue } from '../utils';
+import { Binding, Code, compileFunction, createVar, Var } from 'codedegen';
+import { die, isCallable, isExternalValue } from '../utils';
 import { RuleBranch, RuleTree } from './createRuleTree';
 import { RuleIterator } from './rule-types';
 import { createCodeBindings, createReaderCallCode } from '../readers/reader-utils';

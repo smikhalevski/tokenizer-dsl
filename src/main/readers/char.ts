@@ -1,5 +1,5 @@
-import { Code, Var } from 'codedegen';
-import { createVar, die } from '../utils';
+import { Code, createVar, Var } from 'codedegen';
+import { die } from '../utils';
 import { none } from './none';
 import { CodeBindings, Reader, ReaderCodegen } from './reader-types';
 import { createCodeBindings, toCharCodes } from './reader-utils';

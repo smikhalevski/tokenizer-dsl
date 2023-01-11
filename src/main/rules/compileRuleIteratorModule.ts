@@ -1,5 +1,5 @@
-import { createVar, isExternalValue } from '../utils';
-import { assembleJs, Code, createVarRenamer, Var, VarRenamer } from 'codedegen';
+import { assembleJs, Code, createVar, createVarRenamer, Var, VarRenamer } from 'codedegen';
+import { isExternalValue } from '../utils';
 import { createRuleTree } from './createRuleTree';
 import { Rule } from './rule-types';
 import { compileRuleIteratorCodeBindings } from './compileRuleIterator';

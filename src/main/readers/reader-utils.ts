@@ -1,5 +1,5 @@
-import { Binding, Code, compileFunction, Var } from 'codedegen';
-import { createVar, die, isCallable, isExternalValue, isFunction } from '../utils';
+import { Binding, Code, compileFunction, createVar, Var } from 'codedegen';
+import { die, isCallable, isExternalValue, isFunction } from '../utils';
 import { CodeBindings, Reader, ReaderFunction } from './reader-types';
 
 export function toCharCodes(str: string): number[] {

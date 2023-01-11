@@ -46,6 +46,6 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
-    "codedegen": "^1.1.0"
+    "codedegen": "^2.0.0"
   }
 }

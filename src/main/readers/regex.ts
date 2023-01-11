@@ -1,5 +1,4 @@
-import { Var } from 'codedegen';
-import { createVar } from '../utils';
+import { createVar, Var } from 'codedegen';
 import { CodeBindings, Reader, ReaderCodegen } from './reader-types';
 import { createCodeBindings } from './reader-utils';
 

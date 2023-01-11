@@ -1,4 +1,3 @@
-import { Var } from 'codedegen';
 import { ExternalValue } from './externalValue';
 
 export function die(message?: string): never {
@@ -7,10 +6,6 @@ export function die(message?: string): never {
 
 export function toInteger(value: number | undefined, defaultValue?: number, minimumValue?: number): number {
   return Math.max((value || defaultValue || 0) | 0, minimumValue || 0);
-}
-
-export function createVar(name?: string): Var {
-  return { type: 'var', name };
 }
 
 export function isFunction(value: unknown): value is Function {

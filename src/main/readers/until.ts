@@ -1,5 +1,4 @@
-import { Binding, Var } from 'codedegen';
-import { createVar } from '../utils';
+import { Binding, createVar, Var } from 'codedegen';
 import { CharCodeRange, CharCodeRangeReader, createCharPredicateCode } from './char';
 import { never } from './never';
 import { none } from './none';
