@@ -731,11 +731,11 @@ a pre-compiled rule iterator:
 
 ```ts
 import fs from 'fs';
-import { compileRuleIteratorModule } from 'tokenizer-dsl';
+import * as t from 'tokenizer-dsl';
 
-const moduleSource = compileRuleIteratorModule(
+const moduleSource = t.compileRuleIteratorModule(
   [
-    { reader: char(['a']) },
+    { reader: t.char(['a']) },
   ],
   { typingsEnabled: true }
 );
@@ -746,21 +746,19 @@ fs.writeFileSync('./ruleIterator.ts', moduleSource);
 Then, at runtime, you can import it and create a tokenizer:
 
 ```ts
-import { createTokenizerForRuleIterator } from 'tokenizer-dsl';
+import * as t from 'tokenizer-dsl';
 import ruleIterator from './ruleIterator';
 
-const tokenizer = createTokenizerForRuleIterator(ruleIterator);
+const tokenizer = t.createTokenizerForRuleIterator(ruleIterator);
 ```
 
 If you need to use [a functional reader](#functional-readers) in a generated tokenizer, use `externalValue` declaration
 that would be output as an `import` statement.
 
 ```ts
-import { externalValue } from 'tokenizer-dsl';
-
-compileTokenizerModule(
+t.compileTokenizerModule(
   [
-    { reader: externalValue('./super-reader') },
+    { reader: t.externalValue('./super-reader') },
   ],
   { typingsEnabled: true }
 );
