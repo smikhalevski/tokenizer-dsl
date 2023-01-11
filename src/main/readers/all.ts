@@ -1,12 +1,11 @@
-import { Binding, Code, CodeBindings, Var } from 'codedegen';
-import { createVar, die, toInteger } from '../utils';
+import { Binding, Code, createVar, Var } from 'codedegen';
+import { die, toInteger } from '../utils';
 import { never } from './never';
 import { none } from './none';
-import { Reader, ReaderCodegen } from './reader-types';
+import { CodeBindings, Reader, ReaderCodegen } from './reader-types';
 import { createCodeBindings, createReaderCallCode } from './reader-utils';
 
 export interface AllOptions {
-
   /**
    * The minimum number of matches to consider success. Must be a finite non-negative number, otherwise set to 0.
    *
@@ -27,15 +26,10 @@ export interface AllOptions {
  *
  * @param reader The reader that reads chars.
  * @param options Reader options.
- *
  * @template Context The context passed by tokenizer.
  */
 export function all<Context = any>(reader: Reader<Context>, options: AllOptions = {}): Reader<Context> {
-
-  let {
-    minimumCount,
-    maximumCount,
-  } = options;
+  let { minimumCount, maximumCount } = options;
 
   minimumCount = toInteger(minimumCount);
   maximumCount = toInteger(maximumCount); // 0 = Infinity
@@ -43,24 +37,23 @@ export function all<Context = any>(reader: Reader<Context>, options: AllOptions 
   if (maximumCount !== 0 && minimumCount > maximumCount) {
     die('Maximum must be greater of equal than minimum');
   }
-  if (minimumCount === 1 && maximumCount === 1 || reader === never || reader === none) {
+  if ((minimumCount === 1 && maximumCount === 1) || reader === never || reader === none) {
     return reader;
   }
   return new AllReader(reader, minimumCount, maximumCount);
 }
 
 export class AllReader<Context> implements ReaderCodegen {
-
-  constructor(public reader: Reader<Context>, public minimumCount: number, public maximumCount: number) {
-  }
+  constructor(public reader: Reader<Context>, public minimumCount: number, public maximumCount: number) {}
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const { reader, minimumCount, maximumCount } = this;
 
-    const indexVar = createVar();
-    const readerResultVar = createVar();
+    const indexVar = createVar('index');
+    const readerResultVar = createVar('readerResult');
     const bindings: Binding[] = [];
 
+    // prettier-ignore
     const code: Code[] = [
       resultVar, '=', minimumCount > 0 ? '-1' : offsetVar, ';',
       'var ',
@@ -73,6 +66,7 @@ export class AllReader<Context> implements ReaderCodegen {
     for (let i = 0; i < count; ++i) {
       const nextOffsetVar = i < minimumCount - 1 ? indexVar : resultVar;
 
+      // prettier-ignore
       code.push(
         createReaderCallCode(reader, inputVar, i === 0 ? offsetVar : nextOffsetVar, contextVar, readerResultVar, bindings),
         'if(', readerResultVar, '>', i === 0 ? offsetVar : nextOffsetVar, '){',
@@ -81,6 +75,7 @@ export class AllReader<Context> implements ReaderCodegen {
     }
 
     if (maximumCount === 0) {
+      // prettier-ignore
       code.push(
         'do{',
         resultVar, '=', readerResultVar, ';',

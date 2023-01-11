@@ -1,7 +1,7 @@
-import { CaseInsensitiveTextReader, CaseSensitiveTextReader, none, text, toReaderFunction } from '../../main/readers';
+import { CaseInsensitiveTextReader, CaseSensitiveTextReader, text } from '../../main/readers/text';
+import { none, toReaderFunction } from '../../main';
 
 describe('text', () => {
-
   test('returns noneReader for an empty string', () => {
     expect(text('')).toBe(none);
   });
@@ -21,7 +21,6 @@ describe('text', () => {
 });
 
 describe('CaseSensitiveTextReader', () => {
-
   test('reads case-sensitive text', () => {
     const read = toReaderFunction(new CaseSensitiveTextReader('abc'));
 
@@ -33,7 +32,6 @@ describe('CaseSensitiveTextReader', () => {
 });
 
 describe('CaseInsensitiveTextReader', () => {
-
   test('reads case-insensitive text', () => {
     const read = toReaderFunction(new CaseInsensitiveTextReader('abc'));
 

@@ -1,7 +1,7 @@
-import { none, or, OrReader, Reader, text, toReaderFunction } from '../../main/readers';
+import { none, or, Reader, text, toReaderFunction } from '../../main';
+import { OrReader } from '../../main/readers/or';
 
 describe('or', () => {
-
   test('returns none reader', () => {
     expect(or()).toBe(none);
   });
@@ -18,7 +18,6 @@ describe('or', () => {
 });
 
 describe('OrReader', () => {
-
   test('returns after the first match', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(-1);

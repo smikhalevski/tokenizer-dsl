@@ -1,7 +1,7 @@
-import { lookahead, LookaheadReader, never, none, text, toReaderFunction } from '../../main/readers';
+import { lookahead, never, none, text, toReaderFunction } from '../../main';
+import { LookaheadReader } from '../../main/readers/lookahead';
 
 describe('lookahead', () => {
-
   test('returns never', () => {
     expect(lookahead(never)).toBe(never);
   });
@@ -16,7 +16,6 @@ describe('lookahead', () => {
 });
 
 describe('LookaheadReader', () => {
-
   test('returns the current offset if reader matched', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(10);

@@ -1,48 +1,64 @@
-import { Binding, Code, compileFunction, Var } from 'codedegen';
-import { createReaderCallCode, seq } from '../readers';
-import { createVar, isFunction } from '../utils';
+import { Binding, Code, compileFunction, createVar, Var } from 'codedegen';
+import { die, isCallable, isExternalValue } from '../utils';
 import { RuleBranch, RuleTree } from './createRuleTree';
-import { TokenHandler, TokenizerState } from './rule-types';
-
-/**
- * The callback that reads tokens from the input defined by iterator state.
- */
-export type RuleIterator<Type, Stage, Context> = (state: TokenizerState<Stage>, handler: TokenHandler<Type, Stage, Context>, context: Context, streaming?: boolean) => void;
+import { RuleIterator } from './rule-types';
+import { createCodeBindings, createReaderCallCode } from '../readers/reader-utils';
+import { CodeBindings, seq } from '../readers';
 
 /**
  * Compiles rules into a function that applies them one after another in a loop.
  */
-export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, Stage, Context>): RuleIterator<Type, Stage, Context> {
+export function compileRuleIterator<Type, Stage, Context>(
+  tree: RuleTree<Type, Stage, Context>
+): RuleIterator<Type, Stage, Context> {
+  const stateVar = createVar('state');
+  const handlerVar = createVar('handler');
+  const contextVar = createVar('context');
+  const streamingVar = createVar('streaming');
 
+  const { code, bindings } = compileRuleIteratorCodeBindings(tree, stateVar, handlerVar, contextVar, streamingVar);
+
+  if (bindings && bindings.some(([, value]) => isExternalValue(value))) {
+    die('Cannot use external value at runtime');
+  }
+
+  return compileFunction<RuleIterator<Type, Stage, Context>>(
+    [stateVar, handlerVar, contextVar, streamingVar],
+    code,
+    bindings
+  );
+}
+
+export function compileRuleIteratorCodeBindings(
+  tree: RuleTree<any, any, any>,
+  stateVar: Var,
+  handlerVar: Var,
+  contextVar: Var,
+  streamingVar: Var
+): CodeBindings {
   const { branchesOnStage, branches } = tree;
 
-  const stateVar = createVar();
-  const handlerVar = createVar();
-  const contextVar = createVar();
-  const streamingVar = createVar();
+  const stageVar = createVar('stage');
+  const chunkVar = createVar('chunk');
+  const offsetVar = createVar('offset');
 
-  const stageVar = createVar();
-  const chunkVar = createVar();
-  const offsetVar = createVar();
-
-  const tokenPendingVar = createVar();
-  const pendingTokenTypeVar = createVar();
-  const nextOffsetVar = createVar();
-  const chunkLengthVar = createVar();
+  const tokenPendingVar = createVar('tokenPending');
+  const pendingTokenTypeVar = createVar('pendingTokenType');
+  const nextOffsetVar = createVar('nextOffset');
+  const chunkLengthVar = createVar('chunkLength');
 
   const stagesEnabled = tree.stages.length !== 0;
   const stageVars: Var[] = [];
   const bindings: Binding[] = [];
 
   for (const stage of tree.stages) {
-    const stageVar = createVar();
+    const stageVar = createVar('stage');
     stageVars.push(stageVar);
     bindings.push([stageVar, stage]);
   }
 
-  const createRuleIteratorBranchesCode = (branches: RuleBranch<Type, Stage, Context>[], branchOffsetVar: Var): Code => {
-
-    const branchResultVar = createVar();
+  const createRuleIteratorBranchesCode = (branches: RuleBranch<any, any, any>[], branchOffsetVar: Var): Code => {
+    const branchResultVar = createVar('branchResult');
 
     const code: Code[] = ['var ', branchResultVar, ';'];
 
@@ -50,6 +66,7 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
       const { rule } = branch;
 
       // Read branch
+      // prettier-ignore
       code.push(
         createReaderCallCode(seq(...branch.readers), chunkVar, branchOffsetVar, contextVar, branchResultVar, bindings),
         'if(', branchResultVar, '>', branchOffsetVar, '){',
@@ -66,22 +83,37 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
         continue;
       }
 
-      const tokenTypeVar = createVar();
-      const nextStageVar = createVar();
-
       const { type: tokenType, to: nextStage, silent } = rule;
 
-      if (!silent) {
-        bindings.push([tokenTypeVar, tokenType]);
-      }
-      if (nextStage !== undefined) {
-        bindings.push([nextStageVar, nextStage]);
-      }
-
+      // prettier-ignore
       const valueProviderArgsCode: Code = ['(', chunkVar, ',', nextOffsetVar, ',', branchResultVar, '-', nextOffsetVar, ',', contextVar, ',', stateVar, ')'];
 
-      code.push([
+      let tokenTypeCode: Code = '';
+      let nextStageCode: Code = '';
 
+      if (!silent) {
+        tokenTypeCode = [tokenPendingVar, '=true;'];
+
+        if (tokenType !== undefined) {
+          const tokenTypeVar = createVar('tokenType');
+          bindings.push([tokenTypeVar, tokenType]);
+
+          // prettier-ignore
+          tokenTypeCode.push(pendingTokenTypeVar, '=', tokenTypeVar, isCallable(tokenType) ? valueProviderArgsCode : '', ';');
+        } else {
+          tokenTypeCode.push(pendingTokenTypeVar, '=undefined;');
+        }
+      }
+
+      if (nextStage !== undefined) {
+        const nextStageVar = createVar('nextStage');
+        bindings.push([nextStageVar, nextStage]);
+
+        nextStageCode = [stageVar, '=', nextStageVar, isCallable(nextStage) ? valueProviderArgsCode : '', ';'];
+      }
+
+      // prettier-ignore
+      code.push([
         // Emit confirmed token
         'if(', tokenPendingVar, '){',
         handlerVar, '(', pendingTokenTypeVar, ',', chunkVar, ',', offsetVar, ',', nextOffsetVar, '-', offsetVar, ',', contextVar, ',', stateVar, ');',
@@ -90,24 +122,20 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
         stagesEnabled ? [stateVar, '.stage=', stageVar, ';'] : '',
         stateVar, '.offset=', offsetVar, '=', nextOffsetVar, ';',
 
-        silent ? '' : [
-          tokenPendingVar, '=true;',
-          pendingTokenTypeVar, '=', tokenTypeVar, isFunction(tokenType) ? valueProviderArgsCode : '', ';',
-        ],
-
-        nextStage === undefined ? '' : [stageVar, '=', nextStageVar, isFunction(nextStage) ? valueProviderArgsCode : '', ';'],
+        tokenTypeCode,
+        nextStageCode,
 
         nextOffsetVar, '=', branchResultVar, ';',
 
         // Restart the looping over characters in the input chunk
         'continue}',
       ]);
-
     }
 
     return code;
   };
 
+  // prettier-ignore
   const code: Code = [
     'var ',
     stagesEnabled ? [stageVar, '=', stateVar, '.stage,'] : '',
@@ -148,5 +176,5 @@ export function compileRuleIterator<Type, Stage, Context>(tree: RuleTree<Type, S
     stateVar, '.offset=', nextOffsetVar, ';',
   ];
 
-  return compileFunction<RuleIterator<Type, Stage, Context>>([stateVar, handlerVar, contextVar, streamingVar], code, bindings);
+  return createCodeBindings(code, bindings);
 }

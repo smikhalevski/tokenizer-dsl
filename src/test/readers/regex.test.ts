@@ -1,14 +1,13 @@
-import { regex, RegexReader, toReaderFunction } from '../../main/readers';
+import { regex, toReaderFunction } from '../../main';
+import { RegexReader } from '../../main/readers/regex';
 
 describe('regex', () => {
-
   test('returns RegexReader', () => {
     expect(regex(/abc/)).toBeInstanceOf(RegexReader);
   });
 });
 
 describe('RegexReader', () => {
-
   test('reads text', () => {
     const read = toReaderFunction(new RegexReader(/abc/y));
 

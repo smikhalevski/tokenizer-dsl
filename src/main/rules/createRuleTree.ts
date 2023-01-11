@@ -1,29 +1,28 @@
-import { Reader, SeqReader } from '../readers';
+import { Reader } from '../readers';
 import { Rule } from './rule-types';
+import { SeqReader } from '../readers/seq';
 
 export interface RuleTree<Type, Stage, Context> {
-
   /**
    * The set of the unique stages at which rules are applied. May be empty if rules didn't define any stages.
    */
   stages: Stage[];
 
   /**
-   * The list of branches parallel to {@link stages}. May be empty if rules didn't define any stages.
+   * The list of branches parallel to {@linkcode stages}. May be empty if rules didn't define any stages.
    */
   branchesOnStage: RuleBranch<Type, Stage, Context>[][];
 
   /**
-   * The list of branches that are used if there are no stages and {@link branchesOnStage} is empty.
+   * The list of branches that are used if there are no stages and {@linkcode branchesOnStage} is empty.
    */
   branches: RuleBranch<Type, Stage, Context>[];
 }
 
 export interface RuleBranch<Type, Stage, Context> {
-
   /**
-   * The non-empty list of readers that should sequentially read chars from the input to proceed to {@link children}
-   * and/or {@link rule}.
+   * The non-empty list of readers that should sequentially read chars from the input to proceed to {@linkcode children}
+   * and/or {@linkcode rule}.
    */
   readers: Reader<Context>[];
 
@@ -41,7 +40,9 @@ export interface RuleBranch<Type, Stage, Context> {
 /**
  * Creates a tree that describes the most efficient way to apply tokenization rules.
  */
-export function createRuleTree<Type, Stage, Context>(rules: Rule<Type, Stage, Context>[]): RuleTree<Type, Stage, Context> {
+export function createRuleTree<Type, Stage, Context>(
+  rules: Rule<Type, Stage, Context>[]
+): RuleTree<Type, Stage, Context> {
   const stages: Stage[] = [];
 
   // Collect unique stages
@@ -63,7 +64,6 @@ export function createRuleTree<Type, Stage, Context>(rules: Rule<Type, Stage, Co
   }
 
   for (const rule of rules) {
-
     // Append the rule to branches
     if (rule.on) {
       for (const stage of rule.on) {
@@ -93,7 +93,10 @@ export function createRuleTree<Type, Stage, Context>(rules: Rule<Type, Stage, Co
  * @param rule The rule to append.
  * @returns The updated list of branches.
  */
-export function appendRule<Type, Stage, Context>(branches: RuleBranch<Type, Stage, Context>[], rule: Rule<Type, Stage, Context>): RuleBranch<Type, Stage, Context>[] {
+export function appendRule<Type, Stage, Context>(
+  branches: RuleBranch<Type, Stage, Context>[],
+  rule: Rule<Type, Stage, Context>
+): RuleBranch<Type, Stage, Context>[] {
   const { reader } = rule;
 
   distributeRule(branches, reader instanceof SeqReader ? reader.readers : [reader], rule);
@@ -101,12 +104,14 @@ export function appendRule<Type, Stage, Context>(branches: RuleBranch<Type, Stag
   return branches;
 }
 
-function distributeRule<Type, Stage, Context>(branches: RuleBranch<Type, Stage, Context>[], readers: Reader<Context>[], rule: Rule<Type, Stage, Context>): void {
-
+function distributeRule<Type, Stage, Context>(
+  branches: RuleBranch<Type, Stage, Context>[],
+  readers: Reader<Context>[],
+  rule: Rule<Type, Stage, Context>
+): void {
   const readersLength = readers.length;
 
   for (let i = 0; i < branches.length; ++i) {
-
     let branch = branches[i];
 
     const branchReaders = branch.readers;
@@ -125,7 +130,6 @@ function distributeRule<Type, Stage, Context>(branches: RuleBranch<Type, Stage, 
     }
 
     if (j === branchReadersLength) {
-
       if (branch.rule) {
         // Absorbed by the preceding rule
         return;
@@ -149,7 +153,7 @@ function distributeRule<Type, Stage, Context>(branches: RuleBranch<Type, Stage, 
           readers: branchReaders.slice(j),
           children: branch.children,
           rule: branch.rule,
-        }
+        },
       ],
     };
 

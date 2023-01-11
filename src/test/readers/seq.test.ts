@@ -1,7 +1,7 @@
-import { never, none, Reader, seq, SeqReader, text, toReaderFunction } from '../../main/readers';
+import { never, none, Reader, seq, text, toReaderFunction } from '../../main';
+import { SeqReader } from '../../main/readers/seq';
 
 describe('seq', () => {
-
   test('returns none', () => {
     expect(seq()).toBe(none);
   });
@@ -22,7 +22,6 @@ describe('seq', () => {
 });
 
 describe('SeqReader', () => {
-
   test('fails if any of readers fail', () => {
     const readerMock = jest.fn();
     readerMock.mockReturnValueOnce(4);

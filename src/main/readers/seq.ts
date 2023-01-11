@@ -1,19 +1,16 @@
-import { Binding, Code, CodeBindings, Var } from 'codedegen';
-import { createVar } from '../utils';
+import { Binding, Code, createVar, Var } from 'codedegen';
 import { never } from './never';
 import { none } from './none';
-import { Reader, ReaderCodegen } from './reader-types';
+import { CodeBindings, Reader, ReaderCodegen } from './reader-types';
 import { createCodeBindings, createReaderCallCode } from './reader-utils';
 
 /**
  * Creates a reader that applies readers one after another.
  *
  * @param readers Readers that are called.
- *
  * @template Context The context passed by tokenizer.
  */
 export function seq<Context = any>(...readers: Reader<Context>[]): Reader<Context> {
-
   const children: Reader<Context>[] = [];
 
   for (const reader of readers) {
@@ -39,18 +36,18 @@ export function seq<Context = any>(...readers: Reader<Context>[]): Reader<Contex
 }
 
 export class SeqReader<Context> implements ReaderCodegen {
-
-  constructor(public readers: Reader<Context>[]) {
-  }
+  constructor(public readers: Reader<Context>[]) {}
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const { readers } = this;
 
-    const indexVar = createVar();
-    const readerResultVar = createVar();
+    const indexVar = createVar('index');
+    const readerResultVar = createVar('readerResult');
 
     const readersLength = readers.length;
     const bindings: Binding[] = [];
+
+    // prettier-ignore
     const code: Code[] = [
       resultVar, '=-1;',
 
@@ -60,6 +57,7 @@ export class SeqReader<Context> implements ReaderCodegen {
     ];
 
     for (let i = 0; i < readersLength; ++i) {
+      // prettier-ignore
       code.push(
         createReaderCallCode(readers[i], inputVar, indexVar, contextVar, readerResultVar, bindings),
         'if(', readerResultVar, '>=', indexVar, '){',

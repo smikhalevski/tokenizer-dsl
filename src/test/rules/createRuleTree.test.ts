@@ -1,8 +1,7 @@
-import { seq } from '../../main';
-import { appendRule, createRuleTree, Rule, RuleBranch, RuleTree } from '../../main/rules';
+import { Rule, seq } from '../../main';
+import { appendRule, createRuleTree, RuleBranch, RuleTree } from '../../main/rules/createRuleTree';
 
 describe('createRuleTree', () => {
-
   test('appends a single rule to the default stage', () => {
     const reader1 = () => 0;
     const reader2 = () => 0;
@@ -32,10 +31,12 @@ describe('createRuleTree', () => {
     const ruleIterationPlan: RuleTree<any, any, any> = {
       stages: ['STAGE_A'],
       branchesOnStage: [
-        [{
-          readers: [reader1, reader2],
-          rule,
-        }],
+        [
+          {
+            readers: [reader1, reader2],
+            rule,
+          },
+        ],
       ],
       branches: [],
     };
@@ -54,19 +55,21 @@ describe('createRuleTree', () => {
     const ruleIterationPlan: RuleTree<any, any, any> = {
       stages: ['STAGE_A'],
       branchesOnStage: [
-        [{
-          readers: [reader1],
-          children: [
-            {
-              readers: [reader12],
-              rule: rule1,
-            },
-            {
-              readers: [reader22],
-              rule: rule2,
-            },
-          ],
-        }],
+        [
+          {
+            readers: [reader1],
+            children: [
+              {
+                readers: [reader12],
+                rule: rule1,
+              },
+              {
+                readers: [reader22],
+                rule: rule2,
+              },
+            ],
+          },
+        ],
       ],
       branches: [],
     };
@@ -86,15 +89,19 @@ describe('createRuleTree', () => {
       stages: ['STAGE_A', 'STAGE_B'],
       branchesOnStage: [
         // STAGE_A
-        [{
-          readers: [reader1, reader12],
-          rule: rule1,
-        }],
+        [
+          {
+            readers: [reader1, reader12],
+            rule: rule1,
+          },
+        ],
         // STAGE_B
-        [{
-          readers: [reader1, reader22],
-          rule: rule2,
-        }],
+        [
+          {
+            readers: [reader1, reader22],
+            rule: rule2,
+          },
+        ],
       ],
       branches: [],
     };
@@ -113,24 +120,28 @@ describe('createRuleTree', () => {
     const ruleIterationPlan: RuleTree<any, any, any> = {
       stages: ['STAGE_A'],
       branchesOnStage: [
-        [{
-          readers: [reader1],
-          children: [
-            {
-              readers: [reader12],
-              rule: rule1,
-            },
-            {
-              readers: [reader22],
-              rule: rule2,
-            },
-          ],
-        }],
+        [
+          {
+            readers: [reader1],
+            children: [
+              {
+                readers: [reader12],
+                rule: rule1,
+              },
+              {
+                readers: [reader22],
+                rule: rule2,
+              },
+            ],
+          },
+        ],
       ],
-      branches: [{
-        readers: [reader1, reader22],
-        rule: rule2,
-      }],
+      branches: [
+        {
+          readers: [reader1, reader22],
+          rule: rule2,
+        },
+      ],
     };
 
     expect(createRuleTree([rule1, rule2])).toEqual(ruleIterationPlan);
@@ -138,7 +149,6 @@ describe('createRuleTree', () => {
 });
 
 describe('appendRule', () => {
-
   test('appends a single rule', () => {
     const reader1 = () => 0;
     const reader2 = () => 0;
@@ -197,7 +207,7 @@ describe('appendRule', () => {
             readers: [reader21],
             rule: rule2,
           },
-        ]
+        ],
       },
     ];
 

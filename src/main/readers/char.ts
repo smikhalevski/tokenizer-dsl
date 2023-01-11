@@ -1,7 +1,7 @@
-import { Code, CodeBindings, Var } from 'codedegen';
-import { createVar, die } from '../utils';
+import { Code, createVar, Var } from 'codedegen';
+import { die } from '../utils';
 import { none } from './none';
-import { Reader, ReaderCodegen } from './reader-types';
+import { CodeBindings, Reader, ReaderCodegen } from './reader-types';
 import { createCodeBindings, toCharCodes } from './reader-utils';
 
 export type CharRange = string | number | [number | string, number | string];
@@ -13,8 +13,7 @@ export type CharCodeRange = number | [number, number];
  *
  * @param chars An array of strings (each char from string is used for matching), char codes, or tuples of lower/upper
  * chars (or char codes) that define an inclusive range of codes.
- *
- * @see {@link text}
+ * @see {@linkcode text}
  */
 export function char(chars: CharRange[]): Reader<any> {
   const charCodeRanges: CharCodeRange[] = [];
@@ -37,13 +36,12 @@ export function char(chars: CharRange[]): Reader<any> {
 }
 
 export class CharCodeRangeReader implements ReaderCodegen {
-
-  constructor(public charCodeRanges: CharCodeRange[]) {
-  }
+  constructor(public charCodeRanges: CharCodeRange[]) {}
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-    const charCodeVar = createVar();
+    const charCodeVar = createVar('charCode');
 
+    // prettier-ignore
     return createCodeBindings([
       'var ', charCodeVar, ';',
 

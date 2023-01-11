@@ -1,16 +1,14 @@
-import { Binding, CodeBindings, Var } from 'codedegen';
-import { createVar } from '../utils';
+import { Binding, createVar, Var } from 'codedegen';
 import { CharCodeRange, CharCodeRangeReader, createCharPredicateCode } from './char';
 import { never } from './never';
 import { none } from './none';
-import { Reader, ReaderCodegen } from './reader-types';
+import { CodeBindings, Reader, ReaderCodegen } from './reader-types';
 import { createCodeBindings, createReaderCallCode } from './reader-utils';
 import { CaseSensitiveTextReader } from './text';
 
 export interface UntilOptions {
-
   /**
-   * If set to `true` then chars matched by `reader` are included in result.
+   * If set to `true` then chars matched by `reader` are included in the result.
    *
    * @default false
    */
@@ -26,7 +24,6 @@ export interface UntilOptions {
  * @template Context The context passed by tokenizer.
  */
 export function until<Context = any>(reader: Reader<Context>, options: UntilOptions = {}): Reader<Context> {
-
   const { inclusive = false } = options;
 
   if (reader === never || reader === none) {
@@ -47,16 +44,14 @@ export function until<Context = any>(reader: Reader<Context>, options: UntilOpti
 }
 
 export class UntilCharCodeRangeReader implements ReaderCodegen {
-
-  constructor(public charCodeRanges: CharCodeRange[], public inclusive: boolean) {
-  }
+  constructor(public charCodeRanges: CharCodeRange[], public inclusive: boolean) {}
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
+    const inputLengthVar = createVar('inputLength');
+    const indexVar = createVar('index');
+    const charCodeVar = createVar('charCode');
 
-    const inputLengthVar = createVar();
-    const indexVar = createVar();
-    const charCodeVar = createVar();
-
+    // prettier-ignore
     return createCodeBindings([
       resultVar, '=-1;',
 
@@ -76,16 +71,15 @@ export class UntilCharCodeRangeReader implements ReaderCodegen {
 }
 
 export class UntilCaseSensitiveTextReader implements ReaderCodegen {
-
-  constructor(public str: string, public inclusive: boolean) {
-  }
+  constructor(public str: string, public inclusive: boolean) {}
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const { str } = this;
 
-    const strVar = createVar();
-    const indexVar = createVar();
+    const strVar = createVar('str');
+    const indexVar = createVar('index');
 
+    // prettier-ignore
     return createCodeBindings(
       [
         'var ', indexVar, '=', inputVar, '.indexOf(', strVar, ',', offsetVar, ');',
@@ -97,16 +91,14 @@ export class UntilCaseSensitiveTextReader implements ReaderCodegen {
 }
 
 export class UntilReader<Context> implements ReaderCodegen {
-
-  constructor(public reader: Reader<Context>, public inclusive: boolean) {
-  }
+  constructor(public reader: Reader<Context>, public inclusive: boolean) {}
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
-
-    const indexVar = createVar();
-    const readerResultVar = createVar();
+    const indexVar = createVar('index');
+    const readerResultVar = createVar('readerResult');
     const bindings: Binding[] = [];
 
+    // prettier-ignore
     return createCodeBindings(
       [
         resultVar, '=-1;',

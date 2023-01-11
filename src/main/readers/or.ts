@@ -1,18 +1,16 @@
-import { Binding, Code, CodeBindings, Var } from 'codedegen';
+import { Binding, Code, Var } from 'codedegen';
 import { never } from './never';
 import { none } from './none';
-import { Reader, ReaderCodegen } from './reader-types';
+import { CodeBindings, Reader, ReaderCodegen } from './reader-types';
 import { createCodeBindings, createReaderCallCode } from './reader-utils';
 
 /**
  * Creates a reader that returns the result of the first matched reader.
  *
  * @param readers Readers that are called.
- *
  * @template Context The context passed by tokenizer.
  */
 export function or<Context = any>(...readers: Reader<Context>[]): Reader<Context> {
-
   const children: Reader<Context>[] = [];
 
   for (const reader of readers) {
@@ -38,9 +36,7 @@ export function or<Context = any>(...readers: Reader<Context>[]): Reader<Context
 }
 
 export class OrReader<Context> implements ReaderCodegen {
-
-  constructor(public readers: Reader<Context>[]) {
-  }
+  constructor(public readers: Reader<Context>[]) {}
 
   factory(inputVar: Var, offsetVar: Var, contextVar: Var, resultVar: Var): CodeBindings {
     const { readers } = this;

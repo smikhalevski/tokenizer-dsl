@@ -5,7 +5,7 @@ The API for building streaming tokenizers and lexers.
 - [2× faster than `RegExp`-based alternatives](#performance);
 - [3 kB gzipped](https://bundlephobia.com/result?p=tokenizer-dsl) including dependencies;
 - Supports streaming out of the box;
-- No heap allocations during tokenization;
+- No memory allocations during tokenization;
 - Tokenizer is compiled to a single highly-optimized function.
 
 🔥&ensp;[**Try this example live on CodeSandbox**](https://codesandbox.io/s/tokenizer-dsl-s945yv)
@@ -16,7 +16,7 @@ npm install --save-prod tokenizer-dsl
 
 - [Usage](#usage)
 - [Built-in readers](#built-in-readers)<br>
-  [`text`](#text) [`char`](#char) [`regex`](#regex) [`all`](#all) [`seq`](#seq) [`or`](#or) [`skip`](#skip) [`until`](#until) [`end`](#end) [`lookahead`](#lookahead) [`maybe`](#maybe) [`never`](#never) [`none`](#none)
+  [`text`](#text) [`char`](#char) [`regex`](#regex) [`all`](#all) [`seq`](#seq) [`or`](#or) [`skip`](#skip) [`until`](#until) [`end`](#end) [`lookahead`](#lookahead) [`optional`](#optional) [`never`](#never) [`none`](#none)
 - [Functional readers](#functional-readers)
     - [Recursive readers](#recursive-readers)
 - [Code-generated readers](#code-generated-readers)
@@ -25,6 +25,7 @@ npm install --save-prod tokenizer-dsl
     - [Silent rules](#silent-rules)
 - [Streaming](#streaming)
 - [Context](#context)
+- [Standalone tokenizers](#standalone-tokenizers)
 - [Performance](#performance)
 
 # Usage
@@ -43,9 +44,9 @@ To tokenize this string we first need to describe readers that would read chars 
 The reader for semicolons is pretty straightforward:
 
 ```ts
-import { text } from 'tokenizer-dsl';
+import * as t from 'tokenizer-dsl';
 
-const semicolonReader = text(';');
+const semicolonReader = t.text(';');
 ```
 
 The regular expression equivalent for `semicolonReader` is `/;/y`.
@@ -54,11 +55,9 @@ To read a sequence of whitespaces or lowercase-alpha chars we would use the comb
 [`char`](#char) readers:
 
 ```ts
-import { all, char } from 'tokenizer-dsl';
+const whitespaceReader = t.all(t.char([' \t\n\r']));
 
-const whitespaceReader = all(char([' \t\n\r']));
-
-const alphaReader = all(char([['a', 'z']]), { minimumCount: 1 });
+const alphaReader = t.all(t.char([['a', 'z']]), { minimumCount: 1 });
 ```
 
 The regular expression equivalent for `whitespaceReader` is `/[ \t\n\r]*/y`, and for `alphaReader` it is `/[a-z]+/y`.
@@ -66,34 +65,32 @@ The regular expression equivalent for `whitespaceReader` is `/[ \t\n\r]*/y`, and
 To read a signed floating-point number we need a combination of multiple readers:
 
 ```ts
-import { all, char, maybe, or, seq, text } from 'tokenizer-dsl';
+const zeroReader = t.text('0');
 
-const zeroReader = text('0');
+const leadingDigitReader = t.char([['1', '9']]);
 
-const leadingDigitReader = char([['1', '9']]);
+const digitsReader = t.all(t.char([['0', '9']]));
 
-const digitsReader = all(char([['0', '9']]));
+const dotReader = t.text('.');
 
-const dotReader = text('.');
+const signReader = t.char(['+-']);
 
-const signReader = char(['+-']);
-
-const numberReader = seq(
+const numberReader = t.seq(
   // sign
-  maybe(signReader),
+  t.optional(signReader),
 
   // integer
-  or(
+  t.or(
     zeroReader,
-    seq(
+    t.seq(
       leadingDigitReader,
       digitsReader
     )
   ),
 
   // fraction
-  maybe(
-    seq(
+  t.optional(
+    t.seq(
       dotReader,
       digitsReader
     )
@@ -106,25 +103,23 @@ The `numberReader` works the same way as `/[-+]?(?:0|[1-9]\d*)(?:\.\d*)?/y`.
 Now, after we defined all required readers, we can define a set of [tokenization rules](#rules):
 
 ```ts
-import { Rule } from 'tokenizer-dsl';
-
-const semicolonRule: Rule = {
-  type: 'SEMICOLON',
+const semicolonRule: t.Rule = {
+  type: 'semicolon',
   reader: semicolonReader,
 };
 
-const whitespaceRule: Rule = {
-  type: 'WHITESPACE',
+const whitespaceRule: t.Rule = {
+  type: 'whitespace',
   reader: whitespaceReader,
 };
 
-const alphaRule: Rule = {
-  type: 'ALPHA',
+const alphaRule: t.Rule = {
+  type: 'alpha',
   reader: alphaReader,
 };
 
-const numberRule: Rule = {
-  type: 'NUMBER',
+const numberRule: t.Rule = {
+  type: 'number',
   reader: numberReader,
 };
 ```
@@ -136,9 +131,7 @@ const numberRule: Rule = {
 The next step is to create a tokenizer that uses our rules:
 
 ```ts
-import { createTokenizer } from 'tokenizer-dsl';
-
-const tokenize = createTokenizer([
+const tokenize = t.createTokenizer([
   semicolonRule,
   whitespaceRule,
   alphaRule,
@@ -151,9 +144,7 @@ const tokenize = createTokenizer([
 As the last step, we should call a tokenizer and provide it an input and a token handler:
 
 ```ts
-import { TokenHandler } from 'tokenizer-dsl';
-
-const handler: TokenHandler = (type, input, offset, length, context, state) => {
+const handler: t.TokenHandler = (type, input, offset, length, context, state) => {
   console.log(type, '"' + input.substr(offset, length) + '"');
 };
 
@@ -163,21 +154,21 @@ tokenize('123.456; aaa; +777; bbb; -42', handler);
 The console output would be:
 
 ```
-NUMBER "123.456"
-SEMICOLON ";"
-WHITESPACE " "
-ALPHA "aaa"
-SEMICOLON ";"
-WHITESPACE " "
-NUMBER "+777"
-SEMICOLON ";"
-WHITESPACE " "
-NUMBER "-42"
+number "123.456"
+semicolon ";"
+whitespace " "
+alpha "aaa"
+semicolon ";"
+whitespace " "
+number "+777"
+semicolon ";"
+whitespace " "
+number "-42"
 ```
 
 # Built-in readers
 
-### `text(substring, options?)`<a name="text"></a>
+## `text(substring, options?)`<a name="text"></a>
 
 Reads the case-sensitive `substring` from the input:
 
@@ -193,7 +184,7 @@ You can optionally specify that text must be case-insensitive:
 text('bar', { caseInsensitive: true });
 ```
 
-### `char(chars)`<a name="char"></a>
+## `char(chars)`<a name="char"></a>
 
 Reads a single char from the string. You should provide an array of strings, char codes or char ranges.
 
@@ -216,7 +207,7 @@ You can specify a pair of char codes or strings that denote a char range:
 char([['a', 'z'], [65, 90]]);
 ```
 
-### `regex(pattern)`<a name="regex"></a>
+## `regex(pattern)`<a name="regex"></a>
 
 Reads substring using the `RegExp` pattern:
 
@@ -227,7 +218,7 @@ regex(/0|[1-9]\d*/y);
 
 If you don't specify `g` or `y` flags on the `RegExp`, then `y` is implicitly added.
 
-### `all(reader, options?)`<a name="all"></a>
+## `all(reader, options?)`<a name="all"></a>
 
 Applies `reader` until it can read from the input:
 
@@ -243,7 +234,7 @@ You can optionally specify the number of entries the `reader` must read to consi
 all(char([['0', '9']]), { minimumCount: 1, maximumCount: 10 });
 ```
 
-### `seq(...readers)`<a name="seq"></a>
+## `seq(...readers)`<a name="seq"></a>
 
 Applies readers one after another sequentially:
 
@@ -255,7 +246,7 @@ seq(
 );
 ```
 
-### `or(...readers)`<a name="or"></a>
+## `or(...readers)`<a name="or"></a>
 
 Returns the offset returned by the first successfully applied reader:
 
@@ -267,7 +258,7 @@ or(
 );
 ```
 
-### `skip(count)`<a name="skip"></a>
+## `skip(count)`<a name="skip"></a>
 
 Skips the given number of chars without reading:
 
@@ -276,7 +267,7 @@ Skips the given number of chars without reading:
 skip(5);
 ```
 
-### `until(reader, options?)`<a name="until"></a>
+## `until(reader, options?)`<a name="until"></a>
 
 Repeatedly applies `reader` until it successfully reads chars from the string. If `reader` failed to read chars then
 returns -1.
@@ -302,7 +293,7 @@ or(
 );
 ````
 
-### `end(offset?)`<a name="end"></a>
+## `end(offset?)`<a name="end"></a>
 
 Skips all chars until the end of the input. You can optionally provide the offset from the input end.
 
@@ -311,7 +302,7 @@ Skips all chars until the end of the input. You can optionally provide the offse
 end(-1);
 ```
 
-### `lookahead(reader)`<a name="lookahead"></a>
+## `lookahead(reader)`<a name="lookahead"></a>
 
 This is the same as [lookahead from the regular expressions](https://www.regular-expressions.info/lookaround.html). It
 returns the current offset if `reader` successfully reads chars from the input at current offset.
@@ -324,23 +315,23 @@ seq(
 );
 ```
 
-### `maybe(reader)`<a name="maybe"></a>
+## `optional(reader)`<a name="optional"></a>
 
 Returns the current offset if the `reader` failed to read chars:
 
 ```ts
 // Reads 'foo-bar' and 'bar'
 seq(
-  maybe(text('foo-')),
+  optional(text('foo-')),
   text('bar')
 );
 ```
 
-### `never`
+## `never`
 
 The singleton reader that always returns -1.
 
-### `none`
+## `none`
 
 The singleton reader that always returns the current offset.
 
@@ -355,9 +346,9 @@ the `input`, or an integer less than `offset` to indicate that nothing was read.
 Let's create a custom reader:
 
 ```ts
-import { Reader } from 'tokenizer-dsl';
+import * as t from 'tokenizer-dsl';
 
-const fooReader: Reader = (input, offset) => {
+const fooReader: t.Reader = (input, offset) => {
   return input.startsWith('foo', offset) ? offset + 3 : -1;
 };
 ```
@@ -368,10 +359,10 @@ the substring ends. Or returns -1 to indicate that the reading didn't succeed.
 We can combine `fooReader` with any built-in reader. For example, to read chars until `'foo'` is met:
 
 ```ts
-import { until } from 'tokenizer-dsl';
+import * as t from 'tokenizer-dsl';
 
 // Reads until 'foo' substring is met
-until(fooReader);
+t.until(fooReader);
 ```
 
 ## Recursive readers
@@ -379,12 +370,14 @@ until(fooReader);
 You can create recursive functional readers:
 
 ```ts
-import { toReaderFunction } from 'tokenizer-dsl';
+import * as t from 'tokenizer-dsl';
 
-const fooReader = toReaderFunction(seq(
-  text('-'),
-  maybe((input, offset) => fooReader(input, offset))
-));
+const fooReader = t.toReaderFunction(
+  t.seq(
+    t.text('-'),
+    t.optional((input, offset) => fooReader(input, offset))
+  )
+);
 ```
 
 # Code-generated readers
@@ -395,10 +388,9 @@ readers as a code factories.
 Let's recreate the reader from the previous section with the codegen approach:
 
 ```ts
-import { Reader } from 'tokenizer-dsl';
+import * as t from 'tokenizer-dsl';
 
-const fooReader: Reader = {
-
+const fooReader: t.Reader = {
   factory(inputVar, offsetVar, contextVar, resultVar) {
     return {
       code: [
@@ -425,13 +417,9 @@ To demonstrate how to use bindings, let's write a reader factory that would allo
 like [`text`](#text) reader does:
 
 ```ts
-import { Reader } from 'tokenizer-dsl';
-
-function createStrReader(str: string): Reader {
+function createStrReader(str: string): t.Reader {
   return {
-
     factory(inputVar, offsetVar, contextVar, resultVar) {
-
       // Create a variable placeholder
       const strVar = Symbol();
 
@@ -452,29 +440,22 @@ function createStrReader(str: string): Reader {
 We can combine `createStrReader` with any built-in reader. For example, to read all sequential substrings in the input:
 
 ```ts
-import { all } from 'tokenizer-dsl';
-
 // Reads consequent 'foo' substrings
-all(createStrReader('foo'));
+t.all(createStrReader('foo'));
 ```
 
 You can introduce custom variables inside a code template. Here is an example of a reader that reads zero-or-more lower
 alpha chars from the string using a `for` loop:
 
 ```ts
-import { Reader } from 'tokenizer-dsl';
-
-const lowerAlphaReader: Reader = {
-
+const lowerAlphaReader: t.Reader = {
   factory(inputVar, offsetVar, contextVar, resultVar) {
-
     // Create a variable placeholders
     const indexVar = Symbol();
     const charCodeVar = Symbol();
 
     return {
       code: [
-
         // Start reading from the offset
         'var ', indexVar, '=', offsetVar, ';',
 
@@ -509,9 +490,9 @@ Rules define how tokens are emitted when successfully read from the input by rea
 The most basic rule only defines a reader:
 
 ```ts
-import { Rule } from 'tokenizer-dsl';
+import * as t from 'tokenizer-dsl';
 
-const fooRule: Rule = {
+const fooRule: t.Rule = {
   reader: text('foo')
 };
 ```
@@ -519,7 +500,7 @@ const fooRule: Rule = {
 To use a rule, create a new tokenizer:
 
 ```ts
-const tokenize = createTokenizer([fooRule]);
+const tokenize = t.createTokenizer([fooRule]);
 ```
 
 Now you can read inputs that consist of any number of `'foo'` substrings:
@@ -534,29 +515,28 @@ Most of the time you have more than one token type in your input. Here the `type
 value of this property would be passed to the handler as the first argument.
 
 ```ts
-import { Rule } from 'tokenizer-dsl';
+import * as t from 'tokenizer-dsl';
 
 type MyTokenType = 'FOO' | 'BAR';
 
 // You can specify token types to enhance typing
-const fooRule: Rule<MyTokenType> = {
+const fooRule: t.Rule<MyTokenType> = {
   type: 'FOO',
-  reader: text('foo')
+  reader: t.text('foo')
 };
 
-const barRule: Rule<MyTokenType> = {
+const barRule: t.Rule<MyTokenType> = {
   type: 'BAR',
-  reader: text('bar')
+  reader: t.text('bar')
 };
 
-const tokenize = createTokenizer([
+const tokenize = t.createTokenizer([
   fooRule,
   barRule
 ]);
 
 tokenize('foofoobarfoobar', (type, input, offset, length, context) => {
   switch (type) {
-
     case 'FOO':
       // Process the FOO token here
       break;
@@ -573,35 +553,35 @@ tokenize('foofoobarfoobar', (type, input, offset, length, context) => {
 You can put rules on different stages to control how they are applied.
 
 In the previous example we created a tokenizer that reads `'foo'` and `'bar'` in any order. Let's create a tokenizer
-that restricts an order in which `'foo'` and `'bar'` should be met.
+that restricts the order in which `'foo'` and `'bar'` should be met.
 
 ```ts
-import { Rule } from 'tokenizer-dsl';
+import * as t from 'tokenizer-dsl';
 
 type MyTokenType = 'FOO' | 'BAR';
 
 type MyStage = 'start' | 'foo' | 'bar';
 
-const fooRule: Rule<MyTokenType, MyStage> = {
+const fooRule: t.Rule<MyTokenType, MyStage> = {
+  type: 'FOO',
+  reader: t.text('foo'),
 
   // Rule would be applied on stages 'start' and 'bar'
   on: ['start', 'bar'],
-  type: 'FOO',
-  reader: text('foo'),
 
-  // If rule is successfully applied then tokenizer would
+  // If rule is successfully applied then the tokenizer would
   // transition to the 'foo' stage
   to: 'foo'
 };
 
-const barRule: Rule<MyTokenType, MyStage> = {
-  on: ['start', 'foo'],
+const barRule: t.Rule<MyTokenType, MyStage> = {
   type: 'BAR',
-  reader: text('bar'),
+  reader: t.text('bar'),
+  on: ['start', 'foo'],
   to: 'bar'
 };
 
-const tokenize = createTokenizer(
+const tokenize = t.createTokenizer(
   [
     fooRule,
     barRule
@@ -622,27 +602,27 @@ type MyTokenType = 'FOO' | 'BAR' | 'SPACE';
 
 type MyStage = 'start' | 'foo' | 'bar';
 
-const fooRule: Rule<MyTokenType, MyStage> = {
-  on: ['start', 'bar'],
+const fooRule: t.Rule<MyTokenType, MyStage> = {
   type: 'FOO',
-  reader: text('foo'),
+  reader: t.text('foo'),
+  on: ['start', 'bar'],
   to: 'foo'
 };
 
-const barRule: Rule<MyTokenType, MyStage> = {
-  on: ['start', 'foo'],
+const barRule: t.Rule<MyTokenType, MyStage> = {
   type: 'BAR',
-  reader: text('bar'),
+  reader: t.text('bar'),
+  on: ['start', 'foo'],
   to: 'bar'
 };
 
 // Rule would be applied on all stages: 'start', 'foo', and 'bar'
-const spaceReader: Rule<MyTokenType, MyStage> = {
+const spaceReader: t.Rule<MyTokenType, MyStage> = {
   type: 'SPACE',
-  reader: all(char([' '])),
+  reader: t.all(t.char([' '])),
 };
 
-const tokenize = createTokenizer(
+const tokenize = t.createTokenizer(
   [
     fooRule,
     barRule,
@@ -657,10 +637,10 @@ This tokenizer would successfully process `' foo bar foo bar '` input.
 You can provide a callback that returns the next stage:
 
 ```ts
-const barRule: Rule<MyTokenType, MyStage> = {
+const barRule: t.Rule<MyTokenType, MyStage> = {
   on: ['start', 'foo'],
   type: 'BAR',
-  reader: text('bar'),
+  reader: t.text('bar'),
 
   to(offset, length, context, state) {
     // Return the next stage
@@ -675,7 +655,9 @@ Some tokens don't have any semantics that you want to process. In this case, you
 token from being emitted.
 
 ```ts
-const whitespaceRule: Rule = {
+import * as t from 'tokenizer-dsl';
+
+const whitespaceRule: t.Rule = {
   reader: all(char([' \t\r\n'])),
   silent: true
 };
@@ -687,7 +669,9 @@ Compiled tokenizer supports streaming out of the box. Let's refer to the tokeniz
 the [Usage](#usage) chapter:
 
 ```ts
-const tokenize = createTokenizer([
+import * as t from 'tokenizer-dsl';
+
+const tokenize = t.createTokenizer([
   semicolonRule,
   whitespaceRule,
   alphaRule,
@@ -722,22 +706,105 @@ Custom readers may require a custom state. You can provide the context to the to
 readers as a third argument:
 
 ```ts
-import { createTokenizer, Reader } from 'tokenizer-dsl';
+import * as t from 'tokenizer-dsl';
 
 // Define a reader that uses a context
-const fooReader: Reader<{ bar: number }> = (input, offset, context) => {
+const fooReader: t.Reader<{ bar: number }> = (input, offset, context) => {
   console.log(context.bar);
   return -1;
 };
 
 // Compile a tokenizer
-const tokenizer = createTokenizer([
+const tokenizer = t.createTokenizer([
+  // A rule that uses a fooReader
   { reader: fooReader }
 ]);
 
 // Pass the context value
 tokenizer('foobar', handler, { bar: 123 });
 ```
+
+# Standalone tokenizers
+
+`eval` and `Function` can be prohibited in some environments. To use a tokenizer in such circumstances you can generate
+a pre-compiled rule iterator:
+
+```ts
+import fs from 'fs';
+import * as t from 'tokenizer-dsl';
+
+const moduleSource = t.compileRuleIteratorModule(
+  [
+    { reader: t.char(['a']) },
+  ],
+  { typingsEnabled: true }
+);
+
+fs.writeFileSync('./ruleIterator.ts', moduleSource);
+```
+
+Then, at runtime, you can import it and create a tokenizer:
+
+```ts
+import * as t from 'tokenizer-dsl';
+import ruleIterator from './ruleIterator';
+
+const tokenizer = t.createTokenizerForRuleIterator(ruleIterator);
+```
+
+If you need to use [a functional reader](#functional-readers) in a generated tokenizer, use `externalValue` declaration
+that would be output as an `import` statement.
+
+```ts
+t.compileTokenizerModule(
+  [
+    { reader: t.externalValue('./super-reader') },
+  ],
+  { typingsEnabled: true }
+);
+```
+
+<details>
+<summary><b>Preview of the generated module code</b></summary>
+<p>
+
+Code is formatted manually, for readability purposes.
+
+```ts
+import type { RuleIterator } from 'tokenizer-dsl';
+import e from './super-reader';
+
+const f: RuleIterator<any, any, any> = function (a, b, c, d) {
+  var g = a.chunk, h = a.offset, i = false, j, k = h, l = g.length;
+  while (k < l) {
+    var m;
+    m = e(g, k, c);
+
+    if (m > k) {
+      if (i) {
+        b(j, g, h, k - h, c, a);
+        i = false;
+      }
+      a.offset = h = k;
+      i = true;
+      j = undefined;
+      k = m;
+      continue;
+    }
+    break;
+  }
+  if (d) return;
+  if (i) {
+    b(j, g, h, k - h, c, a);
+  }
+  a.offset = k;
+};
+
+export default f;
+```
+
+</p>
+</details>
 
 # Performance
 
@@ -770,8 +837,8 @@ Tokenizer performance comes from following implementation aspects:
   until substring `'abc'` is met. An analog of this is `/(?=abc)/`. Tokenizer uses `input.indexOf('abc')` for the
   substring search, which is 2× faster than using a regular expression.
 
-- All readers (except `regex`) rely solely on `String.prototype.charCodeAt` and `String.prototype.indexOf` methods. This
-  dramatically reduces memory allocations, since no strings or other objects are created on heap.
+- All readers (except `regex`) rely solely on `charCodeAt` and `indexOf` methods of string. This dramatically reduces
+  memory allocations, since no strings or other objects are created on heap.
 
 - Tokenizer compiles provided rules into a single function. No call stack overhead.
 

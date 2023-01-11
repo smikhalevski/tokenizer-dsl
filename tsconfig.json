@@ -1,13 +1,11 @@
 {
   "compilerOptions": {
-    "declaration": true,
     "moduleResolution": "Node",
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "strict": true,
     "target": "ES5",
-    "module": "ES6",
-    "rootDir": "./src/main",
-    "outDir": "./lib",
+    "module": "ESNext",
     "lib": [
       "ES5",
       "ES2015.Symbol",
@@ -15,6 +13,7 @@
     ]
   },
   "include": [
-    "./src/main/**/*"
+    "rollup.config.ts",
+    "./src/**/*"
   ]
 }
